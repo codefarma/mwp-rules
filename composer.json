@@ -1,0 +1,11 @@
+{
+    "name": "mwp/rules",
+    "description": "MWP Rules",
+    "type": "project",
+    "require": {},
+	"autoload": {
+		"psr-4": {
+		  "MWP\\Rules\\": "classes/"
+		}
+	}
+}
