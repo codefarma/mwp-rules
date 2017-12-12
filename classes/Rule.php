@@ -422,6 +422,9 @@ class Rule extends ActiveRecord
 							if ( $action->enabled )
 							{
 								call_user_func_array( array( $action, 'invoke' ), $args );
+								if ( $this->event_type == 'filter' ) {
+									$args[0] = $this->filtered_values[ $this->event()->thread ];
+								}
 							}
 							else
 							{
@@ -468,6 +471,9 @@ class Rule extends ActiveRecord
 							if ( $action->enabled )
 							{
 								call_user_func_array( array( $action, 'invoke' ), $args );
+								if ( $this->event_type == 'filter' ) {
+									$args[0] = $this->filtered_values[ $this->event()->thread ];
+								}
 							}
 							else
 							{

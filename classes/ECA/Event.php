@@ -168,13 +168,14 @@ class Event extends BaseDefinition
 			try
 			{
 				$action->locked = TRUE;
-				
 				$definition = $action->definition();
+				$rule = $action->rule();
+				
 				$result = call_user_func_array( $definition->callback, array_merge( $deferred[ 'args' ], array( $action->data[ 'configuration' ][ 'data' ], $deferred[ 'event_args' ], $action ) ) );					
 				
 				$action->locked = FALSE;
 				
-				if ( $rule = $action->rule() and $rule->debug )
+				if ( $rule and $rule->debug )
 				{
 					$plugin->rulesLog( $this, $rule, $action, $result, 'Evaluated' );
 				}
