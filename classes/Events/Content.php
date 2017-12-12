@@ -79,22 +79,5 @@ class Content
 				),
 			);
 		});
-		
-		$plugin->describeEvent( 'action', 'test_it', array(
-			'title' => 'A simple test action',
-			'arguments' => array(
-				'testing_arg' => array(
-					'argtype' => 'mixed',
-					'nullable' => false,
-				),
-			),
-		));
-		
-		$plugin->describeEvent( 'action', 'init', function() {
-			return array(
-				'title' => __( 'Wordpress Init', 'mwp-rules' ),
-				'description' => __( 'The wordpress stack has been initialized', 'mwp-rules' ),
-			);
-		});
 	}
 }

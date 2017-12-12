@@ -47,7 +47,6 @@ class Condition extends ActiveRecord
         'enabled',
 		'group_compare',
 		'not',
-		'enable_recursion',
     );
 
     /**
@@ -136,7 +135,7 @@ class Condition extends ActiveRecord
 	{
 		$plugin = \MWP\Rules\Plugin::instance();
 		
-		if ( ! $this->locked or $this->enable_recursion )
+		if ( ! $this->locked or $this->rule()->enable_recursion )
 		{
 			/**
 			 * Lock this from being triggered recursively
@@ -215,7 +214,7 @@ class Condition extends ActiveRecord
 		{
 			if ( $rule = $this->rule() and $rule->debug )
 			{
-				$plugin->rulesLog( $rule->event(), $rule, $this, '--', 'Condition recursion (not evaluated)' );
+				$plugin->rulesLog( $rule->event(), $rule, $this, '--', 'Condition recursion protection (not evaluated)' );
 			}
 		}
 	}
@@ -236,7 +235,7 @@ class Condition extends ActiveRecord
 			return $this->childrenCache;
 		}
 		
-		$this->childrenCache = static::loadWhere( 'condition_parent_id=%d', $this->id );
+		$this->childrenCache = static::loadWhere( array( 'condition_parent_id=%d', $this->id ), 'condition_weight ASC' );
 		return $this->childrenCache;
 	}
 	

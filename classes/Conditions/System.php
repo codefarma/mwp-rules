@@ -124,7 +124,7 @@ class System
 			},
 		));
 
-		$plugin->defineAction( 'rules_execute_php', array
+		$plugin->registerCondition( 'rules_execute_php', array
 		(
 			'title' => 'Execute custom PHP code',
 			'configuration' => array(
@@ -135,11 +135,11 @@ class System
 					
 				},
 			),
-			'callback' => function( $saved_values, $arg_map, $operation ) 
+			'callback' => function( $saved_values, $event_args, $operation )
 			{
-				$evaluate = function( $phpcode ) use ( $arg_map, $operation )
+				$evaluate = function( $phpcode ) use ( $event_args, $operation )
 				{
-					extract( $arg_map );								
+					extract( $event_args );								
 					return @eval( $phpcode );
 				};
 				

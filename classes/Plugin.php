@@ -101,12 +101,8 @@ class Plugin extends \Modern\Wordpress\Plugin
 		
 		/* Connect all enabled first level rules to their hooks */
 		$rules = \MWP\Rules\Rule::loadWhere( array( 'rule_enabled=1 AND rule_parent_id=0' ), 'rule_priority ASC, rule_weight ASC' );
-		foreach( $rules as $rule ) 
-		{
-			switch( $rule->event_type ) {
-				case 'action': add_action( $rule->event_hook, array( $rule, 'invoke' ), $rule->priority, 999 ); break;
-				case 'filter': add_filter( $rule->event_hook, array( $rule, 'invoke' ), $rule->priority, 999 ); break;
-			}
+		foreach( $rules as $rule ) {
+			$rule->setHooks();
 		}
 	}
 	
@@ -120,7 +116,10 @@ class Plugin extends \Modern\Wordpress\Plugin
 	 */
 	public function describeEvent( $type, $hook_name, $definition=array() )
 	{
-		$this->events[ $type ][ $hook_name ] = new \MWP\Rules\ECA\Loader( 'MWP\Rules\ECA\Event', $definition );
+		$this->events[ $type ][ $hook_name ] = new \MWP\Rules\ECA\Loader( 'MWP\Rules\ECA\Event', $definition, array( 
+			'type' => $type,
+			'hook' => $hook_name,
+		));
 	}
 	
 	/**
@@ -132,7 +131,9 @@ class Plugin extends \Modern\Wordpress\Plugin
 	 */
 	public function registerCondition( $condition_key, $definition )
 	{
-		$this->conditions[ $condition_key ] = new \MWP\Rules\ECA\Loader( 'MWP\Rules\ECA\Condition', $definition );
+		$this->conditions[ $condition_key ] = new \MWP\Rules\ECA\Loader( 'MWP\Rules\ECA\Condition', $definition, array(
+			'key' => $condition_key,
+		));
 	}
 	
 	/**
@@ -144,7 +145,9 @@ class Plugin extends \Modern\Wordpress\Plugin
 	 */
 	public function defineAction( $action_key, $definition )
 	{
-		$this->actions[ $action_key ] = new \MWP\Rules\ECA\Loader( 'MWP\Rules\ECA\Action', $definition );
+		$this->actions[ $action_key ] = new \MWP\Rules\ECA\Loader( 'MWP\Rules\ECA\Action', $definition, array(
+			'key' => $action_key,
+		));
 	}
 	
 	/**
@@ -1356,6 +1359,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 	public function rulesLog( $event, $rule, $operation, $result, $message='', $error=0 )
 	{
 		return; // @TODO: implement for MWP Rules
+		print_r( $event->hook . "({$event->thread})" . ( $rule ? " / " . $rule->title : "") . ( $operation ? " / " . $operation->title : "") . " --> " . $message . ": " . json_encode( $result ) . "\n" );
 		
 		if ( ! $this->logLocked )
 		{
@@ -1364,9 +1368,8 @@ class Plugin extends \Modern\Wordpress\Plugin
 			$log 				= new \MWP\Rules\ECA\Log;
 			$log->thread 		= is_object( $event ) 		? $event->thread			: NULL;
 			$log->parent		= is_object( $event )		? $event->parentThread		: NULL;
-			$log->app 			= is_object( $event ) 		? $event->app 				: NULL;
-			$log->class 		= is_object( $event ) 		? $event->class 			: NULL;
-			$log->key 			= is_object( $event ) 		? $event->key				: NULL;
+			$log->event_type    = is_object( $event )       ? $event->type              : NULL;
+			$log->event_name	= is_object( $event ) 		? $event->hook				: NULL;
 			$log->rule_id		= is_object( $rule )		? $rule->id					: 0;
 			$log->rule_parent 	= is_object ( $rule ) 		? $rule->parent_id			: 0; 
 			$log->op_id			= is_object( $operation ) 	? $operation->id			: 0;

@@ -30,16 +30,23 @@ class Loader
 	protected $instance;
 	
 	/**
+	 * @var array
+	 */
+	public $extras = array();
+	
+	/**
 	 * Constructor
 	 *
 	 * @param	string			$class				The class of the eca being kept
 	 * @param	mixed			$instance			The eca instance or configuration 
+	 * @param	array			$extras				Extra data to pass along to loaded instance
 	 * @return	void
 	 */
-	public function __construct( $class, $instance )
+	public function __construct( $class, $instance, $extras=array() )
 	{
 		$this->class = $class;
 		$this->instance = $instance;
+		$this->extras = $extras;
 	}
 	
 	/**
@@ -51,10 +58,10 @@ class Loader
 			$this->instance = call_user_func( $this->instance );
 		}
 		
-		if ( ! is_object( $this->instance ) ) 
+		if ( is_array( $this->instance ) ) 
 		{
 			$class = $this->class;
-			$this->instance = new $class( $this->instance );
+			$this->instance = new $class( array_merge( $this->extras, $this->instance ) );
 		}
 		
 		return $this->instance;

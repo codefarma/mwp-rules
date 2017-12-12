@@ -47,6 +47,8 @@ class Rule extends ActiveRecord
 		'base_compare',
 		'debug',
 		'ruleset_id',
+		'enable_recursion',
+		'recursion_limit',
 		'imported_time',
     );
 
@@ -324,6 +326,20 @@ class Rule extends ActiveRecord
 			$this->save();
 		}
 	}
+	
+	/**
+	 * Attach to wordpress via hooks
+	 *
+	 * @return	bool
+	 */
+	public function setHooks()
+	{
+		if ( $event = $this->event() ) {
+			return $event->deployRule( $this );
+		}
+		
+		return false;
+	}
 
 	/**
 	 * Recursion Protection
@@ -331,18 +347,34 @@ class Rule extends ActiveRecord
 	public $locked = FALSE;
 	
 	/**
+	 * @var	int
+	 */
+	public $recursionCount = 0;
+	
+	/**
+	 * @var	array
+	 */
+	public $filtered_values = array();
+	
+	/**
 	 * Invoke Rule
 	 */
 	public function invoke()
 	{
 		$plugin = \MWP\Rules\Plugin::instance();
+		$args = func_get_args();
+
+		if ( $this->event_type == 'filter' ) {
+			$this->filtered_values[ $this->event()->thread ] = $args[0];
+		}
 		
 		if ( $this->enabled )
 		{
-			if ( ! $this->locked )
+			if ( ( ! $this->locked or $this->enable_recursion ) and ! $this->event()->locked and $this->recursionCount < $this->recursion_limit )
 			{
 				try
 				{
+					$this->recursionCount++;
 					$this->locked = TRUE;
 				
 					$compareMode     = $this->compareMode();
@@ -360,7 +392,7 @@ class Rule extends ActiveRecord
 						if ( $condition->enabled )
 						{
 							$conditionsCount++;
-							$result = call_user_func_array( array( $condition, 'invoke' ), func_get_args() );
+							$result = call_user_func_array( array( $condition, 'invoke' ), $args );
 							
 							if ( $result and $compareMode == 'or' ) 
 							{
@@ -389,7 +421,7 @@ class Rule extends ActiveRecord
 						{
 							if ( $action->enabled )
 							{
-								call_user_func_array( array( $action, 'invoke' ), func_get_args() );
+								call_user_func_array( array( $action, 'invoke' ), $args );
 							}
 							else
 							{
@@ -404,12 +436,12 @@ class Rule extends ActiveRecord
 						{
 							if ( $_rule->enabled )
 							{
-								$result = call_user_func_array( array( $_rule, 'invoke' ), func_get_args() );
+								$result = call_user_func_array( array( $_rule, 'invoke' ), $args );
 								
-								if ( $this->debug )
-								{
-									$plugin->rulesLog( $this->event(), $_rule, NULL, $result, 'Rule evaluated' );
-								}						
+								if ( $this->event_type == 'filter' ) {
+									$args[0] = $result;
+									$this->filtered_values[ $this->event()->thread ] = $args[0];
+								}
 							}
 							else
 							{
@@ -421,8 +453,12 @@ class Rule extends ActiveRecord
 						}
 						
 						$this->locked = FALSE;
+						$this->recursionCount--;
 						
-						return 'conditions met';
+						if ( $this->debug or ( $parent = $this->parent() and $parent->debug ) ) {
+							$plugin->rulesLog( $this->event(), $this, NULL, 'conditions met', 'Rule evaluated' );
+						}
+
 					}
 					else
 					{
@@ -431,7 +467,7 @@ class Rule extends ActiveRecord
 						{
 							if ( $action->enabled )
 							{
-								call_user_func_array( array( $action, 'invoke' ), func_get_args() );
+								call_user_func_array( array( $action, 'invoke' ), $args );
 							}
 							else
 							{
@@ -443,13 +479,17 @@ class Rule extends ActiveRecord
 						}					
 					
 						$this->locked = FALSE;
+						$this->recursionCount--;
 					
-						return 'conditions not met';
+						if ( $this->debug or ( $parent = $this->parent() and $parent->debug ) ) {
+							$plugin->rulesLog( $this->event(), $this, NULL, 'conditions not met', 'Rule evaluated' );
+						}
 					}
 				}
 				catch( \Exception $e )
 				{
 					$this->locked = FALSE;
+					$this->recursionCount--;
 					throw $e;
 				}
 			}
@@ -457,7 +497,7 @@ class Rule extends ActiveRecord
 			{
 				if ( $this->debug )
 				{
-					$plugin->rulesLog( $this->event(), $this, NULL, '--', 'Rule recursion (not evaluated)' );
+					$plugin->rulesLog( $this->event(), $this, NULL, '--', 'Rule recursion protection (not evaluated)' );
 				}
 			}
 		}
@@ -468,6 +508,13 @@ class Rule extends ActiveRecord
 				$plugin->rulesLog( $this->event(), $this, NULL, '--', 'Rule not evaluated (disabled)' );
 			}
 		}
+		
+		if ( $this->event_type == 'filter' ) {
+			$filtered_value = $this->filtered_values[ $this->event()->thread ];
+			unset( $this->filtered_values[ $this->event()->thread ] );
+			return $filtered_value;
+		}
+		
 	}
 	
 	/**
@@ -486,8 +533,23 @@ class Rule extends ActiveRecord
 			return $this->childrenCache;
 		}
 		
-		$this->childrenCache = static::loadWhere( 'rule_parent_id=%d', $this->id );
+		$this->childrenCache = static::loadWhere( array( 'rule_parent_id=%d', $this->id ), 'rule_weight ASC' );
 		return $this->childrenCache;
+	}
+	
+	/**
+	 * Get the parent rule if it exists
+	 *
+	 * @return	Rule|NULL
+	 */
+	public function parent()
+	{
+		try {
+			return static::load( $this->parent_id );
+		}
+		catch( \OutOfRangeException $e ) { }
+		
+		return NULL;
 	}
 	
 	/**
@@ -540,7 +602,7 @@ class Rule extends ActiveRecord
 			return $this->conditionCache;
 		}
 		
-		$this->conditionCache = Condition::loadWhere( array( 'condition_parent_id=0 AND condition_rule_id=%d', $this->id ) );
+		$this->conditionCache = Condition::loadWhere( array( 'condition_parent_id=0 AND condition_rule_id=%d', $this->id ), 'condition_weight ASC' );
 		
 		return $this->conditionCache;
 	}
@@ -569,7 +631,7 @@ class Rule extends ActiveRecord
 			$where = array( 'action_rule_id=%d AND action_else=%s', $this->id, $mode );
 		}
 		
-		return $this->actionCache[ $cache_key ] = Action::loadWhere( $where );
+		return $this->actionCache[ $cache_key ] = Action::loadWhere( $where, 'action_weight ASC' );
 	}
 	
 	/**

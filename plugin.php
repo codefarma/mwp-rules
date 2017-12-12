@@ -32,9 +32,15 @@ if ( ! class_exists( 'MWPRulesPlugin' ) )
 			$framework = \Modern\Wordpress\Framework::instance()
 				->attach( $plugin )
 				->attach( $settings )
+				
 				->attach( new \MWP\Rules\Events\Content )
+				->attach( new \MWP\Rules\Events\System )
+				
 				->attach( new \MWP\Rules\Conditions\Content )
+				->attach( new \MWP\Rules\Conditions\System )
+				
 				->attach( new \MWP\Rules\Actions\Content )
+				->attach( new \MWP\Rules\Actions\System )
 				;
 		}
 		

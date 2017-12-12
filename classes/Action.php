@@ -54,7 +54,6 @@ class Action extends ActiveRecord
 		'schedule_customcode',
 		'schedule_key',
 		'else',
-		'enable_recursion',
     );
 
     /**
@@ -133,7 +132,7 @@ class Action extends ActiveRecord
 	{
 		$plugin = \MWP\Rules\Plugin::instance();
 		
-		if ( ! $this->locked or $this->enable_recursion )
+		if ( ! $this->locked or $this->rule()->enable_recursion )
 		{
 			/**
 			 * Lock this action from being triggered recursively by itself
@@ -157,7 +156,7 @@ class Action extends ActiveRecord
 		{
 			if ( $rule = $this->rule() and $rule->debug )
 			{
-				$plugin->rulesLog( $rule->event(), $rule, $this, '--', 'Action recursion (not evaluated)' );
+				$plugin->rulesLog( $rule->event(), $rule, $this, '--', 'Action recursion protection (not evaluated)' );
 			}
 		}
 	}
