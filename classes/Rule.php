@@ -63,6 +63,65 @@ class Rule extends ActiveRecord
     public static $prefix = 'rule_';
 	
 	/**
+	 * Build an editing form
+	 *
+	 * @param	ActiveRecord		$rule					The rule to edit
+	 * @return	Modern\Wordpress\Helpers\Form
+	 */
+	public static function getForm( $rule )
+	{
+		$plugin = \MWP\Rules\Plugin::instance();
+		$form = $plugin->createForm( 'mwp_rules_rule_form', array(), array( 'attr' => array( 'class' => '_form-inline' ) ), 'symfony' );
+		
+		$form->addField( 'title', 'text', array(
+			'label' => __( 'Rule Title', 'mwp-rules' ),
+			'data' => $rule->title,
+			'required' => true,
+		));
+		
+		$event_choices = array();
+		foreach( array( 'action', 'filter' ) as $type ) {
+			foreach( $plugin->getEvents( $type ) as $event ) {
+				$event_choices[ ucwords( $type ) ][ $event->title ] = $event->type . '/' . $event->hook;
+			}
+		}
+		
+		/* If the rule event no longer exists, make sure there is a list entry for it */
+		if ( $rule->id and ! in_array( $rule->event_type . '/' . $rule->event_hook, $event_choices[ ucwords( $rule->event_type ) ] ) ) {
+			$event_choices[ ucwords( $rule->event_type ) ][ $rule->event_type . '/' . $rule->event_hook ] = $rule->event_type . '/' . $rule->event_hook;
+		}
+		
+		$form->addField( 'event', 'choice', array(
+			'label' => __( 'Event', 'mwp-rules' ),
+			'choices' => $event_choices,
+			'data' => $rule->event_type . '/' . $rule->event_hook,
+			'required' => true,
+		));
+		
+		$form->addField( 'submit', 'submit', array( 'label' => __( 'Save Rule', 'mwp-rules' ) ) );
+		
+		return $form;
+	}
+
+	/**
+	 * Process submitted form values 
+	 *
+	 * @param	array			$values				Submitted form values
+	 * @return	void
+	 */
+	public function processForm( $values )
+	{
+		$event_parts = explode( '/', $values['event'] );
+		$type = array_shift( $event_parts );
+		$hook = implode( '/', $event_parts );
+		
+		$values['event_type'] = $type;
+		$values['event_hook'] = $hook;
+		
+		parent::processForm( $values );
+	}
+	
+	/**
 	 * [Node] Add/Edit Form
 	 *
 	 * @param	\IPS\Helpers\Form	$form	The form
@@ -328,11 +387,11 @@ class Rule extends ActiveRecord
 	}
 	
 	/**
-	 * Attach to wordpress via hooks
+	 * Deploy to wordpress via hooks
 	 *
 	 * @return	bool
 	 */
-	public function setHooks()
+	public function deploy()
 	{
 		if ( $event = $this->event() ) {
 			return $event->deployRule( $this );

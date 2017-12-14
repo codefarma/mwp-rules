@@ -67,6 +67,17 @@ class System
 	{
 		$plugin = $this->getPlugin();
 		
+		$plugin->describeEvent( 'filter', 'test_it', array(
+			'title' => 'Test Filter',
+			'description' => 'A filter added for testing purposes.',
+			'arguments' => array(
+				'testing_arg' => array(
+					'argtype' => 'mixed',
+					'nullable' => false,
+				),
+			),
+		));
+		
 		$plugin->describeEvent( 'action', 'init', function() {
 			return array(
 				'title' => __( 'Wordpress Init', 'mwp-rules' ),

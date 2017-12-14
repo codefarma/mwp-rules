@@ -19,6 +19,7 @@ const ACTION_ELSE = 1;
 
 use MWP\Rules\ECA\Loader;
 use MWP\Rules\ECA\Token;
+use MWP\Rules\Rule;
 
 /**
  * Plugin Class
@@ -90,19 +91,18 @@ class Plugin extends \Modern\Wordpress\Plugin
 	/**
 	 * Give plugins a common hook to register ECA's
 	 *
-	 * @Wordpress\Action( for="plugins_loaded" )
+	 * @Wordpress\Action( for="plugins_loaded", priority=1 )
 	 *
 	 * @return	void
 	 */
 	public function whenPluginsLoaded()
 	{
-		/* Allow plugins to register ECA's */
+		/* Allow plugins to register their own ECA's */
 		do_action( 'rules_register_ecas' );
 		
 		/* Connect all enabled first level rules to their hooks */
-		$rules = \MWP\Rules\Rule::loadWhere( array( 'rule_enabled=1 AND rule_parent_id=0' ), 'rule_priority ASC, rule_weight ASC' );
-		foreach( $rules as $rule ) {
-			$rule->setHooks();
+		foreach( Rule::loadWhere( array( 'rule_enabled=1 AND rule_parent_id=0' ), 'rule_priority ASC, rule_weight ASC' ) as $rule ) {
+			$rule->deploy();
 		}
 	}
 	
