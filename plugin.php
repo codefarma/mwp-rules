@@ -43,31 +43,9 @@ if ( ! class_exists( 'MWPRulesPlugin' ) )
 				->attach( new \MWP\Rules\Actions\System )
 				;
 				
-			$rulesController = new \MWP\Rules\Controllers\Rules( array
-			(
-				'where' => array( 'rule_parent_id=0' ),
-				'columns' => array(
-					'rule_title'      => __( 'Rule Title', 'mwp-rules' ),
-					'rule_event_hook' => __( 'Event', 'mwp-rules' ),
-				),
-				'searchable' => array(
-					'rule_title' => array( 'type' => 'contains', 'combine_words' => 'and' ),
-				),
-				'handlers' => array(
-					'rule_event_hook' => function( $record ) use ( $plugin ) {
-						$event = $plugin->getEvent( $record['rule_event_type'], $record['rule_event_hook'] );
-						if ( ! $event ) {
-							return 'Undescribed ' . $record['rule_event_type'] . ': ' . $record['rule_event_hook'];
-						}
-						
-						return $event->title . '<br>' . $event->description;
-					},
-				),
-				'adminPage' => array(
-					'type' => 'management',
-				),
-				'formImplementation' => 'piklist',
-			));
+			$plugin->getRulesController()      ->registerAdminPage( array( 'type' => 'management' ) );
+			$plugin->getConditionsController() ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules-rule' ) );
+			$plugin->getActionsController()    ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules-rule' ) );
 		}
 		
 		public static function status() {

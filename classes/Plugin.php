@@ -63,11 +63,11 @@ class Plugin extends \Modern\Wordpress\Plugin
 	public $actionQueue = array();
 	
 	/**
-	 * Main Stylesheet
+	 * Admin Stylesheet
 	 *
 	 * @Wordpress\Stylesheet
 	 */
-	public $mainStyle = 'assets/css/style.css';
+	public $adminStyle = 'assets/css/admin_style.css';
 	
 	/**
 	 * Main Javascript Controller
@@ -79,13 +79,13 @@ class Plugin extends \Modern\Wordpress\Plugin
 	/**
 	 * Enqueue scripts and stylesheets
 	 * 
-	 * @Wordpress\Action( for="wp_enqueue_scripts" )
+	 * @Wordpress\Action( for="admin_enqueue_scripts" )
 	 *
 	 * @return	void
 	 */
 	public function enqueueScripts()
 	{
-		
+		$this->useStyle( $this->adminStyle );
 	}
 	
 	/**
@@ -229,6 +229,131 @@ class Plugin extends \Modern\Wordpress\Plugin
 		}
 		
 		return NULL;
+	}
+	
+	/**
+	 * @var ActiveRecordController
+	 */
+	public $rulesController;
+	
+	/**
+	 * Get the rules controller
+	 * 
+	 * @return	ActiveRecordController
+	 */
+	public function getRulesController()
+	{
+		if ( isset( $this->rulesController ) ) {
+			return $this->rulesController;
+		}
+		
+		$plugin = $this;
+		
+		$rules_controller_config = array(
+			'where' => array( 'rule_parent_id=0' ),
+			'columns' => array(
+				'rule_title'      => __( 'Rule Title', 'mwp-rules' ),
+				'rule_event_hook' => __( 'Event', 'mwp-rules' ),
+			),
+			'searchable' => array(
+				'rule_title' => array( 'type' => 'contains', 'combine_words' => 'and' ),
+			),
+			'handlers' => array(
+				'rule_event_hook' => function( $record ) use ( $plugin ) {
+					$event = $plugin->getEvent( $record['rule_event_type'], $record['rule_event_hook'] );
+					if ( ! $event ) {
+						return 'Undescribed ' . $record['rule_event_type'] . ': ' . $record['rule_event_hook'];
+					}
+					
+					return $event->title . '<br>' . $event->description;
+				},
+			),
+		);
+		
+		$this->rulesController = new \MWP\Rules\Controllers\RulesController( apply_filters( 'mwp_rules_controller_config', $rules_controller_config ) );
+		return $this->rulesController;
+	}
+	
+	/**
+	 * @var ActiveRecordController
+	 */
+	public $conditionsController;
+	
+	/**
+	 * Get the conditions controller
+	 * 
+	 * @return	ActiveRecordController
+	 */
+	public function getConditionsController( $rule=null )
+	{
+		if ( isset( $this->conditionsController ) ) {
+			if ( $rule ) {
+				$this->conditionsController->setRule( $rule );
+			}
+			return $this->conditionsController;
+		}
+		
+		$plugin = $this;
+		
+		$conditions_controller_config = array(
+			'sort_by' => 'condition_weight',
+			'sort_order' => 'ASC',
+			'bulk_actions' => array(),
+			'columns' => array(
+				'details' => __( 'Conditions', 'mwp-rules' ),
+			),
+			'handlers' => array(
+				'details' => function( $row ) use ( $plugin ) {
+					$condition = Condition::load( $row['condition_id'] );
+					return $plugin->getTemplateContent( 'rules/conditions/table_row', array( 'condition' => $condition ) );
+				}
+			),
+		);
+		
+		$this->conditionsController = new \MWP\Rules\Controllers\ConditionsController( apply_filters( 'mwp_conditions_controller_config', $conditions_controller_config ) );
+		
+		return $this->getConditionsController( $rule );
+	}
+	
+	/**
+	 * @var ActiveRecordController
+	 */
+	public $actionsController;
+	
+	/**
+	 * Get the actions controller
+	 * 
+	 * @return	ActiveRecordController
+	 */
+	public function getActionsController( $rule=null )
+	{
+		if ( isset( $this->actionsController ) ) {
+			if ( $rule ) {
+				$this->actionsController->setRule( $rule );
+			}
+			return $this->actionsController;
+		}
+		
+		$plugin = $this;
+		
+		$actions_controller_config = array(
+			'sort_by' => 'action_weight',
+			'sort_order' => 'ASC',
+			'bulk_actions' => array(),
+			'columns' => array(
+				'details' => __( 'Details', 'mwp-rules' ),
+			),
+			'handlers' => array(
+				'details' => function( $row ) use ( $plugin ) {
+					$action = Action::load( $row['action_id'] );
+					return $plugin->getTemplateContent( 'rules/actions/table_row', array( 'action' => $action ) );
+				}
+			),
+		);
+		
+		$this->actionsController = new \MWP\Rules\Controllers\ActionsController( apply_filters( 'mwp_actions_controller_config', $actions_controller_config ) );
+		
+		return $this->getActionsController( $rule );
 	}
 	
 	/**

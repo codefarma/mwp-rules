@@ -19,7 +19,7 @@ use Modern\Wordpress\Helpers\ActiveRecordController;
 /**
  * Rules Class
  */
-class Rules extends ActiveRecordController
+class RulesController extends ActiveRecordController
 {
 	/**
 	 * @var	string
@@ -36,6 +36,22 @@ class Rules extends ActiveRecordController
 	{
 		parent::__construct( $options );
 		$this->setPlugin( \MWP\Rules\Plugin::instance() );
+	}
+	
+	/**
+	 * Get action buttons
+	 *
+	 * @return	array
+	 */
+	public function getActionButtons()
+	{
+		return array( 
+			'new' => array(
+				'title' => __( 'Create New Rule', 'mwp-rules' ),
+				'href' => $this->getUrl( array( 'do' => 'new' ) ),
+				'class' => 'btn btn-primary',
+			)
+		);
 	}
 
 }

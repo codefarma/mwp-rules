@@ -1,0 +1,23 @@
+/**
+ * Plugin Styles
+ *
+ * Created     December 4, 2017
+ * 
+ * @package    MWP Rules
+ * @author     Kevin Carwile
+ * @since      {build_version}
+ */
+
+
+#mwp_rules_rule_form .tab-pane .wp-list-table thead,
+#mwp_rules_rule_form .tab-pane .wp-list-table tfoot {
+	display: none;
+}
+
+#mwp_rules_rule_form .tab-pane .wp-list-table {
+	box-shadow: 1px 1px 8px #bbb;
+}
+
+#mwp_rules_rule_form .tab-pane .wp-list-table tbody td {
+	padding: 15px;
+}

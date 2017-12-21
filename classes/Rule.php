@@ -15,6 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use Modern\Wordpress\Pattern\ActiveRecord;
+use MWP\Rules\Condition;
+use MWP\Rules\Action;
 
 /**
  * Rule Class
@@ -71,34 +73,146 @@ class Rule extends ActiveRecord
 	public static function getForm( $rule )
 	{
 		$plugin = \MWP\Rules\Plugin::instance();
-		$form = $plugin->createForm( 'mwp_rules_rule_form', array(), array( 'attr' => array( 'class' => '_form-inline' ) ), 'symfony' );
-		
-		$form->addField( 'title', 'text', array(
-			'label' => __( 'Rule Title', 'mwp-rules' ),
-			'data' => $rule->title,
-			'required' => true,
-		));
+		$rule = $rule ?: new Rule;
+		$form = $plugin->createForm( 'mwp_rules_rule_form', array(), array( 'attr' => array( 'class' => 'form-horizontal' ) ), 'symfony' );
 		
 		$event_choices = array();
-		foreach( array( 'action', 'filter' ) as $type ) {
-			foreach( $plugin->getEvents( $type ) as $event ) {
-				$event_choices[ ucwords( $type ) ][ $event->title ] = $event->type . '/' . $event->hook;
-			}
-		}
 		
-		/* If the rule event no longer exists, make sure there is a list entry for it */
-		if ( $rule->id and ! in_array( $rule->event_type . '/' . $rule->event_hook, $event_choices[ ucwords( $rule->event_type ) ] ) ) {
-			$event_choices[ ucwords( $rule->event_type ) ][ $rule->event_type . '/' . $rule->event_hook ] = $rule->event_type . '/' . $rule->event_hook;
-		}
-		
-		$form->addField( 'event', 'choice', array(
-			'label' => __( 'Event', 'mwp-rules' ),
-			'choices' => $event_choices,
-			'data' => $rule->event_type . '/' . $rule->event_hook,
-			'required' => true,
+		$form->addTab( 'rule_settings', array( 
+			'title' => __( 'Settings', 'mwp-rules' ) 
 		));
 		
-		$form->addField( 'submit', 'submit', array( 'label' => __( 'Save Rule', 'mwp-rules' ) ) );
+		/**
+		 * Rule title
+		 */
+		$form->addField( 'title', 'text', array(
+			'label' => __( 'Rule Title', 'mwp-rules' ),
+			'description' => __( 'Summarize the intended purpose of this rule.' ),
+			'data' => $rule->title,
+			'attr' => array( 'placeholder' => __( 'Describe what this rule is for', 'mwp-rules' ) ),
+			'required' => true,
+		), 
+		'rule_settings' );
+		
+		/* Step 1: Configure the event for new rules */
+		if ( ! $rule->id and ! $rule->parent_id ) 
+		{
+			foreach( array( 'action', 'filter' ) as $type ) {
+				foreach( $plugin->getEvents( $type ) as $event ) {
+					$event_choices[ ucwords( $type ) ][ $event->title ] = $event->type . '/' . $event->hook;
+				}
+			}
+			
+			$form->addField( 'event', 'choice', array(
+				'label' => __( 'Rule Triggered When:', 'mwp-rules' ),
+				'choices' => $event_choices,
+				'data' => $rule->event_type . '/' . $rule->event_hook,
+				'required' => true,
+			),
+			'rule_settings' );
+		
+			$form->addField( 'submit', 'submit', array( 
+				'label' => __( 'Continue', 'mwp-rules' ), 
+				'attr' => array( 'class' => 'btn btn-primary' ) 
+			));
+			
+			return $form;
+		}
+		else
+		{
+			/* Display details for the already configured event */
+			$event = $plugin->getEvent( $rule->event_type, $rule->event_hook );
+			if ( $event ) {
+				// @TODO: add event description html
+			}
+			
+			$form->addField( 'debug', 'checkbox', array( 
+				'label' => __( 'Debug Mode', 'mwp-rules' ),
+				'value' => 1,
+				'description' => __( 'Enable debug logs for this rule' ),
+				'data' => (bool) $rule->debug,
+			),
+			'rule_settings' );
+		}
+		
+		/**
+		 * Conditions tab
+		 */
+		$form->addTab( 'rule_conditions', array(
+			'title' => __( 'Conditions', 'mwp-rules' ),
+		));
+		
+		/* Base compare mode */
+		$form->addField( 'base_compare', 'choice', array(
+			'label' => __( 'Base Conditions Comparison', 'mwp-rules' ),
+			'choices' => array( 'AND' => 'and', 'OR' => 'or' ),
+			'required' => true,
+			'data' => $rule->base_compare ?: 'and',
+			'expanded' => true,
+			'description' => "<p>You can choose how you want the base conditions for this rule to be evaluated.</p>
+				<ol>
+					<li>If you choose AND, all base conditions must be valid for actions to be executed.</li>
+					<li>If you choose OR, actions will be executed if any base condition is valid.</li>
+				</ol>",
+		), 
+		'rule_conditions');
+		
+		$conditionsController = $plugin->getConditionsController( $rule );
+		$conditionsTable = $conditionsController->getDisplayTable();
+		
+		/* Linked conditions table */
+		$conditionsTable->prepare_items( array( 'condition_rule_id=%d AND condition_parent_id=0', $rule->id ) );
+		$form->addHtml( $plugin->getTemplateContent( 'rules/conditions/table', array( 
+			'rule' => $rule, 
+			'table' => $conditionsTable, 
+			'controller' => $conditionsController 
+		)), 
+		'rule_conditions' );
+		
+		/**
+		 * Actions tab
+		 */
+		$form->addTab( 'rule_actions', array(
+			'title' => __( 'Actions', 'mwp-rules' ),
+		));
+		
+		$actionsController = $plugin->getActionsController( $rule );
+		$actionsTable = $actionsController->getDisplayTable();
+		
+		/* Linked actions table (normal actions)*/
+		$actionsTable->prepare_items( array( 'action_rule_id=%d AND action_else=0', $rule->id ) );
+		$form->addHtml( $plugin->getTemplateContent( 'rules/actions/table', array( 
+			'show_buttons' => true,
+			'rule' => $rule, 
+			'table' => $actionsTable, 
+			'controller' => $actionsController 
+		)), 
+		'rule_actions' );
+		
+		/* Linked actions table (else actions)*/
+		$actionsTable->prepare_items( array( 'action_rule_id=%d AND action_else=1', $rule->id ) );
+		$form->addHeading( __( 'Else Actions', 'mwp-rules' ), 'rule_actions' );
+		$form->addHtml( $plugin->getTemplateContent( 'rules/actions/table', array(
+			'show_buttons' => false,
+			'rule' => $rule, 
+			'table' => $actionsTable, 
+			'controller' => $actionsController 
+		)), 
+		'rule_actions' );
+		
+		/**
+		 * Debug tab
+		 */
+		if ( $rule->debug ) {
+			$form->addTab( 'rule_debug_console', array(
+				'title' => __( 'Debug Console', 'mwp-rules' ),
+			));
+		}
+		
+		$form->addField( 'submit', 'submit', array( 
+			'label' => __( 'Save Rule', 'mwp-rules' ), 
+			'attr' => array( 'class' => 'btn btn-primary' ) 
+		));
 		
 		return $form;
 	}
@@ -111,12 +225,14 @@ class Rule extends ActiveRecord
 	 */
 	public function processForm( $values )
 	{
-		$event_parts = explode( '/', $values['event'] );
-		$type = array_shift( $event_parts );
-		$hook = implode( '/', $event_parts );
-		
-		$values['event_type'] = $type;
-		$values['event_hook'] = $hook;
+		if ( isset( $values['event'] ) ) {
+			$event_parts = explode( '/', $values['event'] );
+			$type = array_shift( $event_parts );
+			$hook = implode( '/', $event_parts );
+			
+			$values['event_type'] = $type;
+			$values['event_hook'] = $hook;
+		}
 		
 		parent::processForm( $values );
 	}
