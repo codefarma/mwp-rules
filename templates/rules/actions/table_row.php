@@ -21,5 +21,15 @@ $definition = $action->definition();
 
 ?>
 
-<strong style="font-size:1.2em"><?php echo $action->title ?></strong>
-<p>(<?php echo $definition ? $definition->title : 'Unregistered action' ?>)</p>
+
+<strong style="font-size:1.2em"><?php echo $definition ? $definition->title : 'Unregistered condition' ?></strong> 
+<?php if ( ! $action->enabled ) : ?>
+	<span class="label label-danger">Disabled</span>
+<?php endif ?>
+<p>
+	<i class="glyphicon glyphicon-flash"></i> 
+	<?php echo $action->title ?> 
+	<?php if ( in_array( $action->schedule_mode, array( 2, 3, 4 ) ) ) : ?>
+		<span title="This action will be executed at a scheduled time" class="label label-warning"><i class="glyphicon glyphicon-time"></i> Scheduled</span>
+	<?php endif ?>
+</p>

@@ -21,3 +21,39 @@
 #mwp_rules_rule_form .tab-pane .wp-list-table tbody td {
 	padding: 15px;
 }
+
+.mwp-rules-form .field-description {
+	color: #666;
+}
+
+.mwp-rules-form .field-description ul {
+	margin-top: 5px;
+	list-style-type: circle;
+	padding-left: 25px;
+}
+
+.mwp-rules-form .event-overview {
+	padding: 20px 20px 20px 40px;
+}
+
+.mwp-rules-form .event-overview .event-title {
+	font-size: 18px;
+	margin: 0 0 8px -24px;
+}
+
+.mwp-rules-form .event-overview .subtle {
+	opacity: 0.75;
+	-moz-opacity: 0.75;
+}
+
+.mwp-rules-form .event-overview p {
+	margin: 10px 0;
+}
+
+.mwp-rules-form .event-overview .event-argument-info {
+	font-family: monospace;
+}
+
+.mwp-rules-form .CodeMirror {
+	border: 1px solid #ddd;
+}

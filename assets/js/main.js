@@ -51,14 +51,26 @@
 			var ajaxurl = mainController.local.ajaxurl;
 			
 			// set the properties on your view model which can be observed by your html templates
-			mainController.viewModel = 
-			{
-				title: ko.observable( 'MWP Rules' )
-			}
+			mainController.viewModel = {};
 		}
 	
 	});
-		
+	
+	/**
+	 * Add forms related knockout bindings
+	 *
+	 */
+	$.extend( ko.bindingHandlers, 
+	{
+		codemirror: {
+			init: function( element, valueAccessor ) {
+				if ( typeof CodeMirror !== 'undefined' ) {
+					var options = ko.unwrap( valueAccessor() );
+					var editor = CodeMirror.fromTextArea( element, options );
+				}
+			}
+		}
+	});
 	
 })( jQuery );
  

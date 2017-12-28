@@ -66,6 +66,55 @@ class ConditionsController extends ActiveRecordController
 			} catch( \OutOfRangeException $e ) { }
 		}
 	}
+		
+	/**
+	 * Get the active record display table
+	 *
+	 * @return	Modern\Wordpress\Helpers\ActiveRecordTable
+	 */
+	public function createDisplayTable()
+	{
+		$table = parent::createDisplayTable();
+		//$table->setTemplate( 'nesting_table' );	
+		
+		return $table;
+	}
+	
+	/**
+	 * Index Page
+	 * 
+	 * @return	string
+	 */
+	public function do_index()
+	{
+		$rule_id = isset( $_REQUEST['rule_id'] ) ? $_REQUEST['rule_id'] : NULL;
+		wp_redirect( \MWP\Rules\Plugin::instance()->getRulesController()->getUrl( array( 'id' => $rule_id, 'do' => 'edit', '_tab' => 'rule_conditions' ) ) );
+	}
+	
+	/**
+	 * Create a new active record
+	 * 
+	 * @param	ActiveRecord			$record				The active record id
+	 * @return	void
+	 */
+	public function do_new( $record=NULL )
+	{
+		$class = static::$recordClass;
+		
+		if ( isset( $_REQUEST['rule_id'] ) ) {
+			try {
+				$rule = \MWP\Rules\Rule::load( $_REQUEST['rule_id'] );
+				$record = new $class;
+				$record->rule_id = $rule->id;
+			}
+			catch( \OutOfRangeException $e ) { 
+				echo $this->getPlugin()->getTemplateContent( 'component/error', array( 'message' => __( 'The specified rule could not be found.', 'mwp-rules' ) ) );
+				return;
+			}
+		}
+		
+		parent::do_new( $record );
+	}
 	
 	/**
 	 * Get action buttons

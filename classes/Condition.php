@@ -60,24 +60,109 @@ class Condition extends ActiveRecord
     public static $prefix = 'condition_';
 	
 	/**
+	 * @var	string
+	 */
+	public static $plugin_class = 'MWP\Rules\Plugin';
+	
+	/**
+	 * @var	string
+	 */
+	public static $lang_singular = 'Condition';
+	
+	/**
+	 * @var	string
+	 */
+	public static $lang_plural = 'Conditions';
+	
+	
+	/**
 	 * Associated Rule
 	 */
 	public $rule = NULL;
 	
 	/**
+	 * Build an editing form
+	 *
+	 * @param	ActiveRecord					$condition					The condition to edit
+	 * @return	Modern\Wordpress\Helpers\Form
+	 */
+	public static function getForm( $condition=NULL )
+	{
+		$plugin = \MWP\Rules\Plugin::instance();
+		$condition = $condition ?: new static;
+		$form = $plugin->createForm( 'mwp_rules_condition_form', array(), array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ), 'symfony' );
+		
+		/* Display details for the event */
+		if ( $event = $condition->event() ) {
+			$form->addHtml( 'event_details', $event->getDisplayDetails( $condition->rule() ) );
+		}
+		
+		$form->addField( 'enabled', 'checkbox', array(
+			'label' => __( 'Condition Enabled?', 'mwp-rules' ),
+			'value' => 1,
+			'data' => isset( $condition->enabled ) ? (bool) $condition->enabled : true,
+			'row_suffix' => '<hr>',
+		));
+		
+		$plugin->buildOpConfigForm( $form, $condition, 'condition' );
+		
+		/** Condition specific form fields **/
+		
+		$form->addField( 'not', 'checkbox', array(
+			'label' => __( 'NOT', 'mwp-rules' ),
+			'value' => 1,
+			'description' => __( 'Using NOT will reverse the condition result so that the result is TRUE if the condition is NOT MET. ', 'mwp-rules' ),
+			'data' => (bool) $condition->not,
+		),
+		NULL, 'title' );
+		
+		if ( $condition->children() ) {
+			$form->addField( 'group_compare', 'choice', array(
+				'label' => __( 'Subcondition Compare Mode', 'mwp-rules' ),
+				'choices' => array(
+					'AND' => 'and',
+					'OR' => 'or',
+				),
+				'data' => $condition->compare_mode ?: 'and',
+				'required' => true,
+				'expanded' => true,
+				'description' => "
+					Since this condition has subconditions, you must choose how you want those subconditions to affect the state of this condition.<br>
+					<ul>
+						<li>If you choose AND, this condition and all subconditions must be true for this condition to be valid.</li>
+						<li>If you choose OR, this condition will pass if it is valid, or if any subcondition is valid.</li>
+					</ul>",
+			),
+			NULL, 'title' );
+		}		
+		
+		return $form;
+	}
+	
+	/**
+	 * Process submitted form values 
+	 *
+	 * @param	array			$values				Submitted form values
+	 * @return	void
+	 */
+	public function processForm( $values )
+	{
+		\MWP\Rules\Plugin::instance()->processOpConfigForm( $values, $this, 'condition' );
+		parent::processForm( $values );
+	}
+
+	/**
 	 * Get the attached event
 	 *
-	 * @return	MWP\Rules\ECA\Event
-	 * @throws	Exception
+	 * @return	MWP\Rules\ECA\Event|NULL
 	 */
 	public function event()
 	{
-		if ( $rule = $this->rule() )
-		{
+		if ( $rule = $this->rule() ) {
 			return $rule->event();
 		}
 		
-		throw new \Exception( 'Condition is not assigned to a valid rule.' );
+		return NULL;
 	}
 	
 	/**

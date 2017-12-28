@@ -68,20 +68,21 @@ class System
 		$plugin = $this->getPlugin();
 		
 		$plugin->describeEvent( 'filter', 'test_it', array(
-			'title' => 'Test Filter',
-			'description' => 'A filter added for testing purposes.',
+			'title' => 'A Test Value is Filtered',
+			'description' => 'The test filter is used to provide an event for testing filtering rules.',
 			'arguments' => array(
 				'testing_arg' => array(
+					'description' => 'The arbitrary value being filtered',
 					'argtype' => 'mixed',
-					'nullable' => false,
+					'nullable' => true,
 				),
 			),
 		));
 		
 		$plugin->describeEvent( 'action', 'init', function() {
 			return array(
-				'title' => __( 'Wordpress Init', 'mwp-rules' ),
-				'description' => __( 'The wordpress stack has been initialized', 'mwp-rules' ),
+				'title' => __( 'Wordpress is Initialized', 'mwp-rules' ),
+				'description' => __( 'The wordpress init hook is fired after all plugins have been loaded.', 'mwp-rules' ),
 			);
 		});
 	}

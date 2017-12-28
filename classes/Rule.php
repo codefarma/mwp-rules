@@ -65,18 +65,36 @@ class Rule extends ActiveRecord
     public static $prefix = 'rule_';
 	
 	/**
+	 * @var	string
+	 */
+	public static $plugin_class = 'MWP\Rules\Plugin';
+	
+	/**
+	 * @var	string
+	 */
+	public static $lang_singular = 'Rule';
+	
+	/**
+	 * @var	string
+	 */
+	public static $lang_plural = 'Rules';
+	
+	/**
 	 * Build an editing form
 	 *
 	 * @param	ActiveRecord		$rule					The rule to edit
 	 * @return	Modern\Wordpress\Helpers\Form
 	 */
-	public static function getForm( $rule )
+	public static function getForm( $rule=NULL )
 	{
 		$plugin = \MWP\Rules\Plugin::instance();
 		$rule = $rule ?: new Rule;
-		$form = $plugin->createForm( 'mwp_rules_rule_form', array(), array( 'attr' => array( 'class' => 'form-horizontal' ) ), 'symfony' );
+		$form = $plugin->createForm( 'mwp_rules_rule_form', array(), array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ), 'symfony' );
 		
-		$event_choices = array();
+		/* Display details for the event */
+		if ( $event = $rule->event() ) {
+			$form->addHtml( 'event_details', $event->getDisplayDetails() );
+		}
 		
 		$form->addTab( 'rule_settings', array( 
 			'title' => __( 'Settings', 'mwp-rules' ) 
@@ -87,7 +105,7 @@ class Rule extends ActiveRecord
 		 */
 		$form->addField( 'title', 'text', array(
 			'label' => __( 'Rule Title', 'mwp-rules' ),
-			'description' => __( 'Summarize the intended purpose of this rule.' ),
+			'description' => __( 'Summarize the intended purpose of this rule.', 'mwp-rules' ),
 			'data' => $rule->title,
 			'attr' => array( 'placeholder' => __( 'Describe what this rule is for', 'mwp-rules' ) ),
 			'required' => true,
@@ -97,6 +115,8 @@ class Rule extends ActiveRecord
 		/* Step 1: Configure the event for new rules */
 		if ( ! $rule->id and ! $rule->parent_id ) 
 		{
+			$event_choices = array();
+			
 			foreach( array( 'action', 'filter' ) as $type ) {
 				foreach( $plugin->getEvents( $type ) as $event ) {
 					$event_choices[ ucwords( $type ) ][ $event->title ] = $event->type . '/' . $event->hook;
@@ -113,21 +133,25 @@ class Rule extends ActiveRecord
 		
 			$form->addField( 'submit', 'submit', array( 
 				'label' => __( 'Continue', 'mwp-rules' ), 
-				'attr' => array( 'class' => 'btn btn-primary' ) 
+				'attr' => array( 'class' => 'btn btn-primary' ),
+				'row_attr' => array( 'class' => 'text-center' ),
 			));
 			
 			return $form;
 		}
 		else
 		{
-			/* Display details for the already configured event */
-			$event = $plugin->getEvent( $rule->event_type, $rule->event_hook );
-			if ( $event ) {
-				// @TODO: add event description html
-			}
+			$form->addField( 'enabled', 'checkbox', array( 
+				'row_prefix' => '<hr>',
+				'label' => __( 'Rule Enabled', 'mwp-rules' ),
+				'value' => 1,
+				'description' => __( 'Enable the operation of this rule' ),
+				'data' => isset( $rule->enabled ) ? (bool) $rule->enabled : true,
+			),
+			'rule_settings' );
 			
 			$form->addField( 'debug', 'checkbox', array( 
-				'label' => __( 'Debug Mode', 'mwp-rules' ),
+				'label' => __( 'Rule Debug', 'mwp-rules' ),
 				'value' => 1,
 				'description' => __( 'Enable debug logs for this rule' ),
 				'data' => (bool) $rule->debug,
@@ -158,11 +182,11 @@ class Rule extends ActiveRecord
 		'rule_conditions');
 		
 		$conditionsController = $plugin->getConditionsController( $rule );
-		$conditionsTable = $conditionsController->getDisplayTable();
+		$conditionsTable = $conditionsController->createDisplayTable();
 		
 		/* Linked conditions table */
 		$conditionsTable->prepare_items( array( 'condition_rule_id=%d AND condition_parent_id=0', $rule->id ) );
-		$form->addHtml( $plugin->getTemplateContent( 'rules/conditions/table', array( 
+		$form->addHtml( 'conditions_table', $plugin->getTemplateContent( 'rules/conditions/table', array( 
 			'rule' => $rule, 
 			'table' => $conditionsTable, 
 			'controller' => $conditionsController 
@@ -177,11 +201,11 @@ class Rule extends ActiveRecord
 		));
 		
 		$actionsController = $plugin->getActionsController( $rule );
-		$actionsTable = $actionsController->getDisplayTable();
+		$actionsTable = $actionsController->createDisplayTable();
 		
 		/* Linked actions table (normal actions)*/
 		$actionsTable->prepare_items( array( 'action_rule_id=%d AND action_else=0', $rule->id ) );
-		$form->addHtml( $plugin->getTemplateContent( 'rules/actions/table', array( 
+		$form->addHtml( 'actions_table', $plugin->getTemplateContent( 'rules/actions/table', array( 
 			'show_buttons' => true,
 			'rule' => $rule, 
 			'table' => $actionsTable, 
@@ -191,8 +215,8 @@ class Rule extends ActiveRecord
 		
 		/* Linked actions table (else actions)*/
 		$actionsTable->prepare_items( array( 'action_rule_id=%d AND action_else=1', $rule->id ) );
-		$form->addHeading( __( 'Else Actions', 'mwp-rules' ), 'rule_actions' );
-		$form->addHtml( $plugin->getTemplateContent( 'rules/actions/table', array(
+		$form->addHeading( 'else_actions_heading', __( 'Else Actions', 'mwp-rules' ), 'rule_actions' );
+		$form->addHtml( 'actions_else_table', $plugin->getTemplateContent( 'rules/actions/table', array(
 			'show_buttons' => false,
 			'rule' => $rule, 
 			'table' => $actionsTable, 
@@ -211,7 +235,8 @@ class Rule extends ActiveRecord
 		
 		$form->addField( 'submit', 'submit', array( 
 			'label' => __( 'Save Rule', 'mwp-rules' ), 
-			'attr' => array( 'class' => 'btn btn-primary' ) 
+			'attr' => array( 'class' => 'btn btn-primary' ),
+			'row_attr' => array( 'class' => 'text-center' ),
 		));
 		
 		return $form;
@@ -235,271 +260,6 @@ class Rule extends ActiveRecord
 		}
 		
 		parent::processForm( $values );
-	}
-	
-	/**
-	 * [Node] Add/Edit Form
-	 *
-	 * @param	\IPS\Helpers\Form	$form	The form
-	 * @return	void
-	 */
-	public function form( &$form )
-	{	
-		$events 	= array();
-		$event_missing 	= FALSE;
-		
-		$form->addTab( 'rules_settings' );
-		
-		/**
-		 * New Child Rules Inherit Event From Parent
-		 */
-		if 
-		( 
-			! $this->id and 
-			(
-				\IPS\Request::i()->parent and
-				! \IPS\Request::i()->subnode
-			)
-		)
-		{
-			$parent = \IPS\rules\Rule::load( \IPS\Request::i()->parent );
-			$this->event_app 	= $parent->event_app;
-			$this->event_class 	= $parent->event_class;
-			$this->event_key	= $parent->event_key;
-			$form->actionButtons 	= array( \IPS\Theme::i()->getTemplate( 'forms', 'core', 'global' )->button( 'rules_next', 'submit', null, 'ipsButton ipsButton_primary', array( 'accesskey' => 's' ) ) );
-		}
-		
-		/**
-		 * Root rules can be moved between rule sets
-		 */
-		else if	( ! $this->parent() )
-		{
-			if ( \IPS\rules\Rule\Ruleset::roots( NULL ) )
-			{
-				$ruleset_id = $this->ruleset_id ?: 0;
-				if 
-				( 
-					! $this->id and
-					\IPS\Request::i()->subnode == 1 and
-					\IPS\Request::i()->parent
-				)
-				{
-					$ruleset_id = \IPS\Request::i()->parent;
-				}
-				
-				$form->add( new \IPS\Helpers\Form\Node( 'rule_ruleset_id', $ruleset_id, TRUE, array( 'class' => '\IPS\rules\Rule\Ruleset', 'zeroVal' => 'rule_no_ruleset', 'subnodes' => FALSE ) ) );
-			}
-		}
-		
-		if ( $this->event_key and $this->event()->placeholder )
-		{
-			$form->addHtml( \IPS\Theme::i()->getTemplate( 'components' )->missingEvent( $this ) );
-			$event_missing = TRUE;
-		}
-
-		/**
-		 * If the event hasn't been configured for this rule, build an option list
-		 * for all available events for the user to select.
-		 */
-		if ( ! $this->event_key )
-		{
-			$form->actionButtons 	= array( \IPS\Theme::i()->getTemplate( 'forms', 'core', 'global' )->button( 'rules_next', 'submit', null, 'ipsButton ipsButton_primary', array( 'accesskey' => 's' ) ) );
-			foreach ( \IPS\rules\Application::rulesDefinitions() as $definition_key => $definition )
-			{
-				foreach ( $definition[ 'events' ] as $event_key => $event_data )
-				{
-					$group = ( isset( $event_data[ 'group' ] ) and $event_data[ 'group' ] ) ? $event_data[ 'group' ] : $definition[ 'group' ];
-					$events[ $group ][ $definition_key . '_' . $event_key ] = $definition[ 'app' ] . '_' . $definition[ 'class' ] . '_event_' . $event_key;
-				}
-			}
-			$form->add( new \IPS\Helpers\Form\Select( 'rule_event_selection', $this->id ? md5( $this->event_app . $this->event_class ) . '_' . $this->event_key : NULL, TRUE, array( 'options' => $events, 'noDefault' => TRUE ), NULL, "<div class='chosen-collapse' data-controller='rules.admin.ui.chosen'>", "</div>", 'rule_event_selection' ) );
-		}
-		
-		/* Rule Title */
-		$form->add( new \IPS\Helpers\Form\Text( 'rule_title', $this->title, TRUE, array( 'placeholder' => \IPS\Member::loggedIn()->language()->addToStack( 'rule_title_placeholder' ) ) ) );
-		
-		/**
-		 * Conditions & Actions
-		 *
-		 * Only allow configuration if the rule has been saved (it needs an ID),
-		 * and if the event it is assigned to has a valid definition.
-		 */
-		if ( $this->id and ! $event_missing )
-		{			
-			$form->add( new \IPS\Helpers\Form\YesNo( 'rule_debug', $this->debug, FALSE ) );
-			
-			if ( isset( \IPS\Request::i()->tab ) )
-			{
-				$form->activeTab = 'rules_' . \IPS\Request::i()->tab;
-			}
-		
-			$form->addTab( 'rules_conditions' );
-			$form->addHeader( 'rule_conditions' );
-			
-			$compare_options = array(
-				'and' 	=> 'AND',
-				'or'	=> 'OR',
-			);
-			
-			$form->add( new \IPS\Helpers\Form\Radio( 'rule_base_compare', $this->base_compare ?: 'and', FALSE, array( 'options' => $compare_options ), NULL, NULL, NULL, 'rule_base_compare' ) );
-			
-			/* Just a little nudging */
-			$form->addHtml( "
-				<style>
-					#rule_base_compare br { display:none; }
-					#elRadio_rule_base_compare_rule_base_compare { width: 100px; display:inline-block; }
-				</style>
-			" );
-			
-			/**
-			 * Rule Conditions
-			 */
-			$conditionClass		= '\IPS\rules\Condition';
-			$conditionController 	= new \IPS\rules\modules\admin\rules\conditions( NULL, $this );
-			$conditions 		= new \IPS\Helpers\Tree\Tree( 
-							\IPS\Http\Url::internal( "app=rules&module=rules&controller=conditions&rule={$this->id}" ),
-							$conditionClass::$nodeTitle, 
-							array( $conditionController, '_getRoots' ), 
-							array( $conditionController, '_getRow' ), 
-							array( $conditionController, '_getRowParentId' ), 
-							array( $conditionController, '_getChildren' ), 
-							array( $conditionController, '_getRootButtons' )
-						);
-			
-			/* Replace form constructs with div's */
-			$conditionsTreeHtml = (string) $conditions;
-			$conditionsTreeHtml = str_replace( '<form ', '<div ', $conditionsTreeHtml );
-			$conditionsTreeHtml = str_replace( '</form>', '</div>', $conditionsTreeHtml );
-			$form->addHtml( $conditionsTreeHtml );
-			
-			/**
-			 * Rule Actions
-			 */
-			$form->addTab( 'rules_actions' );
-			$form->addHeader( 'rule_actions' );
-			
-			$actionClass		= '\IPS\rules\Action';
-			$actionController 	= new \IPS\rules\modules\admin\rules\actions( NULL, $this, \IPS\rules\ACTION_STANDARD );
-			$actions 		= new \IPS\Helpers\Tree\Tree( 
-							\IPS\Http\Url::internal( "app=rules&module=rules&controller=actions&rule={$this->id}" ),
-							$actionClass::$nodeTitle, 
-							array( $actionController, '_getRoots' ), 
-							array( $actionController, '_getRow' ), 
-							array( $actionController, '_getRowParentId' ), 
-							array( $actionController, '_getChildren' ), 
-							array( $actionController, '_getRootButtons' )
-						);
-			
-			/* Replace form constructs with div's */
-			$actionsTreeHtml = (string) $actions;
-			$actionsTreeHtml = str_replace( '<form ', '<div ', $actionsTreeHtml );
-			$actionsTreeHtml = str_replace( '</form>', '</div>', $actionsTreeHtml );
-			$form->addHtml( $actionsTreeHtml );
-			
-			/* Else Actions */
-			$form->addHeader( 'rules_actions_else' );
-			$form->addHtml( '<p class="ipsPad">' . \IPS\Member::loggedIn()->language()->addToStack( 'rules_actions_else_description' ) . '</p>' );
-			
-			$elseActionController 	= new \IPS\rules\modules\admin\rules\actions( NULL, $this, \IPS\rules\ACTION_ELSE );
-			$elseActions 		= new \IPS\Helpers\Tree\Tree( 
-							\IPS\Http\Url::internal( "app=rules&module=rules&controller=actions&rule={$this->id}" ),
-							$actionClass::$nodeTitle, 
-							array( $elseActionController, '_getRoots' ), 
-							array( $elseActionController, '_getRow' ), 
-							array( $elseActionController, '_getRowParentId' ), 
-							array( $elseActionController, '_getChildren' ), 
-							array( $elseActionController, '_getRootButtons' )
-						);
-			
-			/* Replace form constructs with div's */
-			$elseActionsTreeHtml = (string) $elseActions;
-			$elseActionsTreeHtml = str_replace( '<form ', '<div ', $elseActionsTreeHtml );
-			$elseActionsTreeHtml = str_replace( '</form>', '</div>', $elseActionsTreeHtml );
-			$form->addHtml( $elseActionsTreeHtml );			
-			
-			/**
-			 * Show debugging console for this rule if debugging is enabled
-			 */
-			if ( $this->debug )
-			{
-				$form->addTab( 'rules_debug_console' );
-				
-				$self 		= $this;
-				$controllerUrl 	= \IPS\Http\Url::internal( "app=rules&module=rules&controller=rulesets&do=viewlog" );
-				$table 		= new \IPS\Helpers\Table\Db( 'rules_logs', \IPS\Http\Url::internal( "app=rules&module=rules&controller=rules&do=form&id=". $this->id ), array( 'rule_id=? AND op_id=0', $this->id ) );
-				$table->include = array( 'time', 'message', 'result' );
-				$table->parsers = array(
-					'time'	=> function( $val )
-					{
-						return (string) \IPS\DateTime::ts( $val );
-					},
-					'result' => function( $val )
-					{
-						return $val;
-					},
-				);			
-				$table->sortBy = 'time';
-				$table->rowButtons = function( $row ) use ( $self, $controllerUrl )
-				{	
-					$buttons = array();
-					
-					$buttons[ 'view' ] = array(
-						'icon'		=> 'search',
-						'title'		=> 'View Details',
-						'id'		=> "{$row['id']}-view",
-						'link'		=> $controllerUrl->setQueryString( array( 'logid' => $row[ 'id' ] ) ),
-						'data'		=> array( 'ipsDialog' => '' ),
-					);
-					
-					return $buttons;
-				};
-		
-				$form->addHtml( (string) $table );
-			}			
-			
-		}
-		
-		parent::form( $form );
-	}
-	
-	/**
-	 * [Node] Save Add/Edit Form
-	 *
-	 * @param	array	$values	Values from the form
-	 * @return	void
-	 */
-	public function saveForm( $values )
-	{
-		if ( isset( $values[ 'rule_event_selection' ] ) )
-		{
-			list( $definition_key, $event_key ) = explode( '_', $values[ 'rule_event_selection' ], 2 );
-			
-			if ( $definition = \IPS\rules\Application::rulesDefinitions( $definition_key ) )
-			{
-				$values[ 'rule_event_app' ]	= $definition[ 'app' ];
-				$values[ 'rule_event_class' ]	= $definition[ 'class' ];
-				$values[ 'rule_event_key' ] 	= $event_key;
-			}
-			
-			unset( $values[ 'rule_event_selection' ] );
-		}
-		
-		if ( isset ( $values[ 'rule_ruleset_id' ] ) and is_object( $values[ 'rule_ruleset_id' ] ) )
-		{
-			$values[ 'rule_ruleset_id' ] = $values[ 'rule_ruleset_id' ]->id;
-		}
-		
-		parent::saveForm( $values );
-		
-		/**
-		 * Save Footprint
-		 */
-		$this->init();
-		if ( $this->event()->data !== NULL )
-		{
-			$this->event_footprint = md5( json_encode( $this->event()->data[ 'arguments' ] ) );
-			$this->save();
-		}
 	}
 	
 	/**
@@ -821,6 +581,17 @@ class Rule extends ActiveRecord
 	public function compareMode()
 	{
 		return $this->base_compare ?: 'and';
-	}	
+	}
+	
+	/**
+	 * Get the rule url
+	 *
+	 * @param	array			$params			Url params
+	 * @return	string
+	 */
+	public function url( $params=array() )
+	{
+		return \MWP\Rules\Plugin::instance()->getRulesController()->getUrl( array( 'id' => $this->id, 'do' => 'edit' ) + $params );
+	}
 
 }

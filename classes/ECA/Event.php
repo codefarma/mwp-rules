@@ -91,6 +91,26 @@ class Event extends BaseDefinition
 		
 		return true;
 	}
+	
+	/**
+	 * Get the event details display
+	 *
+	 * @return	string
+	 */
+	public function getDisplayDetails( $rule=NULL )
+	{
+		return \MWP\Rules\Plugin::instance()->getTemplateContent( 'rules/events/header_overview', array( 'event' => $this, 'rule' => $rule ) );
+	}
+	
+	/**
+	 * Get the argument info
+	 *
+	 * @return	string
+	 */
+	public function getDisplayArgInfo()
+	{
+		return \MWP\Rules\Plugin::instance()->getTemplateContent( 'rules/events/arg_info', array( 'event' => $this ) );
+	}
 
 	/**
 	 * Begin an event cycle
@@ -134,7 +154,7 @@ class Event extends BaseDefinition
 			 */
 			if ( $this->thread === $this->rootThread )
 			{
-				$actions = $this->actionStack;
+				$actions = $this->actionStack;				
 				$this->actionStack = array();
 				$this->executeDeferred( $actions );
 			}			
@@ -171,7 +191,7 @@ class Event extends BaseDefinition
 				$definition = $action->definition();
 				$rule = $action->rule();
 				
-				$result = call_user_func_array( $definition->callback, array_merge( $deferred[ 'args' ], array( $action->data[ 'configuration' ][ 'data' ], $deferred[ 'event_args' ], $action ) ) );					
+				$result = call_user_func_array( $definition->callback, array_merge( $deferred[ 'args' ], array( $action->data, $deferred[ 'event_args' ], $action ) ) );					
 				
 				$action->locked = FALSE;
 				

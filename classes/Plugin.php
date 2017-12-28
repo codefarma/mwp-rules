@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 const ACTION_STANDARD = 0;
 const ACTION_ELSE = 1;
 
+use Modern\Wordpress\Framework;
 use MWP\Rules\ECA\Loader;
 use MWP\Rules\ECA\Token;
 use MWP\Rules\Rule;
@@ -63,6 +64,11 @@ class Plugin extends \Modern\Wordpress\Plugin
 	public $actionQueue = array();
 	
 	/**
+	 * @Wordpress\Script( deps={"mwp"} )
+	 */
+	public $mainController = 'assets/js/main.js';
+	
+	/**
 	 * Admin Stylesheet
 	 *
 	 * @Wordpress\Stylesheet
@@ -70,11 +76,44 @@ class Plugin extends \Modern\Wordpress\Plugin
 	public $adminStyle = 'assets/css/admin_style.css';
 	
 	/**
-	 * Main Javascript Controller
-	 *
-	 * @Wordpress\Script( deps={"mwp"} )
+	 * @Wordpress\Script( handle="codemirror" )
 	 */
-	public $mainScript = 'assets/js/main.js';
+	public $codeMirror = 'assets/js/codemirror/codemirror.js';
+	
+	/**
+	 * @Wordpress\Script( handle="codemirror-xml" )
+	 */
+	public $codeMirrorXML = 'assets/js/codemirror/mode/xml/xml.js';
+
+	/**
+	 * @Wordpress\Script( handle="codemirror-css" )
+	 */
+	public $codeMirrorCSS = 'assets/js/codemirror/mode/css/css.js';
+
+	/**
+	 * @Wordpress\Script( handle="codemirror-javascript" )
+	 */
+	public $codeMirrorJS = 'assets/js/codemirror/mode/javascript/javascript.js';
+
+	/**
+	 * @Wordpress\Script( handle="codemirror-clike" )
+	 */
+	public $codeMirrorCLIKE = 'assets/js/codemirror/mode/clike/clike.js';
+
+	/**
+	 * @Wordpress\Script( handle="codemirror-htmlmixed", deps={"codemirror-xml","codemirror-javascript","codemirror-css"} )
+	 */
+	public $codeMirrorHTML = 'assets/js/codemirror/mode/htmlmixed/htmlmixed.js';
+	
+	/**
+	 * @Wordpress\Script( handle="codemirror-php", deps={"codemirror","codemirror-htmlmixed","codemirror-clike"} )
+	 */
+	public $codeMirrorPHP = 'assets/js/codemirror/mode/php/php.js';
+	
+	/**
+	 * @Wordpress\Stylesheet
+	 */
+	public $codeMirrorStyle = 'assets/css/codemirror.css';
 	
 	/**
 	 * Enqueue scripts and stylesheets
@@ -85,6 +124,10 @@ class Plugin extends \Modern\Wordpress\Plugin
 	 */
 	public function enqueueScripts()
 	{
+		$this->useScript( $this->mainController );
+		$this->useScript( $this->codeMirror );
+		$this->useStyle( $this->codeMirrorStyle );
+		$this->useScript( $this->codeMirrorPHP );
 		$this->useStyle( $this->adminStyle );
 	}
 	
@@ -357,17 +400,270 @@ class Plugin extends \Modern\Wordpress\Plugin
 	}
 	
 	/**
+	 * Build Operation Form ( Condition / Action )
+	 *
+	 * @param	Modern\Wordpress\Helpers\Form	$form		The form to build
+	 * @param	MWP\Rules\(Condition/Action)	$operation	The condition or action node
+	 * @param	string							$optype		A string representing the type of operation ( conditions/actions )
+	 * @return	void
+	 */
+	public function buildOpConfigForm( $form, $operation, $optype )
+	{
+		$operation_label = __( $optype == 'condition' ? 'Condition to apply' : 'Action to take', 'mwp-rules' );
+		$definition = $operation->definition();
+		$opkey = $operation->key;
+		$request = Framework::instance()->getRequest();
+		
+		/* Step 1: Configure the operation type for new operations */
+		if ( ! $operation->id ) 
+		{
+			$operation_choices = array();
+			$operation_definitions = $optype == 'condition' ? $this->getConditions() : $this->getActions();
+			
+			foreach( $operation_definitions as $definition ) {
+				$group = isset( $definition->group ) ? $definition->group : 'Misc';
+				$operation_choices[ $group ][ $definition->title ] = $definition->key;
+			}
+			
+			$form->addField( 'key', 'choice', array(
+				'label' => $operation_label,
+				'choices' => $operation_choices,
+				'data' => $operation->key,
+				'required' => true,
+			));
+		
+			$form->addField( 'submit', 'submit', array( 
+				'label' => __( 'Continue', 'mwp-rules' ), 
+				'attr' => array( 'class' => 'btn btn-primary' ),
+				'row_attr' => array( 'class' => 'text-center' ),
+			));
+			
+			return $form;			
+		}
+		else
+		{
+			$operation_name = $definition ? $definition->title : 'Missing (' . $opkey . ')';
+			
+			/* Add the operation description */
+			$form->addField( 'key', 'choice', array(
+				'label' => $operation_label,
+				'choices' => array( $operation_name => $operation->key ),
+				'data' => $operation->key,
+				'required' => true,
+			));
+		
+		}
+		
+		/**
+		 * Operation title
+		 */
+		$form->addField( 'title', 'text', array(
+			'label' => __( ucwords( $optype ) . ' description', 'mwp-rules' ),
+			'description' => __( "Summarize the intended purpose of this {$optype}.", 'mwp-rules' ),
+			'data' => $operation->title,
+			'attr' => array( 'placeholder' => __( "Describe what this {$optype} is for", 'mwp-rules' ) ),
+			'required' => true,
+		),
+		'operation_config' );
+		
+		/* Make sure we have a definition to work with */
+		if ( $definition ) 
+		{
+			/* Add operation level form fields */
+			if ( isset( $definition->configuration['form'] ) and is_callable( $definition->configuration['form'] ) ) {
+				call_user_func( $definition->configuration['form'], $form, $operation->data, $operation );
+			}
+			
+			/**
+			 * Add argument level configurations if this operation takes arguments
+			 */
+			if ( isset( $definition->arguments ) and is_array( $definition->arguments ) )
+			{
+				foreach ( $definition->arguments as $arg_name => $arg )
+				{
+					$arg_sources = array();
+					$argNameKey = $opkey . '_' . $arg_name;
+					$default_source = isset( $arg['default_source'] ) ? $arg['default_source'] : null;
+					
+					/* Check if manual configuration is available for this argument */
+					$has_manual_config = ( 
+						( isset ( $arg[ 'configuration' ][ 'form' ] ) 	and is_callable( $arg[ 'configuration' ][ 'form' ] ) ) and 
+						( isset ( $arg[ 'configuration' ][ 'getArg' ] ) and is_callable( $arg[ 'configuration' ][ 'getArg' ] ) )
+					);
+					
+					/* Look for event data that can be used to supply the value for this argument */
+					$usable_event_data = $this->usableEventArguments( $arg, $operation );
+					
+					if ( ! empty( $usable_event_data ) ) {
+						$arg_sources[ 'Event / Global Data' ] = 'event';
+					}
+					
+					if ( $has_manual_config ) {
+						$arg_sources[ 'Manual Configuration' ] = 'manual';
+					}
+					
+					$arg_sources[ 'Custom PHP Code' ] = 'phpcode';
+					
+					$form->addHeading( $arg_name . '_heading', isset( $arg['label'] ) ? $arg['label'] : $arg_name );
+					
+					$argSourceField = $form->addField( $argNameKey . '_source', 'choice', array(
+						'label' => __( 'Source', 'mwp-rules' ),
+						'choices' => $arg_sources,
+						'data' => isset( $operation->data[ $argNameKey . '_source' ] ) ? $operation->data[ $argNameKey . '_source' ] : $default_source,
+						'required' => true,
+						'toggles' => array(
+							'event' => array( 'show' => '#' . $argNameKey . '_eventArg' ),
+							'manual' => array( 'show' => '#' . $argNameKey . '_manualConfig' ),
+							'phpcode' => array( 'show' => '#' . $argNameKey . '_phpcode' ),
+						),
+					));
+					
+					/**
+					 * MANUAL CONFIGURATION
+					 *
+					 * Does the argument support a manual configuration?
+					 */
+					if ( $has_manual_config )
+					{				
+						/**
+						 * Add manual configuration form fields from definition
+						 *
+						 * Note: Callbacks should return an array with the ID's of their
+						 * added form fields so we know what to toggle.
+						 */
+						$form->addHtml( 'manual_config_start', '<div id="' . $argNameKey . '_manualConfig">' );
+						$_fields = call_user_func_array( $arg[ 'configuration' ][ 'form' ], array( $form, $operation->data, $operation ) );
+						$form->addHtml( 'manual_config_end', '</div>' );
+					}
+					
+					/**
+					 * EVENT ARGUMENTS 
+					 *
+					 * Are there any arguments to use?
+					 */
+					if ( ! empty( $usable_event_data ) ) 
+					{
+						$usable_arguments 	= array();
+						$usable_toggles		= array();
+						$default_toggle_needed	= FALSE;
+						
+						/**
+						 * Add usable event arguments to our list
+						 */
+						foreach ( $usable_event_data as $event_arg_name => $event_argument ) {
+							$usable_arguments[ isset( $event_argument['label'] ) ? $event_argument['label'] : $event_arg_name ] = $event_arg_name;
+						}
+						
+						$form->addField( $argNameKey . '_eventArg', 'choice', array(
+							'row_attr' => array( 'id' => $argNameKey . '_eventArg' ),
+							'label' => __( 'Data To Use', 'mwp-rules' ),
+							'choices' => $usable_arguments,
+							'required' => true,
+							'data' => isset( $operation->data[ $argNameKey . '_eventArg' ] ) ? $operation->data[ $argNameKey . '_eventArg' ] : NULL,
+						));
+					}
+					
+					/**
+					 * PHP CODE
+					 *
+					 * Requires return argtype(s) to be specified
+					 */
+					if ( isset( $arg[ 'argtypes' ] ) )
+					{
+						/**
+						 * Compile argtype info
+						 */
+						$_arg_list 	= array();
+						
+						if ( is_array( $arg[ 'argtypes' ] ) )
+						{
+							foreach( $arg[ 'argtypes' ] as $_type => $_type_def )
+							{
+								if ( is_array( $_type_def ) )
+								{
+									if ( isset ( $_type_def[ 'description' ] ) )
+									{
+										$_arg_list[] = "<strong>{$_type}</strong>" . ( $_type_def[ 'class' ] ? ' (' . implode( ',', (array) $_type_def[ 'class' ] ) . ')' : '' ) . ": {$_type_def[ 'description' ]}";
+									}
+									else
+									{
+										$_arg_list[] = "<strong>{$_type}</strong>" . ( $_type_def[ 'class' ] ? ' (' . implode( ',', (array) $_type_def[ 'class' ] ) . ')' : '' );
+									}
+								}
+								else
+								{
+									$_arg_list[] = "<strong>{$_type_def}</strong>";
+								}
+							}
+						}
+						
+						$form->addField( $argNameKey . '_phpcode', 'textarea', array(
+							'row_attr' => array(  'id' => $argNameKey . '_phpcode', 'data-view-model' => 'mwp-rules' ),
+							'label' => __( 'Custom PHP Code', 'mwp-rules' ),
+							'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
+							'data' => isset( $operation->data[ $argNameKey . '_phpcode' ] ) ? $operation->data[ $argNameKey . '_phpcode' ] : "// <?php \n\nreturn;",
+							'description' => $this->getTemplateContent( 'rules/phpcode_description', array( 'operation' => $operation, 'return_args' => $_arg_list, 'event' => $operation->event() ) ),
+						));
+					}
+				}
+			}
+			
+		}
+		
+		/* Save button */
+		$form->addField( 'submit', 'submit', array( 
+			'label' => __( 'Save ' . ucwords( $optype ), 'mwp-rules' ), 
+			'attr' => array( 'class' => 'btn btn-primary' ),
+			'row_attr' => array( 'class' => 'text-center' ),
+		));
+		
+	}
+	
+	/**
+	 * Process the values from an operation configuration form submission
+	 * 
+	 * @param	array							$values				The submitted form values
+	 * @param	MWP\Rules\Condition/Action		$operation			The operation being proceseed
+	 * @param	string							$optype				The operation type
+	 * @return	void
+	 */
+	public function processOpConfigForm( $values, $operation, $optype )
+	{
+		/* Remove non-custom configuration data */
+		unset( 
+			$values['key'],
+			$values['title'],
+			$values['event_details'],
+			$values['not'],
+			$values['group_compare'],
+			$values['enabled'],
+			$values['manual_config_start'],
+			$values['manual_config_end'],
+			$values['else'],
+			$values['schedule_mode'], 
+			$values['schedule_minutes'], 
+			$values['schedule_hours'], 
+			$values['schedule_days'],
+			$values['schedule_months'],
+			$values['schedule_date'],
+			$values['schedule_customcode']
+		);
+		
+		$operation->data = $values;
+	}
+	
+	/**
 	 * Invoke An Operation
 	 *
-	 * @param	\IPS\Node\Model		$operation		A condition/action object to evaluate
-	 * @param	string				$optype			The type of operation which the operation is (actions/conditions)
-	 * @param	array				$args			The arguments the operation was invoked with
+	 * @param	MWP\Rules\(Condition/Action)		$operation		A condition/action object to evaluate
+	 * @param	string								$optype			The type of operation which the operation is (actions/conditions)
+	 * @param	array								$args			The arguments the operation was invoked with
 	 * @return	mixed
 	 */
 	public function opInvoke( $operation, $optype, $args )
-	{		
+	{
 		if ( ( $definition = $operation->definition() ) !== NULL )
-		{	
+		{
 			$arg_map         = array();
 			$operation_args  = array();
 			$event_arg_index = array();
@@ -395,7 +691,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 						$argNameKey 		= $operation->key . '_' . $arg_name;
 						
 						/* Check which source the user has configured for the argument data */
-						switch ( $operation->data[ 'configuration' ][ 'data' ][ $argNameKey . '_source' ] )
+						switch ( $operation->data[ $argNameKey . '_source' ] )
 						{
 							/**
 							 * Grab argument from event
@@ -406,7 +702,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 								 * Determine which argument index to use and if the argument
 								 * needs class conversion or not
 								 */
-								$parts = explode( ':', $operation->data[ 'configuration' ][ 'data' ][ $argNameKey . '_eventArg' ] );
+								$parts = explode( ':', $operation->data[ $argNameKey . '_eventArg' ] );
 								$event_arg_name = isset( $parts[ 0 ] ) ? $parts[ 0 ] : NULL;
 								$converter_class = isset( $parts[ 1 ] ) ? $parts[ 1 ] : NULL;
 								$converter_key = isset( $parts[ 2 ] ) ? $parts[ 2 ] : NULL;
@@ -494,7 +790,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 										{
 											if ( isset ( $arg[ 'argtypes' ][ $event_arg_type ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ $event_arg_type ][ 'converter' ] ) )
 											{
-												$_operation_arg = call_user_func_array( $arg[ 'argtypes' ][ $event_arg_type ][ 'converter' ], array( $event_arg, $operation->data[ 'configuration' ][ 'data' ] ) );
+												$_operation_arg = call_user_func_array( $arg[ 'argtypes' ][ $event_arg_type ][ 'converter' ], array( $event_arg, $operation->data ) );
 											}
 											else
 											{
@@ -505,7 +801,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 										{
 											if ( isset ( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) )
 											{
-												$_operation_arg = call_user_func_array( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ], array( $event_arg, $operation->data[ 'configuration' ][ 'data' ] ) );
+												$_operation_arg = call_user_func_array( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ], array( $event_arg, $operation->data ) );
 											}
 											else
 											{
@@ -541,7 +837,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 								 */
 								if ( isset ( $arg[ 'configuration' ][ 'getArg' ] ) and is_callable( $arg[ 'configuration' ][ 'getArg' ] ) )
 								{
-									$operation_args[] = call_user_func_array( $arg[ 'configuration' ][ 'getArg' ], array( $operation->data[ 'configuration' ][ 'data' ], $operation ) );
+									$operation_args[] = call_user_func_array( $arg[ 'configuration' ][ 'getArg' ], array( $operation->data, $operation ) );
 								}
 								else
 								{
@@ -560,7 +856,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 									return @eval( $phpcode );
 								};
 								
-								$argVal = $evaluate( $operation->data[ 'configuration' ][ 'data' ][ $argNameKey . '_phpcode' ] );
+								$argVal = $evaluate( $operation->data[ $argNameKey . '_phpcode' ] );
 								
 								if ( isset( $argVal ) )
 								{
@@ -589,7 +885,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 										{
 											if ( isset ( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ] ) )
 											{
-												$operation_args[] = call_user_func_array( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ], array( $argVal, $operation->data[ 'configuration' ][ 'data' ] ) );
+												$operation_args[] = call_user_func_array( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ], array( $argVal, $operation->data ) );
 											}
 											else
 											{
@@ -600,7 +896,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 										{
 											if ( isset ( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) )
 											{
-												$operation_args[] = call_user_func_array( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ], array( $argVal, $operation->data[ 'configuration' ][ 'data' ] ) );
+												$operation_args[] = call_user_func_array( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ], array( $argVal, $operation->data ) );
 											}
 											else
 											{
@@ -639,8 +935,8 @@ class Plugin extends \Modern\Wordpress\Plugin
 						if 
 						( 
 							$argument_missing and 
-							$operation->data[ 'configuration' ][ 'data' ][ $argNameKey . '_source' ] == 'event' and
-							$operation->data[ 'configuration' ][ 'data' ][ $argNameKey . '_eventArg_useDefault' ]
+							$operation->data[ $argNameKey . '_source' ] == 'event' and
+							$operation->data[ $argNameKey . '_eventArg_useDefault' ]
 						)	
 						{
 							/**
@@ -648,7 +944,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 							 */
 							if ( isset ( $arg[ 'configuration' ][ 'getArg' ] ) and is_callable( $arg[ 'configuration' ][ 'getArg' ] ) )
 							{
-								$argVal = call_user_func_array( $arg[ 'configuration' ][ 'getArg' ], array( $operation->data[ 'configuration' ][ 'data' ], $operation ) );
+								$argVal = call_user_func_array( $arg[ 'configuration' ][ 'getArg' ], array( $operation->data, $operation ) );
 								if ( isset( $argVal ) )
 								{
 									$argument_missing = FALSE;
@@ -662,7 +958,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 							else
 							{
 								/* Only if we haven't already attempted to get the argument from phpcode */
-								if ( $operation->data[ 'configuration' ][ 'data' ][ $argNameKey . '_source' ] !== 'phpcode' )
+								if ( $operation->data[ $argNameKey . '_source' ] !== 'phpcode' )
 								{
 									/**
 									 * This code is getting a little redundant. I know.
@@ -673,7 +969,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 										return @eval( $phpcode );
 									};
 									
-									$argVal = $evaluate( $operation->data[ 'configuration' ][ 'data' ][ $argNameKey . '_phpcode' ] );
+									$argVal = $evaluate( $operation->data[ $argNameKey . '_phpcode' ] );
 									
 									if ( isset( $argVal ) )
 									{
@@ -703,7 +999,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 											{
 												if ( isset ( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ] ) )
 												{
-													$operation_args[] = call_user_func_array( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ], array( $argVal, $operation->data[ 'configuration' ][ 'data' ] ) );
+													$operation_args[] = call_user_func_array( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ], array( $argVal, $operation->data ) );
 												}
 												else
 												{
@@ -715,7 +1011,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 											{
 												if ( isset ( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) )
 												{
-													$operation_args[] = call_user_func_array( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ], array( $argVal, $operation->data[ 'configuration' ][ 'data' ] ) );
+													$operation_args[] = call_user_func_array( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ], array( $argVal, $operation->data ) );
 												}
 												else
 												{
@@ -889,7 +1185,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 						 */
 						if ( ! isset ( $result ) )
 						{
-							$result = call_user_func_array( $definition->callback, array_merge( $operation_args, array( $operation->data[ 'configuration' ][ 'data' ], $arg_map, $operation ) ) );					
+							$result = call_user_func_array( $definition->callback, array_merge( $operation_args, array( $operation->data, $arg_map, $operation ) ) );					
 						}
 						
 						/**
@@ -950,9 +1246,9 @@ class Plugin extends \Modern\Wordpress\Plugin
 	/**
 	 * Get Usable Event Arguments
 	 *
-	 * @param	array			$arg		The argument definition
-	 * @param	\IPS\Node\Model		$operation	The condition or action node
-	 * @return	array					An array of additional arguments that can be derived from the event
+	 * @param	array							$arg		The argument definition
+	 * @param	MWP\Rules\Condition/Action		$operation	The condition or action node
+	 * @return	array							An array of additional arguments that can be derived from the event
 	 */
 	public function usableEventArguments( $arg, $operation )
 	{
@@ -1048,9 +1344,9 @@ class Plugin extends \Modern\Wordpress\Plugin
 	/**
 	 * Build Event Tokens
 	 *
-	 * @param 	\IPS\rules\Event 	$event 		The rules event
-	 * @param	array|NULL		$arg_map	An associative array of the event arguments, if NULL then token/descriptions will be generated
-	 * @return	array					An associative array of token/var replacements
+	 * @param 	\MWP\Rules\ECA\Event 	$event 		The rules event
+	 * @param	array|NULL				$arg_map	An associative array of the event arguments, if NULL then token/descriptions will be generated
+	 * @return	array								An associative array of token/var replacements
 	 */
 	public function getTokens( $event, $arg_map=NULL )
 	{
@@ -1224,9 +1520,13 @@ class Plugin extends \Modern\Wordpress\Plugin
 			return $this->globalArguments;
 		}
 		
-		$this->globalArguments = array();
+		$globalArguments = array(
+			'current_user_id' => array(
+				'label' => __( 'Current logged in user ID', 'mwp-rules' ),
+			),
+		);
 		
-		foreach( apply_filters( 'rules_global_arguments', array() ) as $arg_name => $arg ) {
+		foreach( apply_filters( 'rules_global_arguments', $globalArguments ) as $arg_name => $arg ) {
 			$this->globalArguments[ '__global_' . $arg_name ] = $arg;
 		}
 		
@@ -1483,8 +1783,8 @@ class Plugin extends \Modern\Wordpress\Plugin
 	 */
 	public function rulesLog( $event, $rule, $operation, $result, $message='', $error=0 )
 	{
-		return; // @TODO: implement for MWP Rules
-		print_r( $event->hook . "({$event->thread})" . ( $rule ? " / " . $rule->title : "") . ( $operation ? " / " . $operation->title : "") . " --> " . $message . ": " . json_encode( $result ) . "\n" );
+		return;
+		print_r( $event->hook . "({$event->thread})" . ( $rule ? " / " . $rule->title : "") . ( $operation ? " / " . $operation->title . " (ID:{$operation->id})" : "") . " --> " . $message . ": " . json_encode( $result ) . "\n" );
 		
 		if ( ! $this->logLocked )
 		{

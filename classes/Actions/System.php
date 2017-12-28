@@ -67,51 +67,59 @@ class System
 	{
 		$plugin = $this->getPlugin();
 		
-		$plugin->defineAction( 'rules_execute_php', array
-		(
-			'title' => __( 'Execute custom PHP code', 'mwp-rules' ),
-			'configuration' => array(
-				'form' => function( $form, $saved_values, $action ) {
-					// form add phpcode editor
-				},
-				'saveValues' => function( &$form_values, $action ) {
+		$plugin->defineAction( 'rules_execute_php', function() 
+		{
+			return array(
+				'title' => __( 'Execute custom PHP code', 'mwp-rules' ),
+				'description' => __( 'Run a custom block of php code.', 'mwp-rules' ),
+				'configuration' => array(
+					'form' => function( $form, $saved_values, $action ) {
+						$form->addField( 'rules_custom_phpcode', 'textarea', array(
+							'row_prefix' => '<hr>',
+							'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
+							'label' => __( 'PHP Code', 'mwp-rules' ),
+							'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
+							'data' => isset( $saved_values['rules_custom_phpcode'] ) ? $saved_values['rules_custom_phpcode'] : "// <?php\n\nreturn;",
+						));
+					}
+				),
+				'callback' => function( $saved_values, $event_args, $operation ) {
+					$evaluate = function( $phpcode ) use ( $event_args, $operation ) {
+						extract( $event_args );
+						return @eval( $phpcode );
+					};
 					
+					return $evaluate( $saved_values[ 'rules_custom_phpcode' ] );
 				},
-			),
-			'callback' => function( $saved_values, $event_args, $operation ) {
-				$evaluate = function( $phpcode ) use ( $event_args, $operation )
-				{
-					extract( $event_args );
-					return @eval( $phpcode );
-				};
-				
-				return $evaluate( $saved_values[ 'rules_custom_phpcode' ] );
-			},
-		));
+			);
+		});
 		
-		$plugin->defineAction( 'rules_modify_filtered_value', array
-		(
-			'title' => __( 'Modify the filtered value' ),
-			'description' => __( 'Change the value being filtered in a wordpress filter hook.', 'mwp-rules' ),
-			'arguments' => array(
-				'new_value' => array(
-					'required' => true,
-					'default' => 'manual',
-					'argtypes' => array(
-						'mixed' => array( 'description' => 'the new filtered value' ),
-					),
-					'configuration' => array(
-						'form' => function( $form, $saved_values ) {
-							
-						}
+		$plugin->defineAction( 'rules_modify_filtered_value', function() 
+		{
+			return array(
+				'title' => __( 'Modify the filtered value' ),
+				'description' => __( 'Change the value being filtered in a wordpress filter hook.', 'mwp-rules' ),
+				'arguments' => array(
+					'new_value' => array(
+						'required' => true,
+						'default' => 'manual',
+						'argtypes' => array(
+							'mixed' => array( 'description' => 'the new filtered value' ),
+						),
+						'configuration' => array(
+							'form' => function( $form, $saved_values ) {
+								
+							}
+						),
 					),
 				),
-			),
-			'callback' => function( $new_value, $saved_values, $event_args, $operation ) {
-				$rule = $operation->rule();
-				$rule->filtered_values[ $rule->event()->thread ] = $new_value;
-				return 'filter value changed';
-			}
-		));
+				'callback' => function( $new_value, $saved_values, $event_args, $operation ) {
+					$rule = $operation->rule();
+					$rule->filtered_values[ $rule->event()->thread ] = $new_value;
+					
+					return 'filter value changed';
+				}
+			);
+		});
 	}
 }

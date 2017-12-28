@@ -18,8 +18,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $definition = $condition->definition();
-
+$subconditions = $condition->children();
 ?>
 
-<strong style="font-size:1.2em"><?php echo $condition->title ?></strong>
-<p>(<?php echo $definition ? $definition->title : 'Unregistered condition' ?>)</p>
+<strong style="font-size:1.2em"><?php echo $definition ? $definition->title : 'Unregistered condition' ?></strong> 
+<?php if ( count( $subconditions ) ) : ?>
+	<span class="label label-info"><?php if ( $condition->compareMode() == 'and' ) : ?>AND ALL SUBCONDITIONS<?php else: ?>OR ANY SUBCONDITION<?php endif ?></span>
+<?php endif ?>
+<?php if ( ! $condition->enabled ) : ?>
+	<span class="label label-danger">Disabled</span>
+<?php endif ?>
+<p>
+	<i class="glyphicon glyphicon-filter"></i> 
+	<?php echo $condition->title ?> 
+	<?php if ( $condition->not ) : ?>
+		<span title="This condition evaluates TRUE if the condition is NOT MET" class="label label-warning">NOT</span>
+	<?php endif ?>
+</p>
