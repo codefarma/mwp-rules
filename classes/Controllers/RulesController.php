@@ -26,15 +26,39 @@ class RulesController extends ActiveRecordController
 	 *
 	 * @return	array
 	 */
-	public function getActionButtons()
+	public function getActions()
 	{
 		return array( 
 			'new' => array(
 				'title' => __( 'Create New Rule', 'mwp-rules' ),
-				'href' => $this->getUrl( array( 'do' => 'new' ) ),
-				'class' => 'btn btn-primary',
+				'params' => array( 'do' => 'new' ),
+				'attr' => array( 'class' => 'btn btn-primary' ),
 			)
 		);
+	}
+	
+	/**
+	 * Create a new active record
+	 * 
+	 * @param	ActiveRecord			$record				The active record id
+	 * @return	void
+	 */
+	public function do_new( $record=NULL )
+	{
+		$class = $this->recordClass;
+		$record = new $class;
+		
+		if ( isset( $_REQUEST['parent_id'] ) ) {
+			try {
+				$rule = $class::load( $_REQUEST['parent_id'] );
+				$record->parent_id = $rule->id;
+				$record->event_type = $rule->event_type;
+				$record->event_hook = $rule->event_hook;
+			} 
+			catch( \OutOfRangeException $e ) {}
+		}
+		
+		parent::do_new( $record );
 	}
 
 }

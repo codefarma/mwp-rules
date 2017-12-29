@@ -80,6 +80,50 @@ class Rule extends ActiveRecord
 	public static $lang_plural = 'Rules';
 	
 	/**
+	 * Get controller actions
+	 *
+	 * @return	array
+	 */
+	public function getControllerActions()
+	{
+		return array(
+			'add' => array(
+				'icon' => 'glyphicon glyphicon-plus',
+				'attr' => array(
+					'class' => 'btn btn-sm btn-default',
+					'title' => __( 'Add New Subrule', 'mwp-rules' ),
+				),
+				'params' => array(
+					'do' => 'new',
+					'parent_id' => $this->id,
+				)
+			),
+			'edit' => array(
+				'icon' => 'glyphicon glyphicon-cog',
+				'attr' => array(
+					'class' => 'btn btn-sm btn-default',
+					'title' => __( 'Configure Rule', 'mwp-rules' ),
+				),
+				'params' => array(
+					'do' => 'edit',
+					'id' => $this->id,
+				),
+			),
+			'delete' => array(
+				'icon' => 'glyphicon glyphicon-trash',
+				'attr' => array( 
+					'class' => 'btn btn-sm btn-default',
+					'title' => __( 'Delete Rule', 'mwp-rules' ),
+				),
+				'params' => array(
+					'do' => 'delete',
+					'id' => $this->id,
+				),
+			)
+		);
+	}
+	
+	/**
 	 * Build an editing form
 	 *
 	 * @param	ActiveRecord		$rule					The rule to edit
@@ -93,7 +137,7 @@ class Rule extends ActiveRecord
 		
 		/* Display details for the event */
 		if ( $event = $rule->event() ) {
-			$form->addHtml( 'event_details', $event->getDisplayDetails() );
+			$form->addHtml( 'event_details', $event->getDisplayDetails( $rule->parent() ) );
 		}
 		
 		$form->addTab( 'rule_settings', array( 
@@ -223,6 +267,29 @@ class Rule extends ActiveRecord
 			'controller' => $actionsController 
 		)), 
 		'rule_actions' );
+		
+		/**
+		 * Sub-rules tab
+		 */
+		if ( $rule->children() ) 
+		{
+			$form->addTab( 'rule_subrules', array( 
+				'title' => __( 'Sub-rules', 'mwp-rules' ),
+			));
+			
+			$rulesController = $plugin->getRulesController();
+			$rulesTable = $rulesController->createDisplayTable();
+			$rulesTable->bulkActions = array();
+			unset( $rulesTable->columns['rule_event_hook'] );
+			$rulesTable->prepare_items( array( 'rule_parent_id=%d', $rule->id ) );
+			
+			$form->addHtml( 'subrules_table', $plugin->getTemplateContent( 'rules/subrules/table_wrapper', array( 
+				'rule' => $rule, 
+				'table' => $rulesTable, 
+				'controller' => $rulesController 
+			)),
+			'rule_subrules' );
+		}
 		
 		/**
 		 * Debug tab
@@ -596,6 +663,25 @@ class Rule extends ActiveRecord
 	public function url( $params=array() )
 	{
 		return \MWP\Rules\Plugin::instance()->getRulesController()->getUrl( array( 'id' => $this->id, 'do' => 'edit' ) + $params );
+	}
+	
+	/**
+	 * Delete
+	 *
+	 */
+	public function delete()
+	{
+		foreach( $this->children() as $subrule ) {
+			$subrule->delete();
+		}
+		
+		foreach( $this->actions() as $action ) {
+			$action->delete();
+		}
+		
+		foreach( $this->conditions() as $condition ) {
+			$condition->delete();
+		}
 	}
 
 }

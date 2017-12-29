@@ -121,13 +121,13 @@ class ConditionsController extends ActiveRecordController
 	 *
 	 * @return	array
 	 */
-	public function getActionButtons()
+	public function getActions()
 	{
 		return array( 
 			'new' => array(
 				'title' => __( 'Add Base Condition', 'mwp-rules' ),
-				'href' => $this->getUrl( array( 'do' => 'new' ) ),
-				'class' => 'btn btn-primary',
+				'params' => array( 'do' => 'new' ),
+				'attr' => array( 'class' => 'btn btn-primary' ),
 			)
 		);
 	}

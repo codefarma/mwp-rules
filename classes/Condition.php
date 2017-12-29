@@ -88,7 +88,7 @@ class Condition extends ActiveRecord
 	{
 		return array(
 			'add' => array(
-				'icon' => 'glyphicon glyphicon-plus-sign',
+				'icon' => 'glyphicon glyphicon-plus',
 				'attr' => array(
 					'class' => 'btn btn-sm btn-default',
 					'title' => __( 'Add New Subcondition', 'mwp-rules' ),

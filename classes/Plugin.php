@@ -295,21 +295,77 @@ class Plugin extends \Modern\Wordpress\Plugin
 		$rules_controller_config = array(
 			'where' => array( 'rule_parent_id=0' ),
 			'columns' => array(
-				'rule_title'      => __( 'Rule Title', 'mwp-rules' ),
+				'rule_title'      => __( 'Rule', 'mwp-rules' ),
 				'rule_event_hook' => __( 'Event', 'mwp-rules' ),
+				'rule_enabled'    => __( 'Status', 'mwp-rules' ),
+				'subrules'        => __( 'Subrules', 'mwp-rules' ),
 			),
 			'searchable' => array(
 				'rule_title' => array( 'type' => 'contains', 'combine_words' => 'and' ),
 			),
 			'handlers' => array(
-				'rule_event_hook' => function( $record ) use ( $plugin ) {
+				'rule_title' => function( $record )
+				{
+					return '<div style="min-height: 30px; font-size: 1.2em;">' . $record['rule_title'] . '</div>';
+				},
+				'rule_enabled' => function( $record ) 
+				{
+					$rule = \MWP\Rules\Rule::load( $record['rule_id'] );
+					$condition_count = count( $rule->conditions() );
+					$action_count = count( $rule->actions() );
+					
+					$status = '<div class="mwp-bootstrap">';
+					$status .= $record['rule_enabled'] ? '<span class="label label-success">ENABLED</span>' : '<span class="label label-danger">DISABLED</span>';
+					$status .= '</div>';
+					
+					$controller = \MWP\Rules\Plugin::instance()->getRulesController();
+					$conditionsUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_conditions' ) );
+					$actionsUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_actions' ) );
+					
+					$status .= '<ul style="list-style-type:disc; margin:5px 0 0 20px;">' . 
+						"<li style='margin-bottom:0'><a href='{$conditionsUrl}'>{$condition_count} conditions</a></li>" . 
+						"<li style='margin-bottom:0'><a href='{$actionsUrl}'>{$action_count} actions</li>" . 
+					'</ul>';
+					
+					return $status;
+				},
+				'rule_event_hook' => function( $record ) use ( $plugin ) 
+				{
 					$event = $plugin->getEvent( $record['rule_event_type'], $record['rule_event_hook'] );
+					
 					if ( ! $event ) {
 						return 'Undescribed ' . $record['rule_event_type'] . ': ' . $record['rule_event_hook'];
 					}
 					
-					return '<strong>' . $event->title . '</strong><br>' . $event->description;
+					return '<div class="mwp-bootstrap">' . 
+						'<strong>' . $event->title . '</strong><br>' . 
+						'<span class="label label-' . ( $event->type == 'filter' ? 'warning' : 'info' ) . '">' . $event->type . '</span> ' . 
+						'<span class="label label-success">' . $event->hook . '</span>' . 
+						'<br>' . $event->description .
+					'</div>';
 				},
+				'subrules' => function( $record )
+				{
+					$recursiveRuleCount = function( $_rule ) use ( &$recursiveRuleCount ) {
+						$total = 0;
+						foreach( $_rule->children() as $_subrule ) {
+							$total += $recursiveRuleCount( $_subrule ) + 1;
+						}
+						return $total;
+					};
+					
+					$rule = \MWP\Rules\Rule::load( $record['rule_id' ] );					
+					$subrule_count = $recursiveRuleCount( $rule );
+					
+					if ( $subrule_count ) {
+						$controller = \MWP\Rules\Plugin::instance()->getRulesController();
+						$subrulesUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_subrules' ) );
+						return "<div style='font-size: 1.2em; margin-top:15px;'><a href='{$subrulesUrl}'>{$subrule_count} sub-rules</a></div>";
+					} else {
+						return '';
+					}
+					
+				}
 			),
 		);
 		
