@@ -135,19 +135,20 @@ class System
 			);
 		});
 
-		$plugin->registerCondition( 'rules_execute_php', function() 
+		$plugin->registerCondition( 'rules_execute_php', function() use ( $plugin )
 		{
 			return array(
 				'title' => __( 'Execute custom PHP code', 'mwp-rules' ),
 				'description' => __( 'Run a custom block of php code.', 'mwp-rules' ),
 				'configuration' => array(
-					'form' => function( $form, $saved_values, $action ) {
+					'form' => function( $form, $saved_values, $operation ) use ( $plugin ) {
 						$form->addField( 'rules_custom_phpcode', 'textarea', array(
 							'row_prefix' => '<hr>',
 							'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
 							'label' => __( 'PHP Code', 'mwp-rules' ),
 							'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
 							'data' => isset( $saved_values['rules_custom_phpcode'] ) ? $saved_values['rules_custom_phpcode'] : "// <?php\n\nreturn;",
+							'description' => $plugin->getTemplateContent( 'rules/phpcode_description', array( 'operation' => $operation, 'event' => $operation->event() ) ),
 						));
 					}
 				),

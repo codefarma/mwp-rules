@@ -87,6 +87,39 @@ class Action extends ActiveRecord
 	public $rule = NULL;
 	
 	/**
+	 * Get controller actions
+	 *
+	 * @return	array
+	 */
+	public function getControllerActions()
+	{
+		return array(
+			'edit' => array(
+				'icon' => 'glyphicon glyphicon-cog',
+				'attr' => array(
+					'class' => 'btn btn-sm btn-default',
+					'title' => __( 'Configure Action', 'mwp-rules' ),
+				),
+				'params' => array(
+					'do' => 'edit',
+					'id' => $this->id,
+				),
+			),
+			'delete' => array(
+				'icon' => 'glyphicon glyphicon-trash',
+				'attr' => array( 
+					'class' => 'btn btn-sm btn-default',
+					'title' => __( 'Delete Action', 'mwp-rules' ),
+				),
+				'params' => array(
+					'do' => 'delete',
+					'id' => $this->id,
+				),
+			)
+		);
+	}
+	
+	/**
 	 * Build an editing form
 	 *
 	 * @param	ActiveRecord					$action					The action to edit
@@ -176,6 +209,15 @@ class Action extends ActiveRecord
 			'row_attr' => array( 'id' => 'schedule_customcode' ),
 			'label' => __( 'Scheduled Date', 'mwp-rules' ),
 			'data' => $action->schedule_customcode ?: "// <?php\n\nreturn;",
+			'description' => $plugin->getTemplateContent( 'rules/phpcode_description', array( 
+				'operation' => $action, 
+				'event' => $action->event(), 
+				'return_args' => array( 
+					__( '<strong>int</strong> - A unix timestamp', 'mwp-rules' ), 
+					__( '<strong>object</strong> Instance of a DateTime object', 'mwp-rules' ),
+					__( '<strong>string</strong> - A date/time string', 'mwp-rules' ),
+				), 
+			)),
 		),
 		NULL, 'schedule_date' );
 		

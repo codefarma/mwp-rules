@@ -22,23 +22,6 @@ use Modern\Wordpress\Helpers\ActiveRecordController;
 class RulesController extends ActiveRecordController
 {
 	/**
-	 * @var	string
-	 */
-	public static $recordClass = 'MWP\Rules\Rule';
-	
-	/**
-	 * Constructor
-	 *
-	 * @param	array		$options				Optional configuration options
-	 * @return	void
-	 */
-	public function __construct( $options=array() )
-	{
-		parent::__construct( $options );
-		$this->setPlugin( \MWP\Rules\Plugin::instance() );
-	}
-	
-	/**
 	 * Get action buttons
 	 *
 	 * @return	array

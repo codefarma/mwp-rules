@@ -104,8 +104,8 @@ class Rule extends ActiveRecord
 		 * Rule title
 		 */
 		$form->addField( 'title', 'text', array(
-			'label' => __( 'Rule Title', 'mwp-rules' ),
-			'description' => __( 'Summarize the intended purpose of this rule.', 'mwp-rules' ),
+			'label' => __( 'Rule Description', 'mwp-rules' ),
+			'description' => __( 'Summarize what you intend to do with this rule.', 'mwp-rules' ),
 			'data' => $rule->title,
 			'attr' => array( 'placeholder' => __( 'Describe what this rule is for', 'mwp-rules' ) ),
 			'required' => true,
@@ -129,7 +129,7 @@ class Rule extends ActiveRecord
 				'data' => $rule->event_type . '/' . $rule->event_hook,
 				'required' => true,
 			),
-			'rule_settings' );
+			'rule_settings', 'title', 'before' );
 		
 			$form->addField( 'submit', 'submit', array( 
 				'label' => __( 'Continue', 'mwp-rules' ), 
@@ -186,7 +186,7 @@ class Rule extends ActiveRecord
 		
 		/* Linked conditions table */
 		$conditionsTable->prepare_items( array( 'condition_rule_id=%d AND condition_parent_id=0', $rule->id ) );
-		$form->addHtml( 'conditions_table', $plugin->getTemplateContent( 'rules/conditions/table', array( 
+		$form->addHtml( 'conditions_table', $plugin->getTemplateContent( 'rules/conditions/table_wrapper', array( 
 			'rule' => $rule, 
 			'table' => $conditionsTable, 
 			'controller' => $conditionsController 
@@ -205,7 +205,7 @@ class Rule extends ActiveRecord
 		
 		/* Linked actions table (normal actions)*/
 		$actionsTable->prepare_items( array( 'action_rule_id=%d AND action_else=0', $rule->id ) );
-		$form->addHtml( 'actions_table', $plugin->getTemplateContent( 'rules/actions/table', array( 
+		$form->addHtml( 'actions_table', $plugin->getTemplateContent( 'rules/actions/table_wrapper', array( 
 			'show_buttons' => true,
 			'rule' => $rule, 
 			'table' => $actionsTable, 
@@ -216,7 +216,7 @@ class Rule extends ActiveRecord
 		/* Linked actions table (else actions)*/
 		$actionsTable->prepare_items( array( 'action_rule_id=%d AND action_else=1', $rule->id ) );
 		$form->addHeading( 'else_actions_heading', __( 'Else Actions', 'mwp-rules' ), 'rule_actions' );
-		$form->addHtml( 'actions_else_table', $plugin->getTemplateContent( 'rules/actions/table', array(
+		$form->addHtml( 'actions_else_table', $plugin->getTemplateContent( 'rules/actions/table_wrapper', array(
 			'show_buttons' => false,
 			'rule' => $rule, 
 			'table' => $actionsTable, 
@@ -470,6 +470,10 @@ class Rule extends ActiveRecord
 	 */
 	public function children()
 	{
+		if ( ! $this->id ) {
+			return array();
+		}
+
 		if ( isset( $this->childrenCache ) ) {
 			return $this->childrenCache;
 		}

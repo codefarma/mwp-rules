@@ -10,8 +10,7 @@
  *
  * @param	Plugin		$this		The plugin instance which is loading this template
  *
- * @param	ActiveRecordTable			$table		The conditions table
- * @param	ActiveRecordController		$controller	The conditions controller
+ * @param	ActiveRecordTable			$table		The table
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,5 +19,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
-<?php echo $controller->getActionsHtml() ?>
-<?php echo $table->getDisplay() ?>
+<div class="operation-rows conditions-rows <?php echo implode( ' ', $table->get_table_classes() ); ?>">
+	<?php if ( $table->has_items() ) : ?>
+		<?php $table->display_rows() ?>
+	<?php else: ?>
+		No conditions.
+	<?php endif ?>
+</div>

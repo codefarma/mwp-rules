@@ -308,12 +308,13 @@ class Plugin extends \Modern\Wordpress\Plugin
 						return 'Undescribed ' . $record['rule_event_type'] . ': ' . $record['rule_event_hook'];
 					}
 					
-					return $event->title . '<br>' . $event->description;
+					return '<strong>' . $event->title . '</strong><br>' . $event->description;
 				},
 			),
 		);
 		
-		$this->rulesController = new \MWP\Rules\Controllers\RulesController( apply_filters( 'mwp_rules_controller_config', $rules_controller_config ) );
+		$this->rulesController = new \MWP\Rules\Controllers\RulesController( 'MWP\Rules\Rule', apply_filters( 'mwp_rules_controller_config', $rules_controller_config ) );
+		
 		return $this->rulesController;
 	}
 	
@@ -353,7 +354,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 			),
 		);
 		
-		$this->conditionsController = new \MWP\Rules\Controllers\ConditionsController( apply_filters( 'mwp_conditions_controller_config', $conditions_controller_config ) );
+		$this->conditionsController = new \MWP\Rules\Controllers\ConditionsController( 'MWP\Rules\Condition', apply_filters( 'mwp_conditions_controller_config', $conditions_controller_config ) );
 		
 		return $this->getConditionsController( $rule );
 	}
@@ -394,7 +395,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 			),
 		);
 		
-		$this->actionsController = new \MWP\Rules\Controllers\ActionsController( apply_filters( 'mwp_actions_controller_config', $actions_controller_config ) );
+		$this->actionsController = new \MWP\Rules\Controllers\ActionsController( 'MWP\Rules\Action', apply_filters( 'mwp_actions_controller_config', $actions_controller_config ) );
 		
 		return $this->getActionsController( $rule );
 	}
@@ -414,6 +415,17 @@ class Plugin extends \Modern\Wordpress\Plugin
 		$opkey = $operation->key;
 		$request = Framework::instance()->getRequest();
 		
+		/**
+		 * Operation title
+		 */
+		$form->addField( 'title', 'text', array(
+			'label' => __( ucwords( $optype ) . ' description', 'mwp-rules' ),
+			'description' => __( "Summarize the intended purpose of this {$optype}.", 'mwp-rules' ),
+			'data' => $operation->title,
+			'attr' => array( 'placeholder' => __( "Describe what this {$optype} is for", 'mwp-rules' ) ),
+			'required' => true,
+		));
+		
 		/* Step 1: Configure the operation type for new operations */
 		if ( ! $operation->id ) 
 		{
@@ -430,7 +442,8 @@ class Plugin extends \Modern\Wordpress\Plugin
 				'choices' => $operation_choices,
 				'data' => $operation->key,
 				'required' => true,
-			));
+			),
+			NULL, 'title', 'before' );
 		
 			$form->addField( 'submit', 'submit', array( 
 				'label' => __( 'Continue', 'mwp-rules' ), 
@@ -450,21 +463,10 @@ class Plugin extends \Modern\Wordpress\Plugin
 				'choices' => array( $operation_name => $operation->key ),
 				'data' => $operation->key,
 				'required' => true,
-			));
+			),
+			NULL, 'title', 'before' );
 		
 		}
-		
-		/**
-		 * Operation title
-		 */
-		$form->addField( 'title', 'text', array(
-			'label' => __( ucwords( $optype ) . ' description', 'mwp-rules' ),
-			'description' => __( "Summarize the intended purpose of this {$optype}.", 'mwp-rules' ),
-			'data' => $operation->title,
-			'attr' => array( 'placeholder' => __( "Describe what this {$optype} is for", 'mwp-rules' ) ),
-			'required' => true,
-		),
-		'operation_config' );
 		
 		/* Make sure we have a definition to work with */
 		if ( $definition ) 
@@ -1124,7 +1126,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 									}
 									else if ( is_object( $custom_time ) )
 									{
-										if ( $custom_time instanceof \IPS\DateTime )
+										if ( $custom_time instanceof \DateTime )
 										{
 											$future_time = $custom_time->getTimestamp();
 										}

@@ -20,6 +20,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
+<?php if ( $rule ) : ?>
+	<div class="rule-overview alert alert-success">
+		<div class="rule-title"><i class="glyphicon glyphicon-king"></i> <span class="subtle">Rule:</span> <a href="<?php echo $rule->url() ?>"><?php echo $rule->title ?></a></div>
+	</div>
+<?php endif; ?>
+
 <div class="event-overview alert alert-info">
 	<div class="event-title"><i class="glyphicon glyphicon-info-sign" style="vertical-align: -2px;"></i> <span class="subtle">Event: </span> <?php echo $event->title ?></div>
 	<div class="event-description">
@@ -31,10 +37,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php echo $event->getDisplayArgInfo() ?>
 	</div>
 </div>
-
-<?php if ( $rule ) : ?>
-	<div class="rule-overview alert alert-success">
-		<div class="rule-title"><i class="glyphicon glyphicon-king"></i> <span class="subtle">Rule:</span> <a href="<?php echo $rule->url() ?>"><?php echo $rule->title ?></a></div>
-	</div>
-<?php endif; ?>
 

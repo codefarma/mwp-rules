@@ -22,11 +22,6 @@ use Modern\Wordpress\Helpers\ActiveRecordController;
 class ConditionsController extends ActiveRecordController
 {
 	/**
-	 * @var	string
-	 */
-	public static $recordClass = 'MWP\Rules\Condition';
-	
-	/**
 	 * @var	MWP\Rules\Rule
 	 */
 	protected $rule;
@@ -50,13 +45,13 @@ class ConditionsController extends ActiveRecordController
 	/**
 	 * Constructor
 	 *
+	 * @param	string		$recordClass			The active record class
 	 * @param	array		$options				Optional configuration options
 	 * @return	void
 	 */
-	public function __construct( $options=array() )
+	public function __construct( $recordClass, $options=array() )
 	{
-		parent::__construct( $options );
-		$this->setPlugin( \MWP\Rules\Plugin::instance() );
+		parent::__construct( $recordClass, $options );
 		
 		/* Auto set the rule */
 		if ( isset( $_REQUEST['rule_id'] ) ) {
@@ -75,7 +70,8 @@ class ConditionsController extends ActiveRecordController
 	public function createDisplayTable()
 	{
 		$table = parent::createDisplayTable();
-		//$table->setTemplate( 'nesting_table' );	
+		$table->tableTemplate = 'rules/conditions/table';
+		$table->rowTemplate = 'rules/conditions/table_row';
 		
 		return $table;
 	}
@@ -99,13 +95,17 @@ class ConditionsController extends ActiveRecordController
 	 */
 	public function do_new( $record=NULL )
 	{
-		$class = static::$recordClass;
+		$class = $this->recordClass;
 		
 		if ( isset( $_REQUEST['rule_id'] ) ) {
 			try {
 				$rule = \MWP\Rules\Rule::load( $_REQUEST['rule_id'] );
 				$record = new $class;
 				$record->rule_id = $rule->id;
+				
+				if ( isset( $_REQUEST['parent_id'] ) ) {
+					$record->parent_id = $_REQUEST['parent_id'];
+				}
 			}
 			catch( \OutOfRangeException $e ) { 
 				echo $this->getPlugin()->getTemplateContent( 'component/error', array( 'message' => __( 'The specified rule could not be found.', 'mwp-rules' ) ) );
@@ -125,7 +125,7 @@ class ConditionsController extends ActiveRecordController
 	{
 		return array( 
 			'new' => array(
-				'title' => __( 'Add Condition', 'mwp-rules' ),
+				'title' => __( 'Add Base Condition', 'mwp-rules' ),
 				'href' => $this->getUrl( array( 'do' => 'new' ) ),
 				'class' => 'btn btn-primary',
 			)

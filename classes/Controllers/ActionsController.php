@@ -22,11 +22,6 @@ use Modern\Wordpress\Helpers\ActiveRecordController;
 class ActionsController extends ActiveRecordController
 {
 	/**
-	 * @var	string
-	 */
-	public static $recordClass = 'MWP\Rules\Action';
-	
-	/**
 	 * @var	MWP\Rules\Rule
 	 */
 	protected $rule;
@@ -50,13 +45,13 @@ class ActionsController extends ActiveRecordController
 	/**
 	 * Constructor
 	 *
+	 * @param	string		$recordClass			The active record class
 	 * @param	array		$options				Optional configuration options
 	 * @return	void
 	 */
-	public function __construct( $options=array() )
+	public function __construct( $recordClass, $options=array() )
 	{
-		parent::__construct( $options );
-		$this->setPlugin( \MWP\Rules\Plugin::instance() );
+		parent::__construct( $recordClass, $options );
 		
 		/* Auto set the rule */
 		if ( isset( $_REQUEST['rule_id'] ) ) {
@@ -75,7 +70,8 @@ class ActionsController extends ActiveRecordController
 	public function createDisplayTable()
 	{
 		$table = parent::createDisplayTable();
-		//$table->setTemplate( 'nesting_table' );	
+		$table->tableTemplate = 'rules/actions/table';
+		$table->rowTemplate = 'rules/actions/table_row';
 		
 		return $table;
 	}

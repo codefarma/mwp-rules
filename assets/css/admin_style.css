@@ -8,7 +8,6 @@
  * @since      {build_version}
  */
 
-
 #mwp_rules_rule_form .tab-pane .wp-list-table thead,
 #mwp_rules_rule_form .tab-pane .wp-list-table tfoot {
 	display: none;
@@ -56,4 +55,27 @@
 
 .mwp-rules-form .CodeMirror {
 	border: 1px solid #ddd;
+}
+
+.mwp-rules-form .operation-table {
+	padding: 30px;
+}
+
+.mwp-rules-form .operation-row {
+	padding: 5px 0;
+	margin: 5px 0;
+	border-bottom: 1px solid #eee;
+}
+
+.mwp-rules-form .operation-row p {
+	margin: 3px 0;
+}
+
+.mwp-rules-form .operation-row-actions {
+	margin-top: 5px;
+}
+
+.mwp-rules-form .operation-children {
+	padding-left: 20px;
+	margin-left: 10px;
 }

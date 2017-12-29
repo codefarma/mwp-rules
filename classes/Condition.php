@@ -74,11 +74,54 @@ class Condition extends ActiveRecord
 	 */
 	public static $lang_plural = 'Conditions';
 	
-	
 	/**
 	 * Associated Rule
 	 */
 	public $rule = NULL;
+	
+	/**
+	 * Get controller actions
+	 *
+	 * @return	array
+	 */
+	public function getControllerActions()
+	{
+		return array(
+			'add' => array(
+				'icon' => 'glyphicon glyphicon-plus-sign',
+				'attr' => array(
+					'class' => 'btn btn-sm btn-default',
+					'title' => __( 'Add New Subcondition', 'mwp-rules' ),
+				),
+				'params' => array(
+					'do' => 'new',
+					'parent_id' => $this->id,
+				)
+			),
+			'edit' => array(
+				'icon' => 'glyphicon glyphicon-cog',
+				'attr' => array(
+					'class' => 'btn btn-sm btn-default',
+					'title' => __( 'Configure Condition', 'mwp-rules' ),
+				),
+				'params' => array(
+					'do' => 'edit',
+					'id' => $this->id,
+				),
+			),
+			'delete' => array(
+				'icon' => 'glyphicon glyphicon-trash',
+				'attr' => array( 
+					'class' => 'btn btn-sm btn-default',
+					'title' => __( 'Delete Condition', 'mwp-rules' ),
+				),
+				'params' => array(
+					'do' => 'delete',
+					'id' => $this->id,
+				),
+			)
+		);
+	}
 	
 	/**
 	 * Build an editing form
@@ -118,7 +161,7 @@ class Condition extends ActiveRecord
 		
 		if ( $condition->children() ) {
 			$form->addField( 'group_compare', 'choice', array(
-				'label' => __( 'Subcondition Compare Mode', 'mwp-rules' ),
+				'label' => __( 'Group Compare Mode', 'mwp-rules' ),
 				'choices' => array(
 					'AND' => 'and',
 					'OR' => 'or',
@@ -127,13 +170,14 @@ class Condition extends ActiveRecord
 				'required' => true,
 				'expanded' => true,
 				'description' => "
-					Since this condition has subconditions, you must choose how you want those subconditions to affect the state of this condition.<br>
+					Since this condition has subconditions, you can choose how you want those subconditions to affect the state of this condition.<br>
 					<ul>
 						<li>If you choose AND, this condition and all subconditions must be true for this condition to be valid.</li>
 						<li>If you choose OR, this condition will pass if it is valid, or if any subcondition is valid.</li>
 					</ul>",
+				'row_suffix' => '<hr>',
 			),
-			NULL, 'title' );
+			NULL, 'enabled' );
 		}		
 		
 		return $form;
@@ -316,6 +360,10 @@ class Condition extends ActiveRecord
 	 */
 	public function children()
 	{
+		if ( ! $this->id ) {
+			return array();
+		}
+
 		if ( isset( $this->childrenCache ) ) {
 			return $this->childrenCache;
 		}
