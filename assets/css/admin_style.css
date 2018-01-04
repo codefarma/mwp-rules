@@ -61,13 +61,18 @@
 	padding: 30px;
 }
 
-.mwp-rules-form .operation-row {
+.mwp-rules-form ol {
+	margin: 0;
+	list-style: none;
+}
+
+.mwp-rules-form .operation-details {
 	padding: 5px 0;
 	margin: 5px 0;
 	border-bottom: 1px solid #eee;
 }
 
-.mwp-rules-form .operation-row p {
+.mwp-rules-form .operation-details p {
 	margin: 3px 0;
 }
 
@@ -75,7 +80,7 @@
 	margin-top: 5px;
 }
 
-.mwp-rules-form .operation-children {
+.mwp-rules-form ol ol {
 	padding-left: 20px;
 	margin-left: 10px;
 }

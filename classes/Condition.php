@@ -75,6 +75,16 @@ class Condition extends ActiveRecord
 	public static $lang_plural = 'Conditions';
 	
 	/**
+	 * @var	string
+	 */
+	public static $sequence_col = 'weight';
+	
+	/**
+	 * @var	string
+	 */
+	public static $parent_col = 'parent_id';
+	 
+	/**
 	 * Associated Rule
 	 */
 	public $rule = NULL;

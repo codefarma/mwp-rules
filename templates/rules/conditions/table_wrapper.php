@@ -25,6 +25,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php echo $controller->getActionsHtml() ?>
 </div>
 
-<div class="operation-table">
+<div class="operation-table" <?php echo $table->getViewModelAttr() ?>>
 	<?php echo $table->getDisplay() ?>
 </div>

@@ -80,6 +80,16 @@ class Rule extends ActiveRecord
 	public static $lang_plural = 'Rules';
 	
 	/**
+	 * @var	string
+	 */
+	public static $sequence_col = 'weight';
+	
+	/**
+	 * @var	string
+	 */
+	public static $parent_col = 'parent_id';
+	 
+	/**
 	 * Get controller actions
 	 *
 	 * @return	array
@@ -227,6 +237,8 @@ class Rule extends ActiveRecord
 		
 		$conditionsController = $plugin->getConditionsController( $rule );
 		$conditionsTable = $conditionsController->createDisplayTable();
+		$conditionsTable->viewModel = 'mwp-rules';
+		$conditionsTable->dataBinds = array( 'nestedSortable' => "{ handle: 'div', toleranceElement: '> div', items: 'li', relocate: conditionRelocated }" );
 		
 		/* Linked conditions table */
 		$conditionsTable->prepare_items( array( 'condition_rule_id=%d AND condition_parent_id=0', $rule->id ) );
@@ -246,11 +258,15 @@ class Rule extends ActiveRecord
 		
 		$actionsController = $plugin->getActionsController( $rule );
 		$actionsTable = $actionsController->createDisplayTable();
+		$actionsTable->viewModel = 'mwp-rules';
+		$actionsTable->dataBinds = array( 'nestedSortable' => "{ handle: 'div', toleranceElement: '> div', items: 'li', relocate: actionRelocated }" );
 		
 		/* Linked actions table (normal actions)*/
 		$actionsTable->prepare_items( array( 'action_rule_id=%d AND action_else=0', $rule->id ) );
+		$form->addHtml( 'actions_controller_buttons', '<div style="margin-bottom: 20px">' . $actionsController->getActionsHtml() . '</div>', 'rule_actions' );
+		$form->addHeading( 'standard_actions_heading', __( 'Standard Actions', 'mwp-rules' ), 'rule_actions' );
 		$form->addHtml( 'actions_table', $plugin->getTemplateContent( 'rules/actions/table_wrapper', array( 
-			'show_buttons' => true,
+			'show_buttons' => false,
 			'rule' => $rule, 
 			'table' => $actionsTable, 
 			'controller' => $actionsController 
@@ -268,28 +284,22 @@ class Rule extends ActiveRecord
 		)), 
 		'rule_actions' );
 		
-		/**
-		 * Sub-rules tab
-		 */
-		if ( $rule->children() ) 
-		{
-			$form->addTab( 'rule_subrules', array( 
-				'title' => __( 'Sub-rules', 'mwp-rules' ),
-			));
-			
-			$rulesController = $plugin->getRulesController();
-			$rulesTable = $rulesController->createDisplayTable();
-			$rulesTable->bulkActions = array();
-			unset( $rulesTable->columns['rule_event_hook'] );
-			$rulesTable->prepare_items( array( 'rule_parent_id=%d', $rule->id ) );
-			
-			$form->addHtml( 'subrules_table', $plugin->getTemplateContent( 'rules/subrules/table_wrapper', array( 
-				'rule' => $rule, 
-				'table' => $rulesTable, 
-				'controller' => $rulesController 
-			)),
-			'rule_subrules' );
-		}
+		$form->addTab( 'rule_subrules', array( 
+			'title' => __( 'Sub-rules', 'mwp-rules' ),
+		));
+		
+		$rulesController = $plugin->getRulesController();
+		$rulesTable = $rulesController->createDisplayTable();
+		$rulesTable->bulkActions = array();
+		unset( $rulesTable->columns['rule_event_hook'] );
+		$rulesTable->prepare_items( array( 'rule_parent_id=%d', $rule->id ) );
+		
+		$form->addHtml( 'subrules_table', $plugin->getTemplateContent( 'rules/subrules/table_wrapper', array( 
+			'rule' => $rule, 
+			'table' => $rulesTable, 
+			'controller' => $rulesController 
+		)),
+		'rule_subrules' );
 		
 		/**
 		 * Debug tab
@@ -682,6 +692,8 @@ class Rule extends ActiveRecord
 		foreach( $this->conditions() as $condition ) {
 			$condition->delete();
 		}
+		
+		parent::delete();
 	}
 
 }

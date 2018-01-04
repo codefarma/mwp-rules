@@ -69,6 +69,11 @@ class Plugin extends \Modern\Wordpress\Plugin
 	public $mainController = 'assets/js/main.js';
 	
 	/**
+	 * @Wordpress\Script( deps={"jquery-ui-sortable"} )
+	 */
+	public $nestedSortable = 'assets/js/jquery.mjs.nestedSortable.js';
+	
+	/**
 	 * Admin Stylesheet
 	 *
 	 * @Wordpress\Stylesheet
@@ -125,6 +130,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 	public function enqueueScripts()
 	{
 		$this->useScript( $this->mainController );
+		$this->useScript( $this->nestedSortable );
 		$this->useScript( $this->codeMirror );
 		$this->useStyle( $this->codeMirrorStyle );
 		$this->useScript( $this->codeMirrorPHP );
@@ -311,7 +317,8 @@ class Plugin extends \Modern\Wordpress\Plugin
 				'rule_enabled' => function( $record ) 
 				{
 					$rule = \MWP\Rules\Rule::load( $record['rule_id'] );
-					$condition_count = count( $rule->conditions() );
+					
+					$condition_count = \MWP\Rules\Condition::countWhere( array( 'condition_rule_id=%d', $rule->id ) );
 					$action_count = count( $rule->actions() );
 					
 					$status = '<div class="mwp-bootstrap">';

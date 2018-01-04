@@ -19,10 +19,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
-<div class="operation-rows conditions-rows <?php echo implode( ' ', $table->get_table_classes() ); ?>">
+<ol <?php echo $table->getSequencingBindAttr() ?>>
 	<?php if ( $table->has_items() ) : ?>
 		<?php $table->display_rows() ?>
 	<?php else: ?>
-		No conditions.
+		<li>No conditions.</li>
 	<?php endif ?>
-</div>
+</ol>

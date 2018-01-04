@@ -95,13 +95,14 @@ class ActionsController extends ActiveRecordController
 	 */
 	public function do_new( $record=NULL )
 	{
-		$class = static::$recordClass;
+		$class = $this->recordClass;
 		
 		if ( isset( $_REQUEST['rule_id'] ) ) {
 			try {
 				$rule = \MWP\Rules\Rule::load( $_REQUEST['rule_id'] );
 				$record = new $class;
 				$record->rule_id = $rule->id;
+				$record->else = isset( $_REQUEST['action_else'] ) ? (int) $_REQUEST['action_else'] : 0;
 			}
 			catch( \OutOfRangeException $e ) { 
 				echo $this->getPlugin()->getTemplateContent( 'component/error', array( 'message' => __( 'The specified rule could not be found.', 'mwp-rules' ) ) );

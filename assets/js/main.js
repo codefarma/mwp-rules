@@ -51,7 +51,50 @@
 			var ajaxurl = mainController.local.ajaxurl;
 			
 			// set the properties on your view model which can be observed by your html templates
-			mainController.viewModel = {};
+			mainController.viewModel = 
+			{
+				/**
+				 * Callback for when a condition is relocated
+				 *
+				 * @param	object			event			The event
+				 * @param	object			ui				The jquery ui object
+				 * @return	void
+				 */
+				conditionRelocated: function( event, ui ) 
+				{
+					var sortableElement = ui.item.closest('.ui-sortable');
+					var listOrder = sortableElement.nestedSortable( 'toHierarchy' );
+					console.log( listOrder );
+				},
+				
+				/**
+				 * Callback for when an action is relocated
+				 *
+				 * @param	object			event			The event
+				 * @param	object			ui				The jquery ui object
+				 * @return	void
+				 */
+				actionRelocated: function( event, ui ) 
+				{
+					var sortableElement = ui.item.closest('.ui-sortable');
+					var listOrder = sortableElement.nestedSortable( 'toHierarchy' );
+					console.log( listOrder );
+				},
+				
+				/**
+				 * Callback for when a subrule is relocated
+				 *
+				 * @param	object			event			The event
+				 * @param	object			ui				The jquery ui object
+				 * @return	void
+				 */
+				ruleRelocated: function( event, ui ) 
+				{
+					var sortableElement = ui.item.closest('.ui-sortable');
+					var listOrder = sortableElement.nestedSortable( 'toHierarchy' );
+					console.log( listOrder );
+				}				
+			};
 		}
 	
 	});
@@ -67,6 +110,19 @@
 				if ( typeof CodeMirror !== 'undefined' ) {
 					var options = ko.unwrap( valueAccessor() );
 					var editor = CodeMirror.fromTextArea( element, options );
+				}
+			}
+		},
+		
+		nestableRecords: {
+			init: function( element, valueAccessor ) {
+				if ( typeof $.fn.nestedSortable !== 'undefined' ) {
+					var options = ko.unwrap( valueAccessor() );
+					var sortableElement = options.find ? $(element).find(options.find) : $(element);
+					try {
+						sortableElement.nestedSortable( options );
+					} 
+					catch(e) {}
 				}
 			}
 		}

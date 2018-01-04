@@ -29,6 +29,6 @@ $actions['new']['title'] = __( 'Add New Subrule', 'mwp-rules' );
 	<?php echo $controller->getActionsHtml( $actions ) ?>
 </div>
 
-<div class="subrule-table">
+<div class="subrule-table" <?php echo $table->getViewModelAttr() ?>>
 	<?php echo $table->getDisplay() ?>
 </div>

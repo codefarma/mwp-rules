@@ -12,8 +12,8 @@
  *
  * @param	bool						$show_buttons		Show the actions buttons or not
  * @param	MWP\Rules\Rules				$rule				The associated rule
- * @param	ActiveRecordTable			$table				The conditions table
- * @param	ActiveRecordController		$controller			The conditions controller
+ * @param	ActiveRecordTable			$table				The table
+ * @param	ActiveRecordController		$controller			The controller
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,10 +22,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
-<div class="operation-actions">
-	<?php if ( $show_buttons ) { echo $controller->getActionsHtml(); } ?>
-</div>
-
-<div class="operation-table" <?php echo $table->getViewModelAttr() ?>>
-	<?php echo $table->getDisplay() ?>
-</div>
+<ol>
+	<?php if ( $table->has_items() ) : ?>
+		<?php $table->display_rows() ?>
+	<?php else: ?>
+		<li>No sub-rules.</li>
+	<?php endif ?>
+</ol>

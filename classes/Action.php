@@ -82,6 +82,11 @@ class Action extends ActiveRecord
 	public static $lang_plural = 'Actions';
 	
 	/**
+	 * @var	string
+	 */
+	public static $sequence_col = 'weight';
+	
+	/**
 	 * Associated Rule
 	 */
 	public $rule = NULL;
@@ -150,7 +155,7 @@ class Action extends ActiveRecord
 				__( 'Standard - Perform when conditions on the rule ARE MET.', 'mwp-rules' ) => 0,
 				__( 'Else - Perform when conditions on the rule ARE NOT MET.', 'mwp-rules' ) => 1,
 			),
-			'data' => $action->else,
+			'data' => (int) $action->else,
 			'required' => true,
 			'expanded' => true,
 		));
