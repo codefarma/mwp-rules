@@ -28,10 +28,13 @@ if ( ! class_exists( 'MWPRulesPlugin' ) )
 			$settings = \MWP\Rules\Settings::instance();
 			$plugin->addSettings( $settings );
 			
+			$ajaxHandlers = \MWP\Rules\AjaxHandlers::instance();
+			
 			/* Connect annotated resources to wordpress core */
 			$framework = \Modern\Wordpress\Framework::instance()
 				->attach( $plugin )
 				->attach( $settings )
+				->attach( $ajaxHandlers )
 				
 				->attach( new \MWP\Rules\Events\Content )
 				->attach( new \MWP\Rules\Events\System )

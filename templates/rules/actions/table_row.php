@@ -24,7 +24,7 @@ $controller = $table->getController();
 
 ?>
 
-<li class="operation-row action-row" id="action_<?php echo $action->id ?>">
+<li class="operation-row action-row" id="<?php echo $action->id ?>">
 	<div class="operation-details row-handle">
 		<div class="pull-right operation-row-actions">
 			<?php foreach ( $action->getControllerActions() as $_action ) : ?>

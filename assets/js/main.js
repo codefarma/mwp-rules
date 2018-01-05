@@ -18,6 +18,10 @@
 	
 	"use strict";
 
+	/* Assign the controller instance to a global module variable when it is instantiated */
+	var rulesController;
+	mwp.on( 'mwp-rules.ready', function(c){ rulesController = c; } );
+	
 	/**
 	 * Main Controller
 	 *
@@ -37,7 +41,7 @@
 	 *   <span data-bind="text: title"></span>
 	 * </div>
 	 */
-	var mainController = mwp.controller( 'mwp-rules', 
+	mwp.controller.model( 'mwp-rules', 
 	{
 		
 		/**
@@ -48,53 +52,30 @@
 		init: function()
 		{
 			// ajax actions can be made to the ajaxurl, which is automatically provided to your controller
-			var ajaxurl = mainController.local.ajaxurl;
+			var ajaxurl = this.local.ajaxurl;
 			
 			// set the properties on your view model which can be observed by your html templates
-			mainController.viewModel = 
-			{
-				/**
-				 * Callback for when a condition is relocated
-				 *
-				 * @param	object			event			The event
-				 * @param	object			ui				The jquery ui object
-				 * @return	void
-				 */
-				conditionRelocated: function( event, ui ) 
-				{
-					var sortableElement = ui.item.closest('.ui-sortable');
-					var listOrder = sortableElement.nestedSortable( 'toHierarchy' );
-					console.log( listOrder );
-				},
-				
-				/**
-				 * Callback for when an action is relocated
-				 *
-				 * @param	object			event			The event
-				 * @param	object			ui				The jquery ui object
-				 * @return	void
-				 */
-				actionRelocated: function( event, ui ) 
-				{
-					var sortableElement = ui.item.closest('.ui-sortable');
-					var listOrder = sortableElement.nestedSortable( 'toHierarchy' );
-					console.log( listOrder );
-				},
-				
-				/**
-				 * Callback for when a subrule is relocated
-				 *
-				 * @param	object			event			The event
-				 * @param	object			ui				The jquery ui object
-				 * @return	void
-				 */
-				ruleRelocated: function( event, ui ) 
-				{
-					var sortableElement = ui.item.closest('.ui-sortable');
-					var listOrder = sortableElement.nestedSortable( 'toHierarchy' );
-					console.log( listOrder );
-				}				
-			};
+			this.viewModel = {};
+		},
+		
+		/**
+		 * Callback for when a condition is relocated
+		 *
+		 * @param	object			event			The event
+		 * @param	object			ui				The jquery ui object
+		 * @return	void
+		 */
+		relocateRecords: function( event, ui, sortableElement, config ) 
+		{
+			var sortableElement = ui.item.closest('.ui-sortable');
+			var listOrder = sortableElement.nestedSortable( 'toHierarchy' );
+			
+			$.post( rulesController.local.ajaxurl, {
+				nonce: rulesController.local.ajaxnonce,
+				action: 'mwp_rules_relocate_records',
+				class: config.class,
+				sequence: listOrder
+			});
 		}
 	
 	});
@@ -115,14 +96,28 @@
 		},
 		
 		nestableRecords: {
-			init: function( element, valueAccessor ) {
-				if ( typeof $.fn.nestedSortable !== 'undefined' ) {
-					var config = ko.unwrap( valueAccessor() );
-					var options = config.options || {};
-					var sortableElement = options.find ? $(element).find(options.find) : $(element);
+			init: function( element, valueAccessor ) 
+			{
+				var config = ko.unwrap( valueAccessor() );
+				if ( typeof $.fn.nestedSortable !== 'undefined' ) 
+				{
+					var sortableElement = config.find ? $(element).find(config.find) : $(element);
+					var options = $.extend( {
+						placeholder: 'mwp-sortable-placeholder'
+					}, config.options || {} );
+					
+					var updateCallback = config.callback || function( event, ui, sortableElement, config ) {
+						rulesController.relocateRecords( event, ui, sortableElement, config );
+					};
+					
 					try {
 						sortableElement.nestedSortable( options );
-					} 
+						sortableElement.on( 'sortrelocate', function( event, ui ) {
+							if ( typeof updateCallback === 'function' ) {
+								updateCallback( event, ui, sortableElement, config );
+							}
+						});
+					}
 					catch(e) {
 						console.log( e );
 					}

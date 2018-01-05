@@ -20,12 +20,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 
 <ol data-bind="nestableRecords: { 
-	class: '<?php echo $table->activeRecordClass ?>',
+	class: <?php echo esc_attr( json_encode( $table->activeRecordClass ) ) ?>,
 	options: { 
 		handle: 'div', 
 		items: 'li', 
-		toleranceElement: '> div', 
-		relocate: conditionRelocated 
+		toleranceElement: '> div'
 	} 
 }">
 	<?php if ( $table->has_items() ) : ?>
