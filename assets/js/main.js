@@ -117,12 +117,15 @@
 		nestableRecords: {
 			init: function( element, valueAccessor ) {
 				if ( typeof $.fn.nestedSortable !== 'undefined' ) {
-					var options = ko.unwrap( valueAccessor() );
+					var config = ko.unwrap( valueAccessor() );
+					var options = config.options || {};
 					var sortableElement = options.find ? $(element).find(options.find) : $(element);
 					try {
 						sortableElement.nestedSortable( options );
 					} 
-					catch(e) {}
+					catch(e) {
+						console.log( e );
+					}
 				}
 			}
 		}

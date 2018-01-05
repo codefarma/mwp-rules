@@ -19,7 +19,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
-<ol <?php echo $table->getSequencingBindAttr() ?>>
+<ol data-bind="nestableRecords: { 
+	class: '<?php echo $table->activeRecordClass ?>',
+	options: { 
+		handle: 'div', 
+		items: 'li', 
+		toleranceElement: '> div', 
+		relocate: conditionRelocated 
+	} 
+}">
 	<?php if ( $table->has_items() ) : ?>
 		<?php $table->display_rows() ?>
 	<?php else: ?>
