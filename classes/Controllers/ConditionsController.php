@@ -43,6 +43,35 @@ class ConditionsController extends ActiveRecordController
 	}
 	
 	/**
+	 * Default controller configuration
+	 *
+	 * @return	array
+	 */
+	public function getDefaultConfig()
+	{
+		$plugin = $this->getPlugin();
+		
+		return array_merge_recursive( parent::getDefaultConfig(), array
+		(
+			'tableConfig' => array
+			( 
+				'sort_by' => 'condition_weight',
+				'sort_order' => 'ASC',
+				'bulk_actions' => array(),
+				'columns' => array(
+					'details' => __( 'Conditions', 'mwp-rules' ),
+				),
+				'handlers' => array(
+					'details' => function( $row ) use ( $plugin ) {
+						$condition = Condition::load( $row['condition_id'] );
+						return $plugin->getTemplateContent( 'rules/conditions/table_row', array( 'condition' => $condition ) );
+					}
+				),
+			),
+		));
+	}
+
+	/**
 	 * Constructor
 	 *
 	 * @param	string		$recordClass			The active record class
@@ -65,11 +94,12 @@ class ConditionsController extends ActiveRecordController
 	/**
 	 * Get the active record display table
 	 *
+	 * @param	array			$override_options			Default override options
 	 * @return	Modern\Wordpress\Helpers\ActiveRecordTable
 	 */
-	public function createDisplayTable()
+	public function createDisplayTable( $override_options=array() )
 	{
-		$table = parent::createDisplayTable();
+		$table = parent::createDisplayTable( $override_options );
 		$table->tableTemplate = 'rules/conditions/table';
 		$table->rowTemplate = 'rules/conditions/table_row';
 		

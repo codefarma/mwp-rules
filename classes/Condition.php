@@ -359,6 +359,17 @@ class Condition extends ActiveRecord
 	}
 	
 	/**
+	 * Get the action url
+	 *
+	 * @param	array			$params			Url params
+	 * @return	string
+	 */
+	public function url( $params=array() )
+	{
+		return $this->getPlugin()->getConditionsController()->getUrl( array( 'id' => $this->id, 'do' => 'edit' ) + $params );
+	}
+	
+	/**
 	 * @var	array
 	 */
 	protected $childrenCache;

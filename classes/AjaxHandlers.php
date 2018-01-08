@@ -88,7 +88,7 @@ class AjaxHandlers extends \Modern\Wordpress\Pattern\Singleton
 				$recursiveRelocate = function( $record, $index, $parent ) use ( $recordClass, $sequence_col, $parent_col, &$recursiveRelocate ) 
 				{
 					$_record = $recordClass::load( $record['id'] );
-					$_record->$sequence_col = $index;
+					$_record->$sequence_col = $index + 1;
 					$_record->$parent_col = $parent;
 					$_record->save();
 					$_record->flush();

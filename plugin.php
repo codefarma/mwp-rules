@@ -47,6 +47,7 @@ if ( ! class_exists( 'MWPRulesPlugin' ) )
 				;
 				
 			$plugin->getRulesController()      ->registerAdminPage( array( 'type' => 'management' ) );
+			$plugin->getLogsController()       ->registerAdminPage( array( 'type' => 'management', 'menu' => __( 'Rules Logs', 'mwp-rules' ) ) );
 			$plugin->getConditionsController() ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules-rule' ) );
 			$plugin->getActionsController()    ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules-rule' ) );
 		}

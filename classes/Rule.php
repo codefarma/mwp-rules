@@ -88,7 +88,7 @@ class Rule extends ActiveRecord
 	 * @var	string
 	 */
 	public static $parent_col = 'parent_id';
-	 
+	
 	/**
 	 * Get controller actions
 	 *
@@ -97,6 +97,18 @@ class Rule extends ActiveRecord
 	public function getControllerActions()
 	{
 		return array(
+			'edit' => array(
+				'icon' => 'glyphicon glyphicon-cog',
+				'title' => __( 'Configure', 'mwp-rules' ),
+				'attr' => array(
+					'class' => 'btn btn-sm btn-default',
+					'title' => __( 'Configure Rule', 'mwp-rules' ),
+				),
+				'params' => array(
+					'do' => 'edit',
+					'id' => $this->id,
+				),
+			),
 			'add' => array(
 				'icon' => 'glyphicon glyphicon-plus',
 				'attr' => array(
@@ -107,17 +119,6 @@ class Rule extends ActiveRecord
 					'do' => 'new',
 					'parent_id' => $this->id,
 				)
-			),
-			'edit' => array(
-				'icon' => 'glyphicon glyphicon-cog',
-				'attr' => array(
-					'class' => 'btn btn-sm btn-default',
-					'title' => __( 'Configure Rule', 'mwp-rules' ),
-				),
-				'params' => array(
-					'do' => 'edit',
-					'id' => $this->id,
-				),
 			),
 			'delete' => array(
 				'icon' => 'glyphicon glyphicon-trash',
@@ -167,29 +168,37 @@ class Rule extends ActiveRecord
 		'rule_settings' );
 		
 		/* Step 1: Configure the event for new rules */
-		if ( ! $rule->id and ! $rule->parent_id ) 
+		if ( ! $rule->id ) 
 		{
-			$event_choices = array();
-			
-			foreach( array( 'action', 'filter' ) as $type ) {
-				foreach( $plugin->getEvents( $type ) as $event ) {
-					$event_choices[ ucwords( $type ) ][ $event->title ] = $event->type . '/' . $event->hook;
+			if ( ! $rule->parent_id ) {
+				$event_choices = array();
+				
+				foreach( array( 'action', 'filter' ) as $type ) {
+					foreach( $plugin->getEvents( $type ) as $event ) {
+						$event_choices[ ucwords( $type ) ][ $event->title ] = $event->type . '/' . $event->hook;
+					}
 				}
+				
+				$form->addField( 'event', 'choice', array(
+					'label' => __( 'Rule Triggered When:', 'mwp-rules' ),
+					'choices' => $event_choices,
+					'data' => $rule->event_type . '/' . $rule->event_hook,
+					'required' => true,
+				),
+				'rule_settings', 'title', 'before' );
 			}
 			
-			$form->addField( 'event', 'choice', array(
-				'label' => __( 'Rule Triggered When:', 'mwp-rules' ),
-				'choices' => $event_choices,
-				'data' => $rule->event_type . '/' . $rule->event_hook,
-				'required' => true,
-			),
-			'rule_settings', 'title', 'before' );
-		
 			$form->addField( 'submit', 'submit', array( 
 				'label' => __( 'Continue', 'mwp-rules' ), 
 				'attr' => array( 'class' => 'btn btn-primary' ),
 				'row_attr' => array( 'class' => 'text-center' ),
 			));
+			
+			$form->onComplete( function() use ( $rule, $plugin ) {
+				$controller = $plugin->getRulesController();
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id ) ) );
+				exit;
+			});
 			
 			return $form;
 		}
@@ -308,6 +317,13 @@ class Rule extends ActiveRecord
 			$form->addTab( 'rule_debug_console', array(
 				'title' => __( 'Debug Console', 'mwp-rules' ),
 			));
+			
+			$logsController = $plugin->getLogsController();
+			$logsTable = $logsController->createDisplayTable();
+			unset( $logsTable->columns['id'], $logsTable->columns['event_hook'], $logsTable->columns['rule_id'] );
+			$logsTable->prepare_items( array( 'op_id=0 AND rule_id=%d', $rule->id ) );
+			
+			$form->addHtml( 'rule_debug_logs', $logsTable->getDisplay(), 'rule_debug_console' );			
 		}
 		
 		$form->addField( 'submit', 'submit', array( 
@@ -315,6 +331,15 @@ class Rule extends ActiveRecord
 			'attr' => array( 'class' => 'btn btn-primary' ),
 			'row_attr' => array( 'class' => 'text-center' ),
 		));
+		
+		/* If the rule is a sub-rule, redirect to the parent rules tab after saving */
+		if ( $rule->parent_id ) {
+			$form->onComplete( function() use ( $rule, $plugin ) {
+				$controller = $plugin->getRulesController();
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->parent_id, '_tab' => 'rule_subrules' ) ) );
+				exit;
+			});
+		}
 		
 		return $form;
 	}
@@ -352,6 +377,80 @@ class Rule extends ActiveRecord
 		
 		return false;
 	}
+	
+	/**
+	 * Enable rule
+	 *
+	 * @return	void
+	 */
+	public function enable()
+	{
+		$this->enabled = 1;
+		$this->save();
+	}
+	
+	/**
+	 * Disable rule
+	 *
+	 * @return	void
+	 */
+	public function disable()
+	{
+		$this->enabled = 0;
+		$this->save();
+	}
+	
+	/**
+	 * Enable rule debug
+	 *
+	 * @return	void
+	 */
+	public function enableDebug()
+	{
+		$this->debug = 1;
+		$this->save();
+	}
+	
+	/**
+	 * Disable rule debug
+	 *
+	 * @return	void
+	 */
+	public function disableDebug()
+	{
+		$this->debug = 0;
+		$this->save();
+	}
+	
+	/**
+	 * Enable debug mode recursively
+	 *
+	 * @return	void
+	 */
+	public function enableDebugRecursive()
+	{
+		$this->debug = 1;
+		$this->save();
+		foreach( $this->children() as $child ) {
+			$child->enableDebugRecursive();
+		}
+	}
+	
+	/**
+	 * Disable debug mode recursively
+	 *
+	 * @return	void
+	 */
+	public function disableDebugRecursive()
+	{
+		$this->debug = 0;
+		$this->save();
+		foreach( $this->children() as $child ) {
+			$child->disableDebugRecursive();
+		}
+	}
+	
+	
 
 	/**
 	 * Recursion Protection

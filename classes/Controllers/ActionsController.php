@@ -43,6 +43,35 @@ class ActionsController extends ActiveRecordController
 	}
 	
 	/**
+	 * Default controller configuration
+	 *
+	 * @return	array
+	 */
+	public function getDefaultConfig()
+	{
+		$plugin = $this->getPlugin();
+		
+		return array_merge_recursive( parent::getDefaultConfig(), array
+		(
+			'tableConfig' => array
+			( 
+				'sort_by' => 'action_weight',
+				'sort_order' => 'ASC',
+				'bulk_actions' => array(),
+				'columns' => array(
+					'details' => __( 'Details', 'mwp-rules' ),
+				),
+				'handlers' => array(
+					'details' => function( $row ) use ( $plugin ) {
+						$action = Action::load( $row['action_id'] );
+						return $plugin->getTemplateContent( 'rules/actions/table_row', array( 'action' => $action ) );
+					}
+				),
+			),
+		));
+	}
+
+	/**
 	 * Constructor
 	 *
 	 * @param	string		$recordClass			The active record class
@@ -65,11 +94,12 @@ class ActionsController extends ActiveRecordController
 	/**
 	 * Get the active record display table
 	 *
+	 * @param	array			$override_options			Default override options
 	 * @return	Modern\Wordpress\Helpers\ActiveRecordTable
 	 */
-	public function createDisplayTable()
+	public function createDisplayTable( $override_options=array() )
 	{
-		$table = parent::createDisplayTable();
+		$table = parent::createDisplayTable( $override_options );
 		$table->tableTemplate = 'rules/actions/table';
 		$table->rowTemplate = 'rules/actions/table_row';
 		

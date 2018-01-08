@@ -296,87 +296,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 			return $this->rulesController;
 		}
 		
-		$plugin = $this;
-		
-		$rules_controller_config = array(
-			'where' => array( 'rule_parent_id=0' ),
-			'columns' => array(
-				'rule_title'      => __( 'Rule', 'mwp-rules' ),
-				'rule_event_hook' => __( 'Event', 'mwp-rules' ),
-				'rule_enabled'    => __( 'Status', 'mwp-rules' ),
-				'subrules'        => __( 'Subrules', 'mwp-rules' ),
-			),
-			'searchable' => array(
-				'rule_title' => array( 'type' => 'contains', 'combine_words' => 'and' ),
-			),
-			'handlers' => array(
-				'rule_title' => function( $record )
-				{
-					return '<div style="min-height: 30px; font-size: 1.2em;">' . $record['rule_title'] . '</div>';
-				},
-				'rule_enabled' => function( $record ) 
-				{
-					$rule = \MWP\Rules\Rule::load( $record['rule_id'] );
-					
-					$condition_count = \MWP\Rules\Condition::countWhere( array( 'condition_rule_id=%d', $rule->id ) );
-					$action_count = count( $rule->actions() );
-					
-					$status = '<div class="mwp-bootstrap">';
-					$status .= $record['rule_enabled'] ? '<span class="label label-success">ENABLED</span>' : '<span class="label label-danger">DISABLED</span>';
-					$status .= '</div>';
-					
-					$controller = \MWP\Rules\Plugin::instance()->getRulesController();
-					$conditionsUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_conditions' ) );
-					$actionsUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_actions' ) );
-					
-					$status .= '<ul style="list-style-type:disc; margin:5px 0 0 20px;">' . 
-						"<li style='margin-bottom:0'><a href='{$conditionsUrl}'>{$condition_count} conditions</a></li>" . 
-						"<li style='margin-bottom:0'><a href='{$actionsUrl}'>{$action_count} actions</li>" . 
-					'</ul>';
-					
-					return $status;
-				},
-				'rule_event_hook' => function( $record ) use ( $plugin ) 
-				{
-					$event = $plugin->getEvent( $record['rule_event_type'], $record['rule_event_hook'] );
-					
-					if ( ! $event ) {
-						return 'Undescribed ' . $record['rule_event_type'] . ': ' . $record['rule_event_hook'];
-					}
-					
-					return '<div class="mwp-bootstrap">' . 
-						'<strong>' . $event->title . '</strong><br>' . 
-						'<span class="label label-' . ( $event->type == 'filter' ? 'warning' : 'info' ) . '">' . $event->type . '</span> ' . 
-						'<span class="label label-success">' . $event->hook . '</span>' . 
-						'<br>' . $event->description .
-					'</div>';
-				},
-				'subrules' => function( $record )
-				{
-					$recursiveRuleCount = function( $_rule ) use ( &$recursiveRuleCount ) {
-						$total = 0;
-						foreach( $_rule->children() as $_subrule ) {
-							$total += $recursiveRuleCount( $_subrule ) + 1;
-						}
-						return $total;
-					};
-					
-					$rule = \MWP\Rules\Rule::load( $record['rule_id' ] );					
-					$subrule_count = $recursiveRuleCount( $rule );
-					
-					if ( $subrule_count ) {
-						$controller = \MWP\Rules\Plugin::instance()->getRulesController();
-						$subrulesUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_subrules' ) );
-						return "<div style='font-size: 1.2em; margin-top:15px;'><a href='{$subrulesUrl}'>{$subrule_count} sub-rules</a></div>";
-					} else {
-						return '';
-					}
-					
-				}
-			),
-		);
-		
-		$this->rulesController = new \MWP\Rules\Controllers\RulesController( 'MWP\Rules\Rule', apply_filters( 'mwp_rules_controller_config', $rules_controller_config ) );
+		$this->rulesController = new \MWP\Rules\Controllers\RulesController( 'MWP\Rules\Rule' );
 		
 		return $this->rulesController;
 	}
@@ -400,24 +320,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 			return $this->conditionsController;
 		}
 		
-		$plugin = $this;
-		
-		$conditions_controller_config = array(
-			'sort_by' => 'condition_weight',
-			'sort_order' => 'ASC',
-			'bulk_actions' => array(),
-			'columns' => array(
-				'details' => __( 'Conditions', 'mwp-rules' ),
-			),
-			'handlers' => array(
-				'details' => function( $row ) use ( $plugin ) {
-					$condition = Condition::load( $row['condition_id'] );
-					return $plugin->getTemplateContent( 'rules/conditions/table_row', array( 'condition' => $condition ) );
-				}
-			),
-		);
-		
-		$this->conditionsController = new \MWP\Rules\Controllers\ConditionsController( 'MWP\Rules\Condition', apply_filters( 'mwp_conditions_controller_config', $conditions_controller_config ) );
+		$this->conditionsController = new \MWP\Rules\Controllers\ConditionsController( 'MWP\Rules\Condition' );
 		
 		return $this->getConditionsController( $rule );
 	}
@@ -441,28 +344,32 @@ class Plugin extends \Modern\Wordpress\Plugin
 			return $this->actionsController;
 		}
 		
-		$plugin = $this;
-		
-		$actions_controller_config = array(
-			'sort_by' => 'action_weight',
-			'sort_order' => 'ASC',
-			'bulk_actions' => array(),
-			'columns' => array(
-				'details' => __( 'Details', 'mwp-rules' ),
-			),
-			'handlers' => array(
-				'details' => function( $row ) use ( $plugin ) {
-					$action = Action::load( $row['action_id'] );
-					return $plugin->getTemplateContent( 'rules/actions/table_row', array( 'action' => $action ) );
-				}
-			),
-		);
-		
-		$this->actionsController = new \MWP\Rules\Controllers\ActionsController( 'MWP\Rules\Action', apply_filters( 'mwp_actions_controller_config', $actions_controller_config ) );
+		$this->actionsController = new \MWP\Rules\Controllers\ActionsController( 'MWP\Rules\Action' );
 		
 		return $this->getActionsController( $rule );
 	}
 	
+	/**
+	 * @var ActiveRecordController
+	 */
+	public $logsController;
+	
+	/**
+	 * Get the actions controller
+	 * 
+	 * @return	ActiveRecordController
+	 */
+	public function getLogsController()
+	{
+		if ( isset( $this->logsController ) ) {
+			return $this->logsController;
+		}
+		
+		$this->logsController = new \MWP\Rules\Controllers\LogsController( 'MWP\Rules\Log' );
+		
+		return $this->logsController;
+	}
+		
 	/**
 	 * Build Operation Form ( Condition / Action )
 	 *
@@ -1848,18 +1755,15 @@ class Plugin extends \Modern\Wordpress\Plugin
 	 */
 	public function rulesLog( $event, $rule, $operation, $result, $message='', $error=0 )
 	{
-		return;
-		print_r( $event->hook . "({$event->thread})" . ( $rule ? " / " . $rule->title : "") . ( $operation ? " / " . $operation->title . " (ID:{$operation->id})" : "") . " --> " . $message . ": " . json_encode( $result ) . "\n" );
-		
 		if ( ! $this->logLocked )
 		{
 			$this->logLocked = TRUE;
 			
-			$log 				= new \MWP\Rules\ECA\Log;
+			$log 				= new \MWP\Rules\Log;
 			$log->thread 		= is_object( $event ) 		? $event->thread			: NULL;
 			$log->parent		= is_object( $event )		? $event->parentThread		: NULL;
 			$log->event_type    = is_object( $event )       ? $event->type              : NULL;
-			$log->event_name	= is_object( $event ) 		? $event->hook				: NULL;
+			$log->event_hook	= is_object( $event ) 		? $event->hook				: NULL;
 			$log->rule_id		= is_object( $rule )		? $rule->id					: 0;
 			$log->rule_parent 	= is_object ( $rule ) 		? $rule->parent_id			: 0; 
 			$log->op_id			= is_object( $operation ) 	? $operation->id			: 0;

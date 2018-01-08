@@ -336,5 +336,16 @@ class Action extends ActiveRecord
 			}
 		}
 	}
-		
+	
+	/**
+	 * Get the action url
+	 *
+	 * @param	array			$params			Url params
+	 * @return	string
+	 */
+	public function url( $params=array() )
+	{
+		return $this->getPlugin()->getActionsController()->getUrl( array( 'id' => $this->id, 'do' => 'edit' ) + $params );
+	}
+	
 }
