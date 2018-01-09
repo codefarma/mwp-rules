@@ -65,7 +65,7 @@ class RulesController extends ActiveRecordController
 						$actionsUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_actions' ) );
 						
 						return '<span style="min-height: 30px; font-size: 1.2em;">' . $record['rule_title'] . '</span><br>' . 
-							'<ul style="list-style-type:disc; margin:0 0 0 20px;">' . 
+							'<ul style="list-style-type:disc; margin:2px 0 0 20px;">' . 
 								"<li style='margin-bottom:0'><a href='{$conditionsUrl}'>{$condition_count} conditions</a></li>" . 
 								"<li style='margin-bottom:0'><a href='{$actionsUrl}'>{$action_count} actions</a></li>" . 
 							'</ul>';
@@ -84,6 +84,11 @@ class RulesController extends ActiveRecordController
 						if ( $record['rule_debug'] ) {
 							$status .= ' <a href="' . $rule->url( array( '_tab' => 'rule_debug_console' ) ) . '"><span class="label label-info"><i class="glyphicon glyphicon-wrench"></i> DEBUG MODE ON</span></a>';
 						}
+						
+						if ( ! $rule->parent() ) {
+							$status .= ' <span title="' . __( 'Priority', 'mwp-rules' ) . '" class="label label-warning">' . $rule->priority . '</span>';
+						}
+						
 						$status .= '</div>';
 						
 						return $status;

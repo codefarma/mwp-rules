@@ -44,7 +44,7 @@ class Rule extends ActiveRecord
 		'parent_id',
 		'event_type',
 		'event_hook',
-		'args',
+		'data' => array( 'format' => 'JSON' ),
 		'priority',
 		'base_compare',
 		'debug',
@@ -166,6 +166,17 @@ class Rule extends ActiveRecord
 			'required' => true,
 		), 
 		'rule_settings' );
+		
+		/* Rule priority */
+		if ( ! $rule->parent() ) {
+			$form->addField( 'priority', 'integer', array( 
+				'label' => __( 'Rule Priority', 'mwp-rules' ),
+				'description' => __( 'The priority at which this base rule will be evaluated during an event.', 'mwp-rules' ),
+				'data' => isset( $rule->priority ) ? (int) $rule->priority : 10,
+				'required' => true,
+			),
+			'rule_settings' );
+		}
 		
 		/* Step 1: Configure the event for new rules */
 		if ( ! $rule->id ) 
