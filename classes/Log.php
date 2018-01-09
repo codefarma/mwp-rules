@@ -112,8 +112,10 @@ class Log extends ActiveRecord
 		$logsController = $this->getPlugin()->getLogsController();
 		
 		$logConditionsTable = $logsController->createDisplayTable( array( 
-			'singular' => 'condition',
-			'plural' => 'conditions',
+			'constructor' => array(
+				'singular' => 'condition',
+				'plural' => 'conditions',
+			),
 			'columns' => array( 
 				'op_id' => __( 'Condition Title', 'mwp-rules' ),
 				'message' => __( 'Status', 'mwp-rules' ),
@@ -125,8 +127,10 @@ class Log extends ActiveRecord
 		$logConditionsTable->prepare_items( array( 'thread=%s AND type=%s AND rule_id=%d', $this->thread, 'MWP\Rules\Condition', $this->rule_id ) );
 		
 		$logActionsTable = $logsController->createDisplayTable( array( 
-			'singular' => 'action',
-			'plural' => 'actions',
+			'constructor' => array(
+				'singular' => 'action',
+				'plural' => 'actions',
+			),
 			'columns' => array(
 				'op_id' => __( 'Action Title', 'mwp-rules' ),
 				'message' => __( 'Status', 'mwp-rules' ),
@@ -139,8 +143,10 @@ class Log extends ActiveRecord
 		$logActionsTable->prepare_items( array( 'thread=%s AND type=%s AND rule_id=%d', $this->thread, 'MWP\Rules\Action', $this->rule_id ) );
 		
 		$logSubrulesTable = $logsController->createDisplayTable( array( 
-			'singular' => 'rule',
-			'plural' => 'rules',
+			'constructor' => array(
+				'singular' => 'rule',
+				'plural' => 'rules',
+			),
 			'columns' => array( 
 				'rule_id' => __( 'Rule', 'mwp-rules' ),
 				'message' => __( 'Status', 'mwp-rules' ),
