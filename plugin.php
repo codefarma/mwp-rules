@@ -78,6 +78,40 @@ if ( ! class_exists( 'MWPRulesPlugin' ) )
 	add_action( 'after_plugin_row_' . plugin_basename( __FILE__ ), array( 'MWPRulesPlugin', 'status' ) );
 	
 	/**
+	 * Global Functions 
+	 */
+	
+	function rules_event( $type, $hook, $definition ) {
+		\MWP\Rules\Plugin::instance()->describeEvent( $type, $hook, $definition );
+	}
+	
+	function rules_events( $events ) {
+		foreach( $events as $event ) {
+			call_user_func_array( 'rules_event', $event );
+		}
+	}
+	
+	function rules_condition( $key, $definition ) {
+		\MWP\Rules\Plugin::instance()->registerCondition( $key, $definition );
+	}
+	
+	function rules_conditions( $conditions ) {
+		foreach( $conditions as $condition ) {
+			call_user_func_array( 'rules_condition', $condition );
+		}
+	}
+	
+	function rules_action( $key, $definition ) {
+		\MWP\Rules\Plugin::instance()->defineAction( $key, $definition );
+	}
+	
+	function rules_actions( $actions ) {
+		foreach( $actions as $action ) {
+			call_user_func_array( 'rules_action', $action );
+		}
+	}
+	
+	/**
 	 * DO NOT REMOVE
 	 *
 	 * This plugin depends on the modern wordpress framework.
@@ -88,7 +122,6 @@ if ( ! class_exists( 'MWPRulesPlugin' ) )
 	}
 	else {
 		add_action( 'modern_wordpress_init', array( 'MWPRulesPlugin', 'init' ) );
-	}
-	
+	}	
 }
 
