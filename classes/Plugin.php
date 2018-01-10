@@ -18,9 +18,11 @@ const ACTION_STANDARD = 0;
 const ACTION_ELSE = 1;
 
 use Modern\Wordpress\Framework;
+use Modern\Wordpress\Task;
 use MWP\Rules\ECA\Loader;
 use MWP\Rules\ECA\Token;
 use MWP\Rules\Rule;
+use MWP\Rules\ScheduledAction;
 
 /**
  * Plugin Class
@@ -153,6 +155,29 @@ class Plugin extends \Modern\Wordpress\Plugin
 		foreach( Rule::loadWhere( array( 'rule_enabled=1 AND rule_parent_id=0' ), 'rule_priority ASC, rule_weight ASC' ) as $rule ) {
 			$rule->deploy();
 		}
+	}
+	
+	/**
+	 * Run scheduled actions
+	 *
+	 * @Wordpress\Action( for="mwp_rules_run_scheduled_actions" )
+	 *
+	 * @return	void
+	 */
+	public function runScheduledActions( $task )
+	{
+		$_next_action = ScheduledAction::getNextAction();
+		
+		if ( ! $_next_action ) {
+			return $task->complete();
+		}
+		
+		if ( $_next_action->time > time() ) {
+			$task->next_start = $_next_action->time;
+			return;
+		}
+		
+		$_next_action->execute();
 	}
 	
 	/**
@@ -371,6 +396,27 @@ class Plugin extends \Modern\Wordpress\Plugin
 	}
 		
 	/**
+	 * @var ActiveRecordController
+	 */
+	public $scheduleController;
+	
+	/**
+	 * Get the actions controller
+	 * 
+	 * @return	ActiveRecordController
+	 */
+	public function getScheduleController()
+	{
+		if ( isset( $this->scheduleController ) ) {
+			return $this->scheduleController;
+		}
+		
+		$this->scheduleController = new \MWP\Rules\Controllers\ScheduleController( 'MWP\Rules\ScheduledAction' );
+		
+		return $this->scheduleController;
+	}
+	
+	/**
 	 * Build Operation Form ( Condition / Action )
 	 *
 	 * @param	Modern\Wordpress\Helpers\Form	$form		The form to build
@@ -575,6 +621,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 							'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
 							'data' => isset( $operation->data[ $argNameKey . '_phpcode' ] ) ? $operation->data[ $argNameKey . '_phpcode' ] : "// <?php \n\nreturn;",
 							'description' => $this->getTemplateContent( 'rules/phpcode_description', array( 'operation' => $operation, 'return_args' => $_arg_list, 'event' => $operation->event() ) ),
+							'required' => false,
 						));
 					}
 				}
@@ -1640,7 +1687,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 		 * Delete any existing action with the same unique key
 		 */
 		if ( isset( $unique_key ) and trim( $unique_key ) != '' ) {
-			foreach( \MWP\Rules\ScheduledAction::loadWhere( 'schedule_unique_key=?', trim( $unique_key ) ) as $existing ) {
+			foreach( ScheduledAction::loadWhere( 'schedule_unique_key=?', trim( $unique_key ) ) as $existing ) {
 				$existing->delete();
 			}
 		}
@@ -1669,6 +1716,18 @@ class Plugin extends \Modern\Wordpress\Plugin
 		);
 		
 		$scheduled_action->save();
+		
+		$_next_action = ScheduledAction::getNextAction();
+		$task = Task::loadWhere( array( 'task_action=%s AND task_completed=0', 'mwp_rules_run_scheduled_actions' ) )[0];
+		
+		if ( $task ) {
+			if ( ! $task->running ) {
+				$task->next_start = $_next_action->time;
+				$task->save();
+			}
+		} else {
+			Task::queueTask( array( 'action' => 'mwp_rules_run_scheduled_actions', 'next_start' => $_next_action->time ) );
+		}
 		
 		return "Action Scheduled (ID#{$scheduled_action->id})";
 	}

@@ -31,6 +31,11 @@ class ScheduledAction extends ActiveRecord
      */
     public static $table = "rules_scheduled_actions";
 
+	/**
+	 * @var	string
+	 */
+	public static $plugin_class = 'MWP\Rules\Plugin';
+	
     /**
      * @var    array        Table columns
      */
@@ -59,4 +64,108 @@ class ScheduledAction extends ActiveRecord
      */
     public static $prefix = 'schedule_';
 	
+	/**
+	 * @var	string
+	 */
+	public static $lang_singular = 'Scheduled Action';
+	
+	/**
+	 * @var	string
+	 */
+	public static $lang_plural = 'Scheduled Actions';
+	
+	/**
+	 * Get controller actions
+	 *
+	 * @return	array
+	 */
+	public function getControllerActions()
+	{
+		return array();
+	}
+	
+	/**
+	 * Execute the Scheduled Action
+	 *
+	 */
+	public function execute()
+	{
+		if ( $this->queued ) {
+			return;
+		} else {
+			$this->queued = time();
+			$this->save();
+		}
+		
+		$action_data = $this->data;
+		$plugin = $this->getPlugin();
+		
+		$args = array();
+		$event_args = array();
+
+		/**
+		 * Standard Scheduled Action
+		 */
+		if ( $this->action_id )
+		{
+			foreach ( (array) $action_data[ 'args' ] as $arg ) {
+				$args[] = $plugin->restoreArg( $arg );
+			}
+
+			foreach ( (array) $action_data[ 'event_args' ] as $key => $arg ) {
+				$event_args[ $key ] = $plugin->restoreArg( $arg );
+			}
+
+			try
+			{
+				$action = \MWP\Rules\Action::load( $this->action_id );
+				
+				if ( $event = $action->event() ) 
+				{
+					/**
+					 * Set the event threads to match the originals. Adjust the root thread so that further triggers of
+					 * this event due to this action also result in the deferred actionStack queue being executed.
+					 */
+					$event->thread = $this->thread;
+					$event->parentThread = $this->parent_thread;					
+					$event->rootThread = $this->thread;
+					
+					$definition = $action->definition();
+					
+					if ( isset( $definition->callback ) and is_callable( $definition->callback ) )
+					{
+						try {
+							$result = call_user_func_array( $definition->callback, array_merge( $args, array( $action->data, $event_args, $action ) ) );
+
+							if ( $rule = $action->rule() and $rule->debug ) {
+								$plugin->rulesLog( $event, $rule, $action, $result, 'Evaluated' );
+							}
+						}
+						catch ( \Exception $e ) {
+							$plugin->rulesLog( $event, $action->rule(), $action, $e->getMessage(), 'Error Exception', 1 );
+						}
+					}
+					else
+					{
+						if ( $rule = $action->rule() ) {
+							$plugin->rulesLog( $rule->event(), $rule, $action, FALSE, 'Missing Callback', 1  );
+						}
+					}
+				}
+			}
+			catch ( \OutOfRangeException $e ) { }
+		}
+
+		$this->delete();
+	}
+	
+	/**
+	 * Get the next scheduled action that needs to be ran
+	 *
+	 * @return	ScheduledAction|NULL
+	 */
+	public static function getNextAction()
+	{
+		return static::loadWhere( array( 'schedule_queued=0' ), 'schedule_time ASC', 1 )[0];
+	}
 }
