@@ -146,6 +146,7 @@ class Action extends ActiveRecord
 			'value' => 1,
 			'data' => isset( $action->enabled ) ? (bool) $action->enabled : true,
 			'row_suffix' => '<hr>',
+			'required' => false,
 		));
 		
 		/* Else action config */
@@ -231,6 +232,7 @@ class Action extends ActiveRecord
 			'label' => __( 'Unique Scheduling Keyphrase', 'mwp-rules' ),
 			'data' => $action->schedule_key,
 			'description' => __( 'Optional. Only one action will remain scheduled for any given keyphrase at a time. If an action is rescheduled, any previously scheduled actions with the same keyphrase will be removed.', 'mwp-rules' ),
+			'required' => false,
 		),
 		NULL, 'schedule_customcode' );
 		

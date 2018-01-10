@@ -102,7 +102,7 @@ class LogsController extends ActiveRecordController
 						}					
 					},
 					'time' => function( $row ) {
-						return date_i18n( 'Y-m-d H:i:s', $row['time'] );
+						return get_date_from_gmt( date( 'Y-m-d H:i:s', $row['time'] ), 'F j, Y H:i:s' );
 					},
 				),
 			),

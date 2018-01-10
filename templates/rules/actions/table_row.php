@@ -45,6 +45,9 @@ $controller = $table->getController();
 		<?php endif ?>
 		<p>
 			<?php echo $action->title ?> 
+			<?php if ( $action->schedule_mode == 0 ) : ?>
+				<span title="This action will be executed immediately during the event" class="label label-default"><i class="glyphicon glyphicon-time"></i> Immediately</span>
+			<?php endif ?>
 			<?php if ( in_array( $action->schedule_mode, array( 2, 3, 4 ) ) ) : ?>
 				<span title="This action will be executed at a scheduled time" class="label label-warning"><i class="glyphicon glyphicon-time"></i> Scheduled</span>
 			<?php endif ?>

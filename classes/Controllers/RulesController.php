@@ -85,8 +85,12 @@ class RulesController extends ActiveRecordController
 							$status .= ' <a href="' . $rule->url( array( '_tab' => 'rule_debug_console' ) ) . '"><span class="label label-info"><i class="glyphicon glyphicon-wrench"></i> DEBUG MODE ON</span></a>';
 						}
 						
-						if ( ! $rule->parent() ) {
+						if ( ! $rule->parent() and $rule->enabled ) {
 							$status .= ' <span title="' . __( 'Priority', 'mwp-rules' ) . '" class="label label-warning">' . $rule->priority . '</span>';
+						}
+						
+						if ( $rule->enable_recursion ) {
+							$status .= ' <span title="' . __( 'Recursions Allowed', 'mwp-rules' ) . '" class="label label-default"><i class="glyphicon glyphicon-repeat"></i> ' . $rule->recursion_limit . '</span>';
 						}
 						
 						$status .= '</div>';

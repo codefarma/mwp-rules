@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<div class="mwp-bootstrap">
 		<div class="alert alert-info">
 			Event: <strong><?php echo $log->event()->title ?></strong> 
-			<span class="pull-right"><?php echo date_i18n( 'Y-m-d H:i:s', $log->time ) ?></span>
+			<span class="pull-right"><?php echo get_date_from_gmt( date( 'Y-m-d H:i:s', $log->time ), 'F j, Y H:i:s' ) ?></span>
 		</div>
 		
 		<div class="alert alert-success">

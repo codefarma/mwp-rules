@@ -46,10 +46,19 @@ if ( ! class_exists( 'MWPRulesPlugin' ) )
 				->attach( new \MWP\Rules\Actions\System )
 				;
 				
-			$plugin->getRulesController()      ->registerAdminPage( array( 'type' => 'management' ) );
-			$plugin->getLogsController()       ->registerAdminPage( array( 'type' => 'management', 'menu' => __( 'Rules Logs', 'mwp-rules' ) ) );
-			$plugin->getConditionsController() ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules-rule' ) );
-			$plugin->getActionsController()    ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules-rule' ) );
+			$plugin->getRulesController()->registerAdminPage( array( 
+				'title' => __( 'Rules', 'mwp-rules' ),
+				'type' => 'menu', 
+				'slug' => 'mwp-rules', 
+				'menu' => __( 'Rules', 'mwp-rules' ), 
+				'icon' => $plugin->fileUrl( 'assets/img/gavel.png' ), 
+				'position' => 76,
+			));
+			
+			$plugin->getLogsController()       ->registerAdminPage( array( 'type' => 'submenu', 'menu' => __( 'Rules Logs', 'mwp-rules' ), 'parent' => 'mwp-rules' ) );
+			$plugin->getScheduleController()   ->registerAdminPage( array( 'type' => 'submenu', 'menu' => __( 'Scheduled Actions', 'mwp-rules' ), 'parent' => 'mwp-rules' ) );
+			$plugin->getConditionsController() ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ) );
+			$plugin->getActionsController()    ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ) );
 		}
 		
 		public static function status() {

@@ -131,6 +131,8 @@ class Log extends ActiveRecord
 				'singular' => 'action',
 				'plural' => 'actions',
 			),
+			'sort_by' => 'time',
+			'sort_order' => 'ASC',
 			'columns' => array(
 				'op_id' => __( 'Action Title', 'mwp-rules' ),
 				'message' => __( 'Status', 'mwp-rules' ),

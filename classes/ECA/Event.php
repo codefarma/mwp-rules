@@ -157,7 +157,7 @@ class Event extends BaseDefinition
 				$actions = $this->actionStack;				
 				$this->actionStack = array();
 				$this->executeDeferred( $actions );
-			}			
+			}
 		}
 		
 		if ( $this->type == 'filter' ) {
