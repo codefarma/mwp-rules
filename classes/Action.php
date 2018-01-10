@@ -19,7 +19,7 @@ use \Modern\Wordpress\Pattern\ActiveRecord;
 /**
  * Action Class
  */
-class Action extends ActiveRecord
+class Action extends GenericOperation
 {
 	/**
      * @var    array        Required for all active record classes
@@ -92,6 +92,11 @@ class Action extends ActiveRecord
 	public $rule = NULL;
 	
 	/**
+	 * @var string
+	 */
+	public static $optype = 'action';
+	
+	/**
 	 * Get controller actions
 	 *
 	 * @return	array
@@ -161,7 +166,7 @@ class Action extends ActiveRecord
 			'expanded' => true,
 		));
 		
-		$plugin->buildOpConfigForm( $form, $action, 'action' );
+		static::buildConfigForm( $form, $action );
 		
 		$scheduling_options = array(
 			__( 'Immediately', 'mwp-rules' )                        => 0,
@@ -247,7 +252,7 @@ class Action extends ActiveRecord
 	 */
 	public function processForm( $values )
 	{
-		\MWP\Rules\Plugin::instance()->processOpConfigForm( $values, $this, 'action' );
+		$this->processConfigForm( $values );
 		parent::processForm( $values );
 	}
 
@@ -320,7 +325,7 @@ class Action extends ActiveRecord
 			
 			try
 			{
-				call_user_func_array( array( $plugin, 'opInvoke' ), array( $this, 'actions', func_get_args() ) );
+				$this->opInvoke( func_get_args() );
 			}
 			catch( \Exception $e )
 			{

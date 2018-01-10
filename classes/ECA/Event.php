@@ -166,6 +166,174 @@ class Event extends BaseDefinition
 	}
 	
 	/**
+	 * @var	array
+	 */
+	public static $tokensCache = array();
+
+	/**
+	 * Build Event Tokens
+	 *
+	 * @param	array|NULL				$arg_map	An associative array of the event arguments, if NULL then token/descriptions will be generated
+	 * @return	array								An associative array of token/var replacements
+	 */
+	public function getTokens( $arg_map=NULL )
+	{
+		$rulesPlugin = \MWP\Rules\Plugin::instance();
+		$cache_key = isset( $arg_map ) ? $this->thread : 'descriptions';
+		
+		if ( isset ( static::$tokensCache[ $cache_key ] ) )
+		{
+			return static::$tokensCache[ $cache_key ];
+		}
+		
+		$global_args 		= $rulesPlugin->getGlobalArguments();
+		$classConverters 	= $rulesPlugin->getConversions();
+		$replacements 		= array();		
+		$string_types 		= array( 'string', 'int', 'float' );
+		
+		$arg_groups = array
+		(
+			'event' => $this->arguments ?: array(),
+			'global' => $global_args,
+		);
+		
+		foreach ( $arg_groups as $group => $all_arguments )
+		{
+			foreach( $all_arguments as $arg_name => $argument )
+			{
+				/**
+				 * Check if the event argument is string replaceable
+				 */
+				if ( in_array( $argument[ 'argtype' ], $string_types ) )
+				{
+					/* Building token values */
+					if ( isset ( $arg_map ) )
+					{
+						$replacements[ '[' . $arg_name . ']' ] = $replacements[ '~' . $arg_name . '~' ] = (string) $arg_map[ $arg_name ];
+					}
+					/* Building token description */
+					else
+					{
+						$replacements[ '[' . $arg_name . ']' ] = "The value of the '" . $arg_name . "' argument";
+					}
+				}
+
+				/**
+				 * Add in any other arguments that we can derive from the event argument as options also
+				 */
+				if ( in_array( $argument[ 'argtype' ], array( 'object', 'array' ) ) and isset( $argument[ 'class' ] ) )
+				{				
+					if ( $derivative_arguments = $rulesPlugin->getClassConverters( $argument ) )
+					{
+						foreach ( $derivative_arguments as $map_key => $derivative_argument )
+						{
+							list( $converter_class, $converter_key ) = explode( ':', $map_key );
+							
+							if ( in_array( $derivative_argument[ 'argtype' ], $string_types ) or isset( $classConverters[ $converter_class ][ $converter_key ][ 'tokenValue' ] ) )
+							{
+								if 
+								( 
+									isset ( $classConverters[ $converter_class ][ $converter_key ][ 'token' ] ) and 
+									is_callable( $classConverters[ $converter_class ][ $converter_key ][ 'converter' ] ) 
+								)
+								{
+									$input_arg = NULL;
+									$arg_name_token = NULL;
+									$arg_name_description = NULL;
+									$tokenValue = '';
+									
+									/**
+									 * Building Token Values
+									 */
+									if ( isset ( $arg_map ) )
+									{
+										switch( $group )
+										{
+											case 'event':
+											
+												$input_arg = $arg_map[ $arg_name ];
+												$arg_name_token = $arg_name;
+												break;
+												
+											case 'global':
+										
+												if 
+												( 
+													isset( $global_args[ $arg_name ] ) and 
+													isset( $global_args[ $arg_name ][ 'token' ] ) and
+													is_callable( $global_args[ $arg_name ][ 'getArg' ] ) )
+												{
+													$arg_name_token = 'global:' . $global_args[ $arg_name ][ 'token' ];
+													$input_arg = call_user_func( $global_args[ $arg_name ][ 'getArg' ] );
+												}
+												break;
+										}
+										
+										if ( isset( $arg_name_token ) )
+										{
+											/* Tokens will only be calculated if needed */
+											$tokenValue = new Token( $input_arg, $classConverters[ $converter_class ][ $converter_key ] );	
+											$replacements[ '[' . $arg_name_token . ":" . $classConverters[ $converter_class ][ $converter_key ][ 'token' ] . ']' ] = $replacements[ '~' . $arg_name_token . ":" . $classConverters[ $converter_class ][ $converter_key ][ 'token' ] . '~' ] = $tokenValue;
+										}
+									}
+									
+									/**
+									 * Building Token Descriptions
+									 */
+									else
+									{
+										switch ( $group )
+										{
+											case 'event':
+												$arg_name_token = $arg_name;
+												break;
+											
+											case 'global':
+												if ( 
+													isset( $global_args[ $arg_name ] ) and 
+													isset( $global_args[ $arg_name ][ 'token' ] )
+												)
+												{
+													$arg_name_token = 'global:' . $global_args[ $arg_name ][ 'token' ];
+													$arg_name_description = ( isset( $global_args[ $arg_name ][ 'description' ] ) and $global_args[ $arg_name ][ 'description' ] ) ? ' for ' . $global_args[ $arg_name ][ 'description' ] : '';
+												}
+												break;
+										}
+										
+										if ( isset( $arg_name_token ) )
+										{
+											$replacements[ '[' . $arg_name_token . ":" . $classConverters[ $converter_class ][ $converter_key ][ 'token' ] . ']' ] = $classConverters[ $converter_class ][ $converter_key ][ 'description' ] . $arg_name_description;
+										}
+									}
+								}
+							}
+						}
+					}						
+				}				
+			}
+		}
+				
+		return static::$tokensCache[ $cache_key ] = $replacements;
+	}
+
+	/**
+	 * Replace Tokens
+	 * 
+	 * @param 	string		$string				The string with possible tokens to replace
+	 * @param	array		$replacements		An array of string replacement values
+	 * @return	string							The string with tokens replaced
+	 */
+	public function replaceTokens( $string, $replacements )
+	{
+		if ( empty( $replacements ) or ! is_array( $replacements ) )
+		{
+			return $string;
+		}
+		
+		return strtr( $string, $replacements );
+	}
+
+	/**
 	 * Execute Deferred
 	 *
 	 * @param	array		$actions		Deferred actions to execute

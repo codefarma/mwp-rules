@@ -19,7 +19,7 @@ use \Modern\Wordpress\Pattern\ActiveRecord;
 /**
  * Condition Class
  */
-class Condition extends ActiveRecord
+class Condition extends GenericOperation
 {
 	/**
      * @var    array        Required for all active record classes
@@ -90,6 +90,11 @@ class Condition extends ActiveRecord
 	public $rule = NULL;
 	
 	/**
+	 * @var string
+	 */
+	public static $optype = 'condition';
+	
+	/**
 	 * Get controller actions
 	 *
 	 * @return	array
@@ -157,7 +162,7 @@ class Condition extends ActiveRecord
 			'row_suffix' => '<hr>',
 		));
 		
-		$plugin->buildOpConfigForm( $form, $condition, 'condition' );
+		static::buildConfigForm( $form, $condition );
 		
 		/** Condition specific form fields **/
 		
@@ -201,7 +206,7 @@ class Condition extends ActiveRecord
 	 */
 	public function processForm( $values )
 	{
-		\MWP\Rules\Plugin::instance()->processOpConfigForm( $values, $this, 'condition' );
+		$this->processConfigForm( $values );
 		parent::processForm( $values );
 	}
 
@@ -284,7 +289,7 @@ class Condition extends ActiveRecord
 			
 			try
 			{
-				$result = call_user_func_array( array( $plugin, 'opInvoke' ), array( $this, 'conditions', func_get_args() ) );
+				$result = $this->opInvoke( func_get_args() );
 			}
 			catch( \Exception $e )
 			{

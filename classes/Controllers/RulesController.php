@@ -125,13 +125,16 @@ class RulesController extends ActiveRecordController
 						$controller = \MWP\Rules\Plugin::instance()->getRulesController();
 						$subrulesUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_subrules' ) );
 						
+						$output = '<div class="mwp-bootstrap">';
+						
 						if ( $subrule_count ) {
-							$output .= "<div style='font-size: 1.2em;'><a href='{$subrulesUrl}'>{$subrule_count} sub-rules.</a></div>";
+							$output .= "<span style='font-size:15px; font-weight:bold;'><i class='glyphicon glyphicon-link'></i> <a href='{$subrulesUrl}'>{$subrule_count} sub-rules.</a></span>";
 						} else {
-							$output .= "<div style=''>No subrules.</div>";
+							$output .= "No subrules.";
 						}
 						
-						$output .= "<div class='mwp-bootstrap' style='margin-top:10px'><a class='btn btn-sm btn-default' href=\"" . $controller->getUrl( array( 'do' => 'new', 'parent_id' => $rule->id ) ) . "\"><i class='glyphicon glyphicon-plus'></i> New sub-rule</a></div>";
+						$output .= "<div style='margin-top:10px'><a class='btn btn-sm btn-default' href=\"" . $controller->getUrl( array( 'do' => 'new', 'parent_id' => $rule->id ) ) . "\"><i class='glyphicon glyphicon-plus'></i> New sub-rule</a></div>";
+						$output .= "</div>";
 						
 						return $output;
 					}
