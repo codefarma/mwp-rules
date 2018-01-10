@@ -221,6 +221,7 @@ class Rule extends ActiveRecord
 				'value' => 1,
 				'description' => __( 'Enable the operation of this rule' ),
 				'data' => isset( $rule->enabled ) ? (bool) $rule->enabled : true,
+				'required' => false,
 			),
 			'rule_settings' );
 			
@@ -229,6 +230,28 @@ class Rule extends ActiveRecord
 				'value' => 1,
 				'description' => __( 'Enable debug logs for this rule' ),
 				'data' => (bool) $rule->debug,
+				'required' => false,
+			),
+			'rule_settings' );
+			
+			$form->addField( 'enable_recursion', 'checkbox', array(
+				'label' => __( 'Enable Recursion', 'mwp-rules' ),
+				'value' => 1,
+				'description' => __( 'Allow this rule to be recursively triggered by its own conditions and actions.', 'mwp-rules' ),
+				'data' => (bool) $rule->enable_recursion,
+				'toggles' => array(
+					1 => array( 'show' => array( '#rule_recursion_limit' ) ),
+				),
+			),
+			'rule_settings' );
+			
+			$form->addField( 'recursion_limit', 'integer', array(
+				'row_attr' => array( 'id' => 'rule_recursion_limit' ),
+				'attr' => array( 'min' => 1 ),
+				'label' => __( 'Recursion Limit', 'mwp-rules' ),
+				'description' => __( 'Enter the number of times this rule should be able to recurse on itself.', 'mwp-rules' ),
+				'data' => (int) $rule->recursion_limit ?: 1,
+				'required' => true,
 			),
 			'rule_settings' );
 		}
@@ -460,8 +483,6 @@ class Rule extends ActiveRecord
 			$child->disableDebugRecursive();
 		}
 	}
-	
-	
 
 	/**
 	 * Recursion Protection
