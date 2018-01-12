@@ -36,8 +36,9 @@ if ( ! class_exists( 'MWPRulesPlugin' ) )
 				->attach( $settings )
 				->attach( $ajaxHandlers )
 				
-				->attach( new \MWP\Rules\Events\Content )
 				->attach( new \MWP\Rules\Events\System )
+				->attach( new \MWP\Rules\Events\Content )
+				->attach( new \MWP\Rules\Events\Users )
 				
 				->attach( new \MWP\Rules\Conditions\Content )
 				->attach( new \MWP\Rules\Conditions\System )
@@ -59,6 +60,9 @@ if ( ! class_exists( 'MWPRulesPlugin' ) )
 			$plugin->getScheduleController()   ->registerAdminPage( array( 'type' => 'submenu', 'menu' => __( 'Scheduled Actions', 'mwp-rules' ), 'parent' => 'mwp-rules' ) );
 			$plugin->getConditionsController() ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ) );
 			$plugin->getActionsController()    ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ) );
+			
+			/* Core class map */
+			include_once( 'includes/rules.core.maps.php' );
 		}
 		
 		public static function status() {
@@ -90,33 +94,33 @@ if ( ! class_exists( 'MWPRulesPlugin' ) )
 	 * Global Functions 
 	 */
 	
-	function rules_event( $type, $hook, $definition ) {
+	function rules_describe_event( $type, $hook, $definition ) {
 		\MWP\Rules\Plugin::instance()->describeEvent( $type, $hook, $definition );
 	}
 	
-	function rules_events( $events ) {
+	function rules_describe_events( $events ) {
 		foreach( $events as $event ) {
-			call_user_func_array( 'rules_event', $event );
+			call_user_func_array( 'rules_describe_event', $event );
 		}
 	}
 	
-	function rules_condition( $key, $definition ) {
+	function rules_register_condition( $key, $definition ) {
 		\MWP\Rules\Plugin::instance()->registerCondition( $key, $definition );
 	}
 	
-	function rules_conditions( $conditions ) {
+	function rules_register_conditions( $conditions ) {
 		foreach( $conditions as $condition ) {
-			call_user_func_array( 'rules_condition', $condition );
+			call_user_func_array( 'rules_register_condition', $condition );
 		}
 	}
 	
-	function rules_action( $key, $definition ) {
+	function rules_define_action( $key, $definition ) {
 		\MWP\Rules\Plugin::instance()->defineAction( $key, $definition );
 	}
 	
-	function rules_actions( $actions ) {
+	function rules_define_actions( $actions ) {
 		foreach( $actions as $action ) {
-			call_user_func_array( 'rules_action', $action );
+			call_user_func_array( 'rules_define_action', $action );
 		}
 	}
 	

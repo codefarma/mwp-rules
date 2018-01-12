@@ -241,6 +241,14 @@ class Action extends GenericOperation
 		),
 		NULL, 'schedule_customcode' );
 		
+		if ( ! $action->id ) {
+			$form->onComplete( function() use ( $action, $plugin ) {
+				$controller = $plugin->getActionsController();
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $action->id ) ) );
+				exit;
+			});
+		}
+		
 		return $form;
 	}
 	

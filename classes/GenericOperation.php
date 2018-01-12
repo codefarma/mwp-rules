@@ -122,7 +122,7 @@ abstract class GenericOperation extends ActiveRecord
 					);
 					
 					/* Look for event data that can be used to supply the value for this argument */
-					$usable_event_data = $this->getUsableEventArguments( $arg );
+					$usable_event_data = $operation->getUsableEventArguments( $arg );
 					
 					if ( ! empty( $usable_event_data ) ) {
 						$arg_sources[ 'Event / Global Data' ] = 'event';
@@ -381,7 +381,7 @@ abstract class GenericOperation extends ActiveRecord
 									 */
 									if ( $converter_class and $converter_key )
 									{
-										$classConverters = $rulesPlugin->getConversions();
+										$classConverters = $rulesPlugin->getClassMappings();
 										if 
 										( 
 											isset ( $classConverters[ $converter_class ][ $converter_key ] ) and 
@@ -682,10 +682,8 @@ abstract class GenericOperation extends ActiveRecord
 					 * Perform token replacements on string value arguments
 					 */
 					$tokens = $event->getTokens( $arg_map );
-					foreach ( $operation_args as &$_operation_arg )
-					{
-						if ( in_array( gettype( $_operation_arg ), array( 'string' ) ) )
-						{
+					foreach ( $operation_args as &$_operation_arg ) {
+						if ( in_array( gettype( $_operation_arg ), array( 'string' ) ) ) {
 							$_operation_arg = $event->replaceTokens( $_operation_arg, $tokens );
 						}
 					}
@@ -797,8 +795,7 @@ abstract class GenericOperation extends ActiveRecord
 							{
 								$thread = $parentThread = NULL;
 								
-								if ( $rule = $this->rule() )
-								{
+								if ( $rule = $this->rule() ) {
 									$thread        = $rule->event()->thread;
 									$parentThread  = $rule->event()->parentThread;
 								}
@@ -812,21 +809,18 @@ abstract class GenericOperation extends ActiveRecord
 						/**
 						 * If our operation was scheduled, then it will have a result already from the scheduler
 						 */
-						if ( ! isset ( $result ) )
-						{
+						if ( ! isset ( $result ) ) {
 							$result = call_user_func_array( $definition->callback, array_merge( $operation_args, array( $this->data, $arg_map, $this ) ) );					
 						}
 						
 						/**
 						 * Conditions have a special setting to invert their result with NOT, so let's check that 
 						 */
-						if ( $this instanceof \MWP\Rules\Condition and $this->not )
-						{
+						if ( $this instanceof \MWP\Rules\Condition and $this->not ) {
 							$result = ! $result;
 						}
 						
-						if ( $rule = $this->rule() and $rule->debug and $result !== '__suppress__' )
-						{
+						if ( $rule = $this->rule() and $rule->debug and $result !== '__suppress__' ) {
 							$rulesPlugin->rulesLog( $rule->event(), $rule, $this, $result, 'Evaluated' );
 						}
 						
@@ -880,6 +874,7 @@ abstract class GenericOperation extends ActiveRecord
 	 */
 	public function getUsableEventArguments( $arg )
 	{
+		$rulesPlugin = \MWP\Rules\Plugin::instance();
 		$_usable_arguments = array();
 		$event = $this->event();
 		
@@ -888,7 +883,7 @@ abstract class GenericOperation extends ActiveRecord
 			if ( isset( $event->arguments ) )
 			{
 				/* Add in global arguments */
-				$all_arguments = array_merge( $event->arguments ?: array(), $this->getGlobalArguments() );
+				$all_arguments = array_merge( $event->arguments ?: array(), $rulesPlugin->getGlobalArguments() );
 				
 				if ( is_array( $all_arguments ) and count( $all_arguments ) )
 				{

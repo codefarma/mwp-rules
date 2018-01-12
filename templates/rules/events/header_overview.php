@@ -18,6 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
+$tokens = $event->getTokens();
+
 ?>
 
 <?php if ( $rule ) : ?>
@@ -26,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</div>
 <?php endif; ?>
 
-<div class="event-overview alert alert-info">
+<div class="event-overview alert alert-info" data-view-model="mwp-rules">
 	<div class="event-title"><i class="glyphicon glyphicon-info-sign" style="vertical-align: -2px;"></i> <span class="subtle">Event: </span> <?php echo $event->title ?></div>
 	<div class="event-description">
 		<p style="margin: 0 0 5px 0;"><?php echo $event->description ?></p>
@@ -35,6 +37,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<div class="event-arguments">
 		<p class="subtle">The following data is provided by this event:</p>
 		<?php echo $event->getDisplayArgInfo() ?>
+	</div>
+	
+	<div class="tokens-toggle" data-bind="click: function(vm, e) { jQuery(e.target).closest('.event-overview').find('.tokens-list').slideToggle(); }">
+		<strong><i class="glyphicon glyphicon-triangle-right"></i> Replacement Tokens</strong> (<?php echo count( $tokens ) ?> tokens)
+	</div>
+	<div class="tokens-list">
+		<div style="margin:3px 0;">
+			<i class="glyphicon glyphicon-info-sign"></i> You can type the names of replacement tokens (including the brackets) into text entry fields on this form and they will be replaced by their associated data when the rule is executed.<br>
+			<i class="glyphicon glyphicon-arrow-right"></i> Alternative token format: Replace the brackets with tildes ( ~ ) ( Example: ~token:name~ ) for use in places where brackets are problematic (such as urls).
+		</div>
+		
+		<ul>
+		<?php foreach( $tokens as $token => $description ) : ?>
+			<li><code><?php echo esc_html( $token ) . '</code> - ' . esc_html( $description ); ?></li>
+		<?php endforeach; ?>
+		</ul>
 	</div>
 </div>
 

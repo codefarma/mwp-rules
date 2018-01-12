@@ -86,7 +86,7 @@ class RulesController extends ActiveRecordController
 						}
 						
 						if ( ! $rule->parent() and $rule->enabled ) {
-							$status .= ' <span title="' . __( 'Priority', 'mwp-rules' ) . '" class="label label-warning">' . $rule->priority . '</span>';
+							$status .= ' <span title="' . __( 'Priority', 'mwp-rules' ) . '" class="label label-primary">' . $rule->priority . '</span>';
 						}
 						
 						if ( $rule->enable_recursion ) {

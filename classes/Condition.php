@@ -195,6 +195,14 @@ class Condition extends GenericOperation
 			NULL, 'enabled' );
 		}		
 		
+		if ( ! $condition->id ) {
+			$form->onComplete( function() use ( $condition, $plugin ) {
+				$controller = $plugin->getConditionsController();
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $condition->id ) ) );
+				exit;
+			});
+		}
+		
 		return $form;
 	}
 	

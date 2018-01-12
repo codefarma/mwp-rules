@@ -20,95 +20,185 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Token
 {
 	/**
-	 * @brief	Argument to create token from
+	 * @var	mixed
 	 */
-	protected $argument = NULL;
+	protected $original;
 	
 	/**
-	 * @brief	The token converter definition
+	 * @var	array
 	 */
-	protected $converter = NULL;
+	protected $argument;
 	
 	/**
-	 * @brief	The token value
+	 * @var	string
 	 */
-	protected $token = NULL;
-		
+	protected $tokenPath;
+	
+	/**
+	 * @var	mixed
+	 */
+	protected $tokenValue;
+	
+	/**
+	 * @var string
+	 */
+	protected $stringValue;
+	
+	/**
+	 * @var	bool
+	 */
+	protected $tokenSet = false;
+	
 	/**
 	 * Constructor
 	 *
-	 * @param 	object	$argument	Argument object to create token from
-	 * @param	array	$converter	The token converter definition
+	 * @param 	mixed			$original		The starting value to get the token value from
+	 * @param	array			$argument		The starting argument definition
+	 * @param	string|NULL		$tokenPath		The token path to take to get the value
 	 * @return 	void
 	 */
-	public function __construct( $argument, $converter=NULL )
+	public function __construct( $original, $argument=array(), $tokenPath=NULL )
 	{
+		$this->original = $original;
 		$this->argument = $argument;
-		$this->converter = $converter;
-		
-		if ( $argument === NULL or $converter === NULL )
-		{
-			$this->token = (string) $argument;
-		}
+		$this->tokenPath = $tokenPath;
 	}
 	
 	/**
 	 * String Value
+	 *
+	 * @return	string
 	 */
 	public function __toString()
 	{
-		if ( $this->token === NULL )
-		{
-			$this->token = $this->tokenValue();
+		if ( isset( $this->stringValue ) ) {
+			return $this->stringValue;
 		}
 		
-		return (string) $this->token;
+		try {
+			$tokenValue = $this->getTokenValue();
+			
+			if ( isset( $this->argument['stringValue'] ) and is_callable( $this->argument['stringValue'] ) ) {
+				$tokenValue = call_user_func( $this->argument['stringValue'], $tokenValue );
+			}
+			
+			/* Array auto stringification */
+			if ( is_array( $tokenValue ) ) { $tokenValue = implode( ', ', array_map( 'strval', $tokenValue ) );	}
+			
+			/* Boolean auto stringification */
+			if ( is_bool( $tokenValue ) ) { $tokenValue = $tokenValue ? 'true' : 'false'; }
+			
+			$this->stringValue = (string) $tokenValue;
+			return $this->stringValue;
+		}
+		catch( \Exception $e ) { }
+		
+		$this->stringValue = '';
+		return $this->stringValue;
 	}
 	
 	/**
 	 * Get Token Value
 	 *
 	 * @return	string		The token value
+	 * @throws 	ErrorException
 	 */
-	protected function tokenValue()
+	public function getTokenValue()
 	{
-		if ( $this->argument !== NULL )
-		{
-			$tokenValues = array();
-			$input_arg = $this->argument;
-			$converter = $this->converter;
-			
-			/* Create array so single args and array args can be processed in the same way */
-			if ( ! is_array( $input_arg ) )
-			{
-				$input_arg = array( $input_arg );
-			}
-			
-			foreach( $input_arg as $_input_arg )
-			{
-				if ( is_object( $_input_arg ) )
-				{
-					try
-					{
-						/* Standard conversion */
-						$_tokenValue = call_user_func( $converter[ 'converter' ], $_input_arg );
-						
-						/* Token formatter? */
-						if ( isset( $converter[ 'tokenValue' ] ) and is_callable( $converter[ 'tokenValue' ] ) )
-						{
-							$_tokenValue = call_user_func( $converter[ 'tokenValue' ], $_tokenValue );
-						}
-					
-						$tokenValues[] = (string) $_tokenValue;
-					}
-					catch( \Exception $e ) { }
-				}
-			}
-			
-			$this->token = implode( ', ', $tokenValues );
+		if ( $this->tokenSet ) {
+			return $this->tokenValue;
 		}
 		
-		return $this->token;
+		if ( isset( $this->tokenPath ) )
+		{
+			$rulesPlugin = \MWP\Rules\Plugin::instance();
+			$current_argument = $this->argument;
+			$currentValue = $this->original;
+			$token_pieces = explode( ':', $this->tokenPath );
+			
+			/* Fetch the starting argument for global arguments */
+			if ( $token_pieces[0] == 'global' ) {
+				array_shift( $token_pieces );
+				$global_arg = array_shift( $token_pieces );
+				$current_argument = $rulesPlugin->getGlobalArguments( $global_arg );
+				if ( ! $current_argument ) { throw new \ErrorException( 'Global argument does not exist: ' . $global_arg ); }
+				if ( ! isset( $current_argument['getter'] ) or ! is_callable( $current_argument['getter'] ) ) { throw new \ErrorException( 'Global argument cannot be fetched: ' . $global_arg ); }
+				$currentValue = call_user_func( $current_argument['getter'] );
+			}
+			
+			while( $next_token = array_shift( $token_pieces ) ) 
+			{
+				if ( ! isset( $current_argument['class'] ) )  { throw new \ErrorException( 'Argument does not have an associated class: ' . print_r( $current_argument, true ) ); }
+				list( $class_name, $class_key )               = $rulesPlugin->parseClassIdentifier( $current_argument['class'] );
+				$current_argument_class                       = $rulesPlugin->getClassMappings( $class_name );
+				if ( ! $current_argument_class )              { throw new \ErrorException( 'Class mappings not available for: ' . $class_name ); }
+				
+				/* Instantiate the argument if needed */
+				if ( $current_argument['argtype'] !== 'object' ) {				
+					if ( ! isset( $current_argument_class['loader'] ) )       { throw new \ErrorException( 'Class loader not available for: ' . $class_name ); }
+					if ( ! is_callable( $current_argument_class['loader'] ) ) { throw new \ErrorException( 'Class loader is not callable for: ' . $class_name ); }
+					
+					/* This should turn the currentValue into the instance of the associated class */
+					$currentValue = call_user_func( $current_argument_class['loader'], $currentValue, $current_argument['argtype'], $class_key );
+				}
+				
+				/* If we don't have the correct object type, the process is broken */
+				if ( ! is_object( $currentValue ) or ! is_a( $currentValue, $class_name ) ) 
+				{
+					$current_argument = array(); // This ensures that a 'stringValue' callback is not invoked with a null value
+					$currentValue = NULL; 
+					break; 
+				}
+
+				/* Make sure a mapping exists for the next token */
+				if ( ! isset( $current_argument_class['mappings'][ $next_token ] ) ) { throw new \ErrorException( 'Class: "' . $class_name . '" does not have a mapping for: "' . $next_token . '"' ); }
+				
+				$current_argument = $current_argument_class['mappings'][ $next_token ];
+				if ( ! isset( $current_argument['getter'] ) or ! is_callable( $current_argument['getter'] ) ) { throw new \ErrorException( 'Argument does not have a getter: ' . print_r( $current_argument, true ) ); }
+				$currentValue = call_user_func( $current_argument['getter'], $currentValue );
+			}
+			
+			$this->argument = $current_argument;			
+			$this->tokenValue = $currentValue;
+			$this->tokenSet = true;
+		}
+		else
+		{
+			$this->tokenValue = $this->original;
+			$this->tokenSet = true;
+		}
+		
+		return $this->tokenValue;
+	}
+	
+	/**
+	 * Get the argument
+	 *
+	 * @return	array
+	 */
+	public function getArgument()
+	{
+		return $this->argument;
+	}
+	
+	/**
+	 * Get the argument
+	 *
+	 * @return	array
+	 */
+	public function getTokenPath()
+	{
+		return $this->tokenPath;
+	}
+	
+	/**
+	 * Get the argument
+	 *
+	 * @return	array
+	 */
+	public function getOriginal()
+	{
+		return $this->original;
 	}
 
 }

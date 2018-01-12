@@ -2,7 +2,7 @@
 /**
  * Plugin Class File
  *
- * Created:   December 6, 2017
+ * Created:   January 12, 2018
  *
  * @package:  MWP Rules
  * @author:   Kevin Carwile
@@ -15,9 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Content Class
+ * System Class
  */
-class Content
+class Users
 {
 	/**
 	 * @var 	\Modern\Wordpress\Plugin		Provides access to the plugin instance
@@ -65,17 +65,22 @@ class Content
 	 */
 	public function registerECAs()
 	{
-		rules_describe_event( 'filter', 'the_content', function() {
-			return [
-				'title' => __( 'Post Content Is Being Displayed', 'mwp-rules' ),
-				'description' => __( 'Post content is filtered after it is retrieved from the database and before it is printed to the screen.', 'mwp-rules' ),
+		rules_describe_events( array(
+			
+			/* Wordpress Init */
+			array( 'action', 'user_register', array(
+				'title' => 'User Has Been Created',
+				'description' => 'Access data for a new user immediately after they are added to the database.',
 				'arguments' => array(
-					'content' => array(
-						'argtype' => 'string',
-						'nullable' => true,
+					'user_id' => array( 
+						'argtype' => 'int',
+						'class' => 'WP_User',
+						'label' => 'User ID',
+						'description' => 'The id of the newly created user',
 					),
 				),
-			];
-		});
+			)),
+			
+		));
 	}
 }

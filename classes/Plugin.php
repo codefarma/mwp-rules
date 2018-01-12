@@ -424,91 +424,135 @@ class Plugin extends \Modern\Wordpress\Plugin
 	/**
 	 * Get Global Arguments
 	 *
+	 * @param	arg_name	Optional name of an argument definition to return
 	 * @return 	array		Keyed array of global arguments
 	 */
-	public function getGlobalArguments()
+	public function getGlobalArguments( $arg_name=NULL )
 	{
 		if ( isset ( $this->globalArguments ) ) {
-			return $this->globalArguments;
+			return isset( $arg_name ) ? ( isset( $this->globalArguments[ $arg_name ] ) ? $this->globalArguments[ $arg_name ] : NULL ) : $this->globalArguments;
 		}
 		
-		$globalArguments = array(
-			'current_user_id' => array(
-				'label' => __( 'Current logged in user ID', 'mwp-rules' ),
-			),
-		);
-		
-		foreach( apply_filters( 'rules_global_arguments', $globalArguments ) as $arg_name => $arg ) {
-			$this->globalArguments[ '__global_' . $arg_name ] = $arg;
-		}
+		$this->globalArguments = apply_filters( 'rules_global_arguments', array() );
 		
 		return $this->globalArguments;
 	}
 	
 	/**
-	 * Class Converters
+	 * Class map
+	 */
+	public $classMap;
+	
+	/**
+	 * Get Class Conversion Mappings
+	 * 
+	 * @param 	string|NULL		$class		A specific class to return conversions for, NULL for all
+	 * @return	array						Class conversion definitions
+	 */
+	public function getClassMappings( $class=NULL )
+	{
+		if ( isset( $this->classMap ) ) {
+			return isset( $class ) ? ( isset( $this->classMap[ $class ] ) ? $this->classMap[ $class ] : NULL ) : $this->classMap;
+		}
+		
+		$this->classMap = apply_filters( 'rules_class_map', array() );
+		
+		return $this->getClassMappings( $class );
+	}
+
+	/**
+	 * Get possible derivative arguments using the class map
 	 *
 	 * Based on the argument provided, returns an array map of alternative arguments that it can
 	 * be converted into
 	 *
-	 * @param	array	$event_argument		The argument definition provided by the event
-	 * @param	array	$type_def		The argument definition required by the operation
-	 * @return	array				Class converter methods
+	 * @param	array	$source_argument		The argument definition to map
+	 * @param	array	$target_argument		The argument which is needed (or leave empty to return all derivatives)
+	 * @return	array							Class converter methods
 	 */
-	public function getClassConverters( $event_argument, $type_def=array() )
+	public function getDerivativeArguments( $source_argument, $target_argument=NULL )
 	{
-		if ( ! isset( $event_argument[ 'class' ] ) )
-		{
+		$derivative_arguments = array();
+		$mappings             = array();
+		$source_class         = NULL;
+		$target_classes       = isset( $target_argument['class'] ) ? (array) $target_argument['class'] : array();
+		$target_type          = isset( $target_argument['argtype'] ) ? $target_argument['argtype'] : 'mixed';      
+		
+		if ( isset( $source_argument['class'] ) ) {
+			list( $source_class ) = $this->parseClassIdentifier( $source_argument['class'] );
+		}
+		
+		/* If the source argument doesn't point to any specific class... it can't map to anything */
+		if ( ! $source_class ) {
 			return array();
 		}
 		
-		$conversion_arguments   = array();
-		$mappings               = array();
-		$current_class          = $event_argument[ 'class' ]; 
-		$acceptable_classes     = isset( $type_def[ 'class' ] ) ? (array) $type_def[ 'class' ] : array();
+		if ( $source_argument['argtype'] !== 'object' )
+		{
+			/* No derivatives for arrays */
+			if ( $source_argument['argtype'] == 'array' ) {
+				return array();
+			}
+			
+			/* If the source argument can't be used to load an instance... it can't map to anything */
+			$source_class_map = $this->getClassMappings( $source_class );
+			if ( ! $source_class_map or ! isset( $source_class_map['loader'] ) or ! is_callable( $source_class_map['loader'] ) ) {
+				return array();
+			}			
+		}
 		
 		/**
-		 * If the operation argument does not require any specific
-		 * class(es) of object, then any class is acceptable
+		 * If the target argument does not require any specific
+		 * class(es), then anything is acceptable
 		 */
-		if ( empty ( $acceptable_classes ) )
-		{
-			$acceptable_classes = array( '*' );
+		if ( empty( $target_classes ) ) {
+			$target_classes = array( '*' );
 		}
 
 		/**
-		 * Build a map of all the classes in our converter map that are compliant 
-		 * with our event argument, meaning our event argument is the same as or a
-		 * subclass of the convertable class
+		 * Compile a list of all the classes in our class map that are compliant 
+		 * with the argument, meaning that the argument can be used to load it, 
+		 * or a subclass of it
 		 */
-		foreach ( $this->getConversions() as $base_class => $conversions )
-		{
-			if ( $this->isClassCompliant( $current_class, $base_class ) )
-			{
-				$mappings[ $base_class ] = $conversions;
+		foreach ( $this->getClassMappings() as $classname => $class ) {
+			if ( $this->isClassCompliant( $source_argument['class'], $classname ) ) {
+				$mappings[ $classname ] = $class;
 			}
 		}
 		
 		/**
-		 * For every class that has conversions available and that our event argument is compliant with,
-		 * we look at each of the conversion options available and see if any of them convert into a class
-		 * that can then be used as an operation argument. 
+		 * Now for every class that has conversions available, we look at each of the 
+		 * conversion options and see if they are compatible with our target argument. 
 		 */
-		foreach ( $mappings as $base_class => $conversions )
-		{
-			foreach ( $conversions as $conversion_key => $argument )
-			{
-				foreach ( $acceptable_classes as $acceptable_class )
-				{
-					if ( $acceptable_class === '*' or ( isset( $argument[ 'class' ] ) and $this->isClassCompliant( $argument[ 'class' ], $acceptable_class ) ) )
-					{
-						$conversion_arguments[ $base_class . ':' . $conversion_key ] = $argument;
+		foreach ( $mappings as $classname => $class ) {
+			foreach ( $class['mappings'] as $conversion_key => $converted_argument ) {
+				if ( $target_argument === NULL or $target_type == 'mixed' or $converted_argument['argtype'] == $target_type ) {
+					foreach ( $target_classes as $target_class ) {
+						if ( $target_class == '*' or ( isset( $converted_argument['class'] ) and $this->isClassCompliant( $converted_argument['class'], $target_class ) ) ) {
+							$derivative_arguments[ $conversion_key ] = $converted_argument; 
+							break;
+						}
 					}
 				}
 			}
 		}
 		
-		return $conversion_arguments;
+		return $derivative_arguments;
+	}
+	
+	/**
+	 * Get the classname and optional key for an argument
+	 *
+	 * @return	array
+	 */
+	public function parseClassIdentifier( $class )
+	{
+		if ( strstr( $class, '[' ) !== FALSE ) {
+			$components = explode( '[', $class );
+			return array( $components[0], str_replace( ']', '', $components[1] ) );
+		}
+		
+		return array( $class, NULL );
 	}
 
 	/**
@@ -520,6 +564,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 	 */
 	public function isClassCompliant( $class, $classes )
 	{
+		list( $class, $class_key ) = $this->parseClassIdentifier( $class );
 		$compliant = FALSE;
 		
 		foreach ( (array) $classes as $_class )
@@ -540,28 +585,6 @@ class Plugin extends \Modern\Wordpress\Plugin
 		return $compliant;
 	}
 	
-	/**
-	 * Class map
-	 */
-	public $classMap;
-	
-	/**
-	 * Get Class Conversion Mappings
-	 * 
-	 * @param 	string|NULL		$class		A specific class to return conversions for, NULL for all
-	 * @return	array						Class conversion definitions
-	 */
-	public function getConversions( $class=NULL )
-	{
-		if ( isset( $this->classMap ) ) {
-			return isset( $class ) ? $this->classMap[ $class ] : $this->classMap;
-		}
-		
-		$this->classMap = apply_filters( 'rules_conversions_map', array() );
-		
-		return $this->getConversions( $class );		
-	}
-
 	/**
 	 * Schedule An Action
 	 *

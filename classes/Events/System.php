@@ -64,26 +64,17 @@ class System
 	 * @return	void
 	 */
 	public function registerECAs()
-	{
-		$plugin = $this->getPlugin();
-		
-		$plugin->describeEvent( 'filter', 'test_it', array(
-			'title' => 'A Test Value is Filtered',
-			'description' => 'The test filter is used to provide an event for testing filtering rules.',
-			'arguments' => array(
-				'testing_arg' => array(
-					'description' => 'The arbitrary value being filtered',
-					'argtype' => 'mixed',
-					'nullable' => true,
-				),
-			),
+	{	
+		rules_describe_events( array(
+			
+			/* Wordpress Init */
+			array( 'action', 'init', function() {
+				return array(
+					'title' => __( 'Wordpress is Initialized', 'mwp-rules' ),
+					'description' => __( 'The wordpress init hook is fired after all plugins have been loaded.', 'mwp-rules' ),
+				);
+			}),
+			
 		));
-		
-		$plugin->describeEvent( 'action', 'init', function() {
-			return array(
-				'title' => __( 'Wordpress is Initialized', 'mwp-rules' ),
-				'description' => __( 'The wordpress init hook is fired after all plugins have been loaded.', 'mwp-rules' ),
-			);
-		});
 	}
 }

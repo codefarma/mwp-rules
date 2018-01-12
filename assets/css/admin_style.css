@@ -83,3 +83,21 @@
 .mwp-rules-form .widefat td, .mwp-rules-form .widefat th {
 	padding: 8px 10px;
 }
+
+.mwp-rules-form .tokens-toggle {
+	cursor: pointer;
+	margin-top: 10px;
+	font-family: monospace;
+}
+
+.mwp-rules-form .tokens-list {
+	display: none;
+}
+
+.mwp-rules-form .tokens-list ul {
+	margin: 15px 5px;
+}
+
+.mwp-rules-form .tokens-list ul li {
+	margin-bottom: 3px;
+}
