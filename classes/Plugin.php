@@ -476,7 +476,13 @@ class Plugin extends \Modern\Wordpress\Plugin
 		$mappings             = array();
 		$source_class         = NULL;
 		$target_classes       = isset( $target_argument['class'] ) ? (array) $target_argument['class'] : array();
-		$target_type          = isset( $target_argument['argtype'] ) ? $target_argument['argtype'] : 'mixed';      
+		$target_types         = array();      
+		
+		if ( isset( $target_argument['argtypes'] ) ) {
+			foreach( (array) $target_argument['argtypes'] as $k => $v ) {
+				$target_types[] = is_array( $v ) ? $k : $v;
+			}
+		}
 		
 		if ( isset( $source_argument['class'] ) ) {
 			list( $source_class ) = $this->parseClassIdentifier( $source_argument['class'] );
@@ -526,7 +532,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 		 */
 		foreach ( $mappings as $classname => $class ) {
 			foreach ( $class['mappings'] as $conversion_key => $converted_argument ) {
-				if ( $target_argument === NULL or $target_type == 'mixed' or $converted_argument['argtype'] == $target_type ) {
+				if ( $target_argument === NULL or in_array( 'mixed', $target_types ) or in_array( $converted_argument['argtype'], $target_types ) ) {
 					foreach ( $target_classes as $target_class ) {
 						if ( $target_class == '*' or ( isset( $converted_argument['class'] ) and $this->isClassCompliant( $converted_argument['class'], $target_class ) ) ) {
 							$derivative_arguments[ $conversion_key ] = $converted_argument; 

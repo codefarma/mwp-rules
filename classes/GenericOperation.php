@@ -122,7 +122,15 @@ abstract class GenericOperation extends ActiveRecord
 					);
 					
 					/* Look for event data that can be used to supply the value for this argument */
-					$usable_event_data = $operation->getUsableEventArguments( $arg );
+					//$usable_event_data = $operation->getUsableEventArguments( $arg );
+					$usable_event_data = array();
+					if ( $event = $operation->event() ) {
+						$usable_event_data = $event->getArgumentTokens( $arg );
+						foreach( $usable_event_data as $token => &$title ) {
+							$title = $token . ' - ' . $title;
+						}
+						$usable_event_data = array_flip( $usable_event_data );
+					}
 					
 					if ( ! empty( $usable_event_data ) ) {
 						$arg_sources[ 'Event / Global Data' ] = 'event';
@@ -173,21 +181,10 @@ abstract class GenericOperation extends ActiveRecord
 					 */
 					if ( ! empty( $usable_event_data ) ) 
 					{
-						$usable_arguments 	= array();
-						$usable_toggles		= array();
-						$default_toggle_needed	= FALSE;
-						
-						/**
-						 * Add usable event arguments to our list
-						 */
-						foreach ( $usable_event_data as $event_arg_name => $event_argument ) {
-							$usable_arguments[ isset( $event_argument['label'] ) ? $event_argument['label'] : $event_arg_name ] = $event_arg_name;
-						}
-						
 						$form->addField( $argNameKey . '_eventArg', 'choice', array(
 							'row_attr' => array( 'id' => $argNameKey . '_eventArg' ),
 							'label' => __( 'Data To Use', 'mwp-rules' ),
-							'choices' => $usable_arguments,
+							'choices' => $usable_event_data,
 							'required' => true,
 							'data' => isset( $operation->data[ $argNameKey . '_eventArg' ] ) ? $operation->data[ $argNameKey . '_eventArg' ] : NULL,
 						));
@@ -864,99 +861,6 @@ abstract class GenericOperation extends ActiveRecord
 			$event = $this->rule() ? $this->rule()->event() : NULL;
 			$rulesPlugin->rulesLog( $event, $this->rule(), $this, FALSE, 'Operation aborted. (Missing Definition)', 1 );		
 		}
-	}
-	
-	/**
-	 * Get Usable Event Arguments
-	 *
-	 * @param	array							$arg		The argument definition
-	 * @return	array							An array of additional arguments that can be derived from the event
-	 */
-	public function getUsableEventArguments( $arg )
-	{
-		$rulesPlugin = \MWP\Rules\Plugin::instance();
-		$_usable_arguments = array();
-		$event = $this->event();
-		
-		if ( isset( $arg[ 'argtypes' ] ) )
-		{
-			if ( isset( $event->arguments ) )
-			{
-				/* Add in global arguments */
-				$all_arguments = array_merge( $event->arguments ?: array(), $rulesPlugin->getGlobalArguments() );
-				
-				if ( is_array( $all_arguments ) and count( $all_arguments ) )
-				{
-					/**
-					 * Create an array of argtypes that are acceptable as an
-					 * operation argument
-					 */
-					$_types = array();
-					foreach ( $arg[ 'argtypes' ] as $type => $typedata )
-					{
-						$_types[] = is_array( $typedata ) ? $type : $typedata;
-					}
-						
-					/**
-					 * For every available event/global argument, see if we can use it
-					 * by comparing it to the acceptable argtypes
-					 */
-					foreach( $all_arguments as $event_arg_name => $event_argument )
-					{
-						$type_def = array();
-						
-						/**
-						 * Check if the event argument itself is supported
-						 */
-						if ( in_array( 'mixed', $_types ) or in_array( $event_argument[ 'argtype' ], $_types ) )
-						{
-							$can_use = TRUE;
-							
-							/* Our operation argument type definition */
-							$type_def = isset( $arg[ 'argtypes' ][ $event_argument[ 'argtype' ] ] ) ? $arg[ 'argtypes' ][ $event_argument[ 'argtype' ] ] : $arg[ 'argtypes' ][ 'mixed' ];
-							
-							/* If it's not an array, then it doesn't have any special needs */
-							if ( is_array( $type_def ) and ! empty ( $type_def ) )
-							{
-								/* If a special class of argument is required, see if the event argument is compliant */
-								if ( isset( $type_def[ 'class' ] ) )
-								{
-									if ( ! isset( $event_argument[ 'class' ] ) or ! $this->classCompliant( $event_argument[ 'class' ], $type_def[ 'class' ] ) )
-									{
-										$can_use = FALSE;
-									}
-								}
-							}
-							
-							/* So can we use it or what! */
-							if ( $can_use )
-							{
-								$_usable_arguments[ $event_arg_name ] = $event_argument;
-							}
-						}
-						
-						/**
-						 * Add in any other arguments that we can derive from the event argument as options also
-						 */
-						if ( $event_argument[ 'argtype' ] == 'object' and isset( $event_argument[ 'class' ] ) )
-						{
-							if ( $derivative_arguments = $this->classConverters( $event_argument, $type_def ) )
-							{
-								foreach ( $derivative_arguments as $map_key => $derivative_argument )
-								{
-									if ( in_array( 'mixed', $_types ) or in_array( $derivative_argument[ 'argtype' ], $_types ) )
-									{
-										$_usable_arguments[ $event_arg_name . ":" . $map_key ] = $derivative_argument;
-									}
-								}
-							}						
-						}				
-					}
-				}
-			}
-		}
-		
-		return $_usable_arguments;
 	}
 
 }
