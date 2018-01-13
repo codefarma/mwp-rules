@@ -379,7 +379,7 @@ class Condition extends GenericOperation
 	 */
 	public function url( $params=array() )
 	{
-		return $this->getPlugin()->getConditionsController()->getUrl( array( 'id' => $this->id, 'do' => 'edit' ) + $params );
+		return $this->getPlugin()->getConditionsController()->getUrl( array_merge( array( 'id' => $this->id, 'do' => 'edit', 'rule_id' => $this->rule_id ), $params ) );
 	}
 	
 	/**

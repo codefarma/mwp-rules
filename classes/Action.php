@@ -360,7 +360,7 @@ class Action extends GenericOperation
 	 */
 	public function url( $params=array() )
 	{
-		return $this->getPlugin()->getActionsController()->getUrl( array( 'id' => $this->id, 'do' => 'edit' ) + $params );
+		return $this->getPlugin()->getActionsController()->getUrl( array_merge( array( 'id' => $this->id, 'do' => 'edit', 'rule_id' => $this->rule_id ), $params ) );
 	}
 	
 }

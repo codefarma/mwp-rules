@@ -296,11 +296,9 @@ abstract class GenericOperation extends ActiveRecord
 			$i               = 0;
 			$event           = $this->event();
 			
-			if ( isset( $event->arguments ) and count( $event->arguments ) )
-			{
-				// Name each argument in the argument map
-				foreach ( $event->arguments as $event_arg_name => $event_arg )
-				{
+			/* Name and index all the event arguments */
+			if ( isset( $event->arguments ) and count( $event->arguments ) ) {
+				foreach ( $event->arguments as $event_arg_name => $event_arg ) {
 					$arg_map[ $event_arg_name ] = $args[ $i ];
 					$event_arg_index[ $event_arg_name ] = $i++;
 				}
@@ -328,112 +326,68 @@ abstract class GenericOperation extends ActiveRecord
 								 * Determine which argument index to use and if the argument
 								 * needs class conversion or not
 								 */
-								$parts = explode( ':', $this->data[ $argNameKey . '_eventArg' ] );
-								$event_arg_name = isset( $parts[ 0 ] ) ? $parts[ 0 ] : NULL;
-								$converter_class = isset( $parts[ 1 ] ) ? $parts[ 1 ] : NULL;
-								$converter_key = isset( $parts[ 2 ] ) ? $parts[ 2 ] : NULL;
+								$tokenized_key = $this->data[ $argNameKey . '_eventArg' ];
+								$token_pieces = explode( ':', $tokenized_key );
+								$event_arg_name = array_shift( $token_pieces );
 								
 								$_operation_arg	= NULL;
-								$input_arg 	= NULL;
-								$input_arg_type	= NULL;
+								$event_arg = NULL;
+								$event_arg_type = NULL;
 								
 								/**
-								 * Get input argument from global arguments
+								 * Get argument from global arguments
 								 */
-								if ( mb_substr( $event_arg_name, 0, 9 ) === '__global_' )
-								{
-									$global_arguments = $rulesPlugin->getGlobalArguments();
-									if ( isset ( $global_arguments[ $event_arg_name ] ) )
-									{
-										if ( is_callable( $global_arguments[ $event_arg_name ][ 'getArg' ] ) )
-										{
-											$input_arg = call_user_func_array( $global_arguments[ $event_arg_name ][ 'getArg' ], array() );
-										}
-										$input_arg_type = $global_arguments[ $event_arg_name ][ 'argtype' ];
+								if ( $event_arg_name == 'global' ) {
+									if ( $global_argument = $rulesPlugin->getGlobalArguments( $token_pieces[0] ) ) {
+										$token = new \MWP\Rules\ECA\Token( NULL, $global_argument, $tokenized_key );
+										$event_arg = $token->getTokenValue();
+										$event_arg_def = $token->getArgument();
+										$event_arg_type = isset( $event_arg_def['argtype'] ) ? $event_arg_def['argtype'] : null;
 									}
 								}
 								
 								/**
-								 * Get input argument from event arguments
+								 * Get argument from event arguments
 								 */
-								else
-								{
-									if ( isset( $event_arg_index[ $event_arg_name ] ) )
-									{
+								else {
+									if ( isset( $event_arg_index[ $event_arg_name ] ) ) {
 										$_i = $event_arg_index[ $event_arg_name ];
-										$input_arg = $args[ $_i ];
-										$input_arg_type = $event->arguments[ $event_arg_name ][ 'argtype' ];
+										$token = new \MWP\Rules\ECA\Token( $args[ $_i ], $event->arguments[ $event_arg_name ], implode( ':', $token_pieces ) );
+										$event_arg = $token->getTokenValue();
+										$event_arg_def = $token->getArgument();
+										$event_arg_type = isset( $event_arg_def['argtype'] ) ? $event_arg_def['argtype'] : null;
 									}
 								}
 								
 								/**
 								 * Check if argument is present in the event
 								 */
-								if ( isset ( $input_arg ) )
+								if ( isset ( $event_arg ) )
 								{									
-									/**
-									 * If an argument has been chosen which is a "derivative" of an actual event argument,
-									 * then we need to pass the event argument to the conversion function to get the
-									 * correct derivative value.
-									 */
-									if ( $converter_class and $converter_key )
-									{
-										$classConverters = $rulesPlugin->getClassMappings();
-										if 
-										( 
-											isset ( $classConverters[ $converter_class ][ $converter_key ] ) and 
-											is_callable( $classConverters[ $converter_class ][ $converter_key ][ 'converter' ] ) 
-										)
-										{									
-											$event_arg 	= call_user_func( $classConverters[ $converter_class ][ $converter_key ][ 'converter' ], $input_arg );
-											$event_arg_type	= $classConverters[ $converter_class ][ $converter_key ][ 'argtype' ];
-										}
-										else
-										{
-											$event_arg 	= NULL;
-											$event_arg_type = NULL;
-										}
-									}
-									else
-									{
-										$event_arg 	= $input_arg;
-										$event_arg_type = $input_arg_type;
-									}
-									
 									/**
 									 * Argtypes must be defined to use event arguments
 									 */
 									if ( is_array( $arg[ 'argtypes' ] ) )
 									{
 										/* Simple definitions with no processing callbacks */
-										if ( in_array( $event_arg_type, $arg[ 'argtypes' ] ) or in_array( 'mixed', $arg[ 'argtypes' ] ) )
-										{
+										if ( in_array( $event_arg_type, $arg[ 'argtypes' ] ) or in_array( 'mixed', $arg[ 'argtypes' ] ) ) {
 											$_operation_arg = $event_arg;
 										}
 										
 										/* Complex definitions, check for processing callbacks */
-										else if ( isset( $arg[ 'argtypes' ][ $event_arg_type ] ) )
-										{
-											if ( isset ( $arg[ 'argtypes' ][ $event_arg_type ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ $event_arg_type ][ 'converter' ] ) )
-											{
+										else if ( isset( $arg[ 'argtypes' ][ $event_arg_type ] ) ) {
+											if ( isset ( $arg[ 'argtypes' ][ $event_arg_type ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ $event_arg_type ][ 'converter' ] ) ) {
 												$_operation_arg = call_user_func_array( $arg[ 'argtypes' ][ $event_arg_type ][ 'converter' ], array( $event_arg, $this->data ) );
-											}
-											else
-											{
+											} else {
 												$_operation_arg = $event_arg;
 											}
 										}
-										else if ( isset( $arg[ 'argtypes' ][ 'mixed' ] ) )
-										{
-											if ( isset ( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) )
-											{
+										else if ( isset( $arg[ 'argtypes' ][ 'mixed' ] ) ) {
+											if ( isset ( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) ) {
 												$_operation_arg = call_user_func_array( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ], array( $event_arg, $this->data ) );
-											}
-											else
-											{
+											} else {
 												$_operation_arg = $event_arg;
 											}
-										
 										}
 									}
 								}
@@ -441,14 +395,12 @@ abstract class GenericOperation extends ActiveRecord
 								/**
 								 * After all that, check if we have an argument to pass
 								 */
-								if ( isset( $_operation_arg ) )
-								{
+								if ( isset( $_operation_arg ) ) {
 									$operation_args[] = $_operation_arg;
-								}
-								else
-								{
+								} else {
 									$argument_missing = TRUE;
-								}			
+								}
+								
 								break;
 							
 							/**
@@ -586,9 +538,6 @@ abstract class GenericOperation extends ActiveRecord
 								/* Only if we haven't already attempted to get the argument from phpcode */
 								if ( $this->data[ $argNameKey . '_source' ] !== 'phpcode' )
 								{
-									/**
-									 * This code is getting a little redundant. I know.
-									 */
 									$evaluate = function( $phpcode ) use ( $arg_map )
 									{
 										extract( $arg_map );								

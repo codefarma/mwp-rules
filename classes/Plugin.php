@@ -468,15 +468,22 @@ class Plugin extends \Modern\Wordpress\Plugin
 	 *
 	 * @param	array	$source_argument		The argument definition to map
 	 * @param	array	$target_argument		The argument which is needed (or leave empty to return all derivatives)
+	 * @param	int		$max_levels				The number of levels of recursion to go
+	 * @param	string	$token_prefix			Prefix to apply to the tokenized keys
+	 * @param	int		$level					The current level of recursion
 	 * @return	array							Class converter methods
 	 */
-	public function getDerivativeArguments( $source_argument, $target_argument=NULL )
+	public function getDerivativeTokens( $source_argument, $target_argument=NULL, $max_levels=1, $token_prefix='', $level=1 )
 	{
 		$derivative_arguments = array();
 		$mappings             = array();
 		$source_class         = NULL;
 		$target_classes       = isset( $target_argument['class'] ) ? (array) $target_argument['class'] : array();
-		$target_types         = array();      
+		$target_types         = array();
+
+		if ( $token_prefix ) {
+			$token_prefix .= ':';
+		}
 		
 		if ( isset( $target_argument['argtypes'] ) ) {
 			foreach( (array) $target_argument['argtypes'] as $k => $v ) {
@@ -531,14 +538,19 @@ class Plugin extends \Modern\Wordpress\Plugin
 		 * conversion options and see if they are compatible with our target argument. 
 		 */
 		foreach ( $mappings as $classname => $class ) {
-			foreach ( $class['mappings'] as $conversion_key => $converted_argument ) {
+			foreach ( $class['mappings'] as $argument_key => $converted_argument ) {
 				if ( $target_argument === NULL or in_array( 'mixed', $target_types ) or in_array( $converted_argument['argtype'], $target_types ) ) {
 					foreach ( $target_classes as $target_class ) {
 						if ( $target_class == '*' or ( isset( $converted_argument['class'] ) and $this->isClassCompliant( $converted_argument['class'], $target_class ) ) ) {
-							$derivative_arguments[ $conversion_key ] = $converted_argument; 
+							$derivative_arguments[ $token_prefix . $argument_key ] = $converted_argument;
 							break;
 						}
 					}
+				}
+				
+				/* Go deep */
+				if ( $level < $max_levels ) {
+					$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $converted_argument, $target_argument, $max_levels, $token_prefix . $argument_key, $level + 1 ) );
 				}
 			}
 		}

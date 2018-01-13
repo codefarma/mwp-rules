@@ -50,6 +50,20 @@ add_filter( 'rules_class_map', function( $map )
 						return $user->user_login;
 					},
 				),
+				'first_name' => array(
+					'argtype' => 'string',
+					'label' => 'First Name',
+					'getter' => function( $user ) {
+						return $user->first_name;
+					},
+				),
+				'last_name' => array(
+					'argtype' => 'string',
+					'label' => 'Last Name',
+					'getter' => function( $user ) {
+						return $user->last_name;
+					},
+				),
 				'nicename' => array(
 					'argtype' => 'string',
 					'label' => 'Nice Name',
@@ -59,14 +73,14 @@ add_filter( 'rules_class_map', function( $map )
 				),
 				'email' => array(
 					'argtype' => 'string',
-					'label' => 'User Email',
+					'label' => 'Email',
 					'getter' => function( $user ) {
 						return $user->user_email;
 					},
 				),
 				'url' => array(
 					'argtype' => 'string',
-					'label' => 'User Url',
+					'label' => 'Url',
 					'nullable' => true,
 					'getter' => function( $user ) {
 						return $user->user_url ?: NULL;
@@ -203,6 +217,7 @@ add_filter( 'rules_class_map', function( $map )
 				'parent' => array(
 					'argtype' => 'object',
 					'label' => 'Parent Post',
+					'class' => 'WP_Post',
 					'nullable' => true,
 					'getter' => function( $post ) {
 						return get_post( $post->post_parent ) ?: null;

@@ -187,7 +187,17 @@ class Event extends BaseDefinition
 			return static::$tokensCache[ $cache_key ];
 		}
 		
-		return static::$tokensCache[ $cache_key ] = $this->getArgumentTokens( array( 'argtypes' => array( 'string', 'int', 'float', 'bool' ) ) );
+		$tokens = $this->getArgumentTokens( array( 'argtypes' => array( 'string', 'int', 'float', 'bool' ) ) );
+		$_tokens = array();
+		
+		foreach( $tokens as $key => $value ) {
+			$_tokens[ '[' . $key . ']' ] = $value;
+			if ( $arg_map ) {
+				$_tokens[ '~' . $key . '~' ] = $value;
+			}
+		}
+		
+		return static::$tokensCache[ $cache_key ] = $_tokens;
 	}
 	
 	/**
@@ -227,15 +237,15 @@ class Event extends BaseDefinition
 					/* Building token values */
 					if ( isset ( $arg_map ) ) {
 						switch( $group ) {
-							case 'event': $tokens[ '[' . $arg_name . ']' ] = $tokens[ '~' . $arg_name . '~' ] = new Token( $arg_map[ $arg_name ] ); break;
-							case 'global': $tokens[ '[global:' . $arg_name . ']' ] = $tokens[ '~' . $arg_name . '~' ] = new Token( NULL, $argument, 'global:' . $arg_name ); break;
+							case 'event': $tokens[ $arg_name ] = new Token( $arg_map[ $arg_name ] ); break;
+							case 'global': $tokens[ 'global:' . $arg_name ] = new Token( NULL, $argument, 'global:' . $arg_name ); break;
 						}
 					}
 					/* Building token description */
 					else {
 						switch( $group ) {
-							case 'event': $tokens[ '[' . $arg_name . ']' ] = "The value of the '" . $arg_name . "' argument"; break;
-							case 'global': $tokens[ '[global:' . $arg_name . ']' ] = isset( $argument['label'] ) ? ucfirst( strtolower( $argument['label'] ) ) : "The global '" . $arg_name . "' value"; break;
+							case 'event': $tokens[ $arg_name ] = "The value of the '" . $arg_name . "' argument"; break;
+							case 'global': $tokens[ 'global:' . $arg_name ] = isset( $argument['label'] ) ? ucfirst( strtolower( $argument['label'] ) ) : "The global '" . $arg_name . "' value"; break;
 						}
 					}
 				}
@@ -243,7 +253,7 @@ class Event extends BaseDefinition
 				/**
 				 * Create tokens for derivative arguments also
 				 */
-				foreach ( $rulesPlugin->getDerivativeArguments( $argument, $target_argument ) as $tokenized_key => $derivative_argument ) {	
+				foreach ( $rulesPlugin->getDerivativeTokens( $argument, $target_argument ) as $tokenized_key => $derivative_argument ) {	
 					list( $class_name, $class_key ) = $rulesPlugin->parseClassIdentifier( $argument['class'] );
 					$mapped_class = $rulesPlugin->getClassMappings( $class_name );
 					if ( in_array( 'mixed', $target_types ) or in_array( $derivative_argument['argtype'], $target_types ) ) {
@@ -253,11 +263,11 @@ class Event extends BaseDefinition
 							if ( $arg_map !== NULL ) {
 								switch( $group ) {
 									case 'event':
-										$tokens[ '[' . $arg_name . ':' . $tokenized_key . ']' ] = $tokens[ '~' . $arg_name . ':' . $tokenized_key . '~' ] = new Token( $arg_map[ $arg_name ], $argument, $tokenized_key );
+										$tokens[ $arg_name . ':' . $tokenized_key ] = new Token( $arg_map[ $arg_name ], $argument, $tokenized_key );
 										break;
 									case 'global':
 										if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) {	continue; }
-										$tokens[ '[global:' . ( $group !== 'event' ? $group . ':' : '' ) . $arg_name . ':' . $tokenized_key . ']' ] = $tokens[ '~' . $arg_name . ':' . $tokenized_key . '~' ] = new Token( NULL, $argument, 'global:' . $tokenized_key );
+										$tokens[ 'global:' . $arg_name . ':' . $tokenized_key ] = new Token( NULL, $argument, 'global:' . $tokenized_key );
 										break;
 								}
 							}
@@ -265,11 +275,11 @@ class Event extends BaseDefinition
 							else {
 								switch ( $group ) {
 									case 'event':
-										$tokens[ '[' . $arg_name . ":" . $tokenized_key . ']' ] = ucfirst( strtolower( $derivative_argument['label'] . ' for the ' . $mapped_class['label'] ) );
+										$tokens[ $arg_name . ":" . $tokenized_key ] = ucfirst( strtolower( $derivative_argument['label'] . ' for the ' . $mapped_class['label'] ) );
 										break;
 									case 'global':
 										if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) { continue; }
-										$tokens[ '[global:' . $arg_name . ":" . $tokenized_key . ']' ] = ucfirst( strtolower( $derivative_argument['label'] . ' for the ' . ( isset( $global_args[ $arg_name ]['label'] ) ? $global_args[ $arg_name ]['label'] : 'global ' . $arg_name ) ) );
+										$tokens[ 'global:' . $arg_name . ":" . $tokenized_key ] = ucfirst( strtolower( $derivative_argument['label'] . ' for the ' . ( isset( $global_args[ $arg_name ]['label'] ) ? $global_args[ $arg_name ]['label'] : 'global ' . $arg_name ) ) );
 										break;
 								}									
 							}
