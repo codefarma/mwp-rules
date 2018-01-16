@@ -501,12 +501,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 		}
 		
 		if ( $source_argument['argtype'] !== 'object' )
-		{
-			/* No derivatives for arrays */
-			if ( $source_argument['argtype'] == 'array' ) {
-				return array();
-			}
-			
+		{			
 			/* If the source argument can't be used to load an instance... it can't map to anything */
 			$source_class_map = $this->getClassMappings( $source_class );
 			if ( ! $source_class_map or ! isset( $source_class_map['loader'] ) or ! is_callable( $source_class_map['loader'] ) ) {
@@ -543,6 +538,10 @@ class Plugin extends \Modern\Wordpress\Plugin
 					if ( $target_argument === NULL or in_array( 'mixed', $target_types ) or in_array( $converted_argument['argtype'], $target_types ) ) {
 						foreach ( $target_classes as $target_class ) {
 							if ( $target_class == '*' or ( isset( $converted_argument['class'] ) and $this->isClassCompliant( $converted_argument['class'], $target_class ) ) ) {
+								if ( $source_argument['argtype'] == 'array' ) {
+									$converted_argument['subtype'] = $converted_argument['argtype'] != 'array' ? $converted_argument['argtype'] : ( isset( $converted_argument['class'] ) ? 'object' : '' );
+									$converted_argument['argtype'] = 'array';
+								}
 								$derivative_arguments[ $token_prefix . $argument_key ] = $converted_argument;
 								break;
 							}

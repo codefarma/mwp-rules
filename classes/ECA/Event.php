@@ -191,9 +191,9 @@ class Event extends BaseDefinition
 		$_tokens = array();
 		
 		foreach( $tokens as $key => $value ) {
-			$_tokens[ '[' . $key . ']' ] = $value;
+			$_tokens[ '{{' . $key . '}}' ] = $value;
 			if ( $arg_map ) {
-				$_tokens[ '~' . $key . '~' ] = $value;
+				$_tokens[ '~~' . $key . '~~' ] = $value;
 			}
 		}
 		

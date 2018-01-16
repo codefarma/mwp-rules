@@ -568,6 +568,15 @@ add_filter( 'rules_class_map', function( $map )
 					'label' => 'Taxonomy Terms',
 					'getter' => function( $post ) {
 						return wp_get_post_terms( $post->ID, get_post_taxonomies( $post ) );
+					},
+					'key_getter' => function( $post, $term_key ) {
+						$terms = array();
+						foreach( get_post_taxonomies( $post ) as $taxonomy_name ) {
+							if ( $_term = get_term_by( 'slug', $term_key, $taxonomy_name ) ) {
+								$terms[] = $_term;
+							}
+						}
+						return $terms;
 					}
 				),
 			),
