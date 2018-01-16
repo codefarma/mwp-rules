@@ -238,7 +238,7 @@ class Event extends BaseDefinition
 					if ( isset ( $arg_map ) ) {
 						switch( $group ) {
 							case 'event': $tokens[ $arg_name ] = new Token( $arg_map[ $arg_name ] ); break;
-							case 'global': $tokens[ 'global:' . $arg_name ] = new Token( NULL, $argument, 'global:' . $arg_name ); break;
+							case 'global': $tokens[ 'global:' . $arg_name ] = new Token( NULL, 'global:' . $arg_name, $argument ); break;
 						}
 					}
 					/* Building token description */
@@ -254,7 +254,7 @@ class Event extends BaseDefinition
 				 * Create tokens for derivative arguments also
 				 */
 				foreach ( $rulesPlugin->getDerivativeTokens( $argument, $target_argument ) as $tokenized_key => $derivative_argument ) {	
-					list( $class_name, $class_key ) = $rulesPlugin->parseClassIdentifier( $argument['class'] );
+					list( $class_name, $class_key ) = $rulesPlugin->parseIdentifier( $argument['class'] );
 					$mapped_class = $rulesPlugin->getClassMappings( $class_name );
 					if ( in_array( 'mixed', $target_types ) or in_array( $derivative_argument['argtype'], $target_types ) ) {
 						if ( is_callable( $derivative_argument['getter'] ) ) {
@@ -263,11 +263,11 @@ class Event extends BaseDefinition
 							if ( $arg_map !== NULL ) {
 								switch( $group ) {
 									case 'event':
-										$tokens[ $arg_name . ':' . $tokenized_key ] = new Token( $arg_map[ $arg_name ], $argument, $tokenized_key );
+										$tokens[ $arg_name . ':' . $tokenized_key ] = new Token( $arg_map[ $arg_name ], $tokenized_key, $argument );
 										break;
 									case 'global':
 										if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) {	continue; }
-										$tokens[ 'global:' . $arg_name . ':' . $tokenized_key ] = new Token( NULL, $argument, 'global:' . $tokenized_key );
+										$tokens[ 'global:' . $arg_name . ':' . $tokenized_key ] = new Token( NULL, 'global:' . $tokenized_key );
 										break;
 								}
 							}

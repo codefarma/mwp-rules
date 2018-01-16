@@ -67,13 +67,53 @@ class System
 	{	
 		rules_describe_events( array(
 			
-			/* Wordpress Init */
-			array( 'action', 'init', function() {
-				return array(
-					'title' => __( 'Wordpress is Initialized', 'mwp-rules' ),
-					'description' => __( 'The wordpress init hook is fired after all plugins have been loaded.', 'mwp-rules' ),
-				);
-			}),
+			/* Pre setup theme */
+			array( 'action', 'setup_theme', array(
+				'title' => 'Pre Setup Theme',
+				'description' => 'Fires before the theme is loaded.',
+			)),
+			
+			/* Post setup theme */
+			array( 'action', 'after_setup_theme', array(
+				'title' => 'Post Setup Theme',
+				'description' => 'Fires after the theme is loaded.',
+			)),
+			
+			/* Init */
+			array( 'action', 'init', array(
+				'title' => 'Wordpress Initialized',
+				'description' => 'The wordpress init hook is fired just after all plugins have been loaded.',
+			)),
+			
+			/* Environment Loaded */
+			array( 'action', 'wp', array( 
+				'title' => 'Wordpress Environment Ready',
+				'description' => 'Fires once the WordPress environment and page query has been set up.',
+				'arguments' => array(
+					'wp' => array(
+						'argtype' => 'object',
+						'class' => 'WP',
+					)
+				)
+			)),
+			
+			/* Wordpress Loaded */
+			array( 'action', 'wp_loaded', array( 
+				'title' => 'Wordpress Loaded',
+				'description' => 'This hook is fired once WP, all plugins, and the theme are fully loaded and instantiated.',
+			)),
+			
+			/* Template Redirect */
+			array( 'action', 'template_redirect', array(
+				'title' => 'Template Ready',
+				'description' => 'The template_redirect hook runs just before determining which page template to load.',
+			)),
+			
+			/* Wordpress Shutdown */
+			array( 'action', 'shutdown', array( 
+				'title' => 'Wordpress Shutdown',
+				'description' => 'Fires just before PHP shuts down execution.',
+			)),
 			
 		));
 	}

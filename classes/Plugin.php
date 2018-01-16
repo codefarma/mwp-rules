@@ -492,7 +492,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 		}
 		
 		if ( isset( $source_argument['class'] ) ) {
-			list( $source_class ) = $this->parseClassIdentifier( $source_argument['class'] );
+			list( $source_class ) = $this->parseIdentifier( $source_argument['class'] );
 		}
 		
 		/* If the source argument doesn't point to any specific class... it can't map to anything */
@@ -538,19 +538,21 @@ class Plugin extends \Modern\Wordpress\Plugin
 		 * conversion options and see if they are compatible with our target argument. 
 		 */
 		foreach ( $mappings as $classname => $class ) {
-			foreach ( $class['mappings'] as $argument_key => $converted_argument ) {
-				if ( $target_argument === NULL or in_array( 'mixed', $target_types ) or in_array( $converted_argument['argtype'], $target_types ) ) {
-					foreach ( $target_classes as $target_class ) {
-						if ( $target_class == '*' or ( isset( $converted_argument['class'] ) and $this->isClassCompliant( $converted_argument['class'], $target_class ) ) ) {
-							$derivative_arguments[ $token_prefix . $argument_key ] = $converted_argument;
-							break;
+			if ( isset( $class['mappings'] ) ) {
+				foreach ( $class['mappings'] as $argument_key => $converted_argument ) {
+					if ( $target_argument === NULL or in_array( 'mixed', $target_types ) or in_array( $converted_argument['argtype'], $target_types ) ) {
+						foreach ( $target_classes as $target_class ) {
+							if ( $target_class == '*' or ( isset( $converted_argument['class'] ) and $this->isClassCompliant( $converted_argument['class'], $target_class ) ) ) {
+								$derivative_arguments[ $token_prefix . $argument_key ] = $converted_argument;
+								break;
+							}
 						}
 					}
-				}
-				
-				/* Go deep */
-				if ( $level < $max_levels ) {
-					$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $converted_argument, $target_argument, $max_levels, $token_prefix . $argument_key, $level + 1 ) );
+					
+					/* Go deep */
+					if ( $level < $max_levels ) {
+						$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $converted_argument, $target_argument, $max_levels, $token_prefix . $argument_key, $level + 1 ) );
+					}
 				}
 			}
 		}
@@ -559,18 +561,19 @@ class Plugin extends \Modern\Wordpress\Plugin
 	}
 	
 	/**
-	 * Get the classname and optional key for an argument
+	 * Get the identifier and optional key for an argument
 	 *
+	 * @param	string			$identifier			The identifier in the form of identifier[key]
 	 * @return	array
 	 */
-	public function parseClassIdentifier( $class )
+	public function parseIdentifier( $identifier )
 	{
-		if ( strstr( $class, '[' ) !== FALSE ) {
-			$components = explode( '[', $class );
+		if ( strstr( $identifier, '[' ) !== FALSE ) {
+			$components = explode( '[', $identifier );
 			return array( $components[0], str_replace( ']', '', $components[1] ) );
 		}
 		
-		return array( $class, NULL );
+		return array( $identifier, NULL );
 	}
 
 	/**
@@ -582,7 +585,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 	 */
 	public function isClassCompliant( $class, $classes )
 	{
-		list( $class, $class_key ) = $this->parseClassIdentifier( $class );
+		list( $class, $class_key ) = $this->parseIdentifier( $class );
 		$compliant = FALSE;
 		
 		foreach ( (array) $classes as $_class )
