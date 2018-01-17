@@ -243,8 +243,8 @@ class Event extends BaseDefinition
 					/* Building token description */
 					else {
 						switch( $group ) {
-							case 'event': $tokens[ $arg_name ] = "The value of the '" . $arg_name . "' argument"; break;
-							case 'global': $tokens[ 'global:' . $arg_name ] = isset( $argument['label'] ) ? ucfirst( strtolower( $argument['label'] ) ) : "The global '" . $arg_name . "' value"; break;
+							case 'event': $tokens[ $arg_name ] = '(' . $argument['argtype'] . ') ' . "The value of the '" . $arg_name . "' argument"; break;
+							case 'global': $tokens[ 'global:' . $arg_name ] = isset( $argument['label'] ) ? '(' . $argument['argtype'] . ') ' . ucfirst( strtolower( $argument['label'] ) ) : "The global '" . $arg_name . "' value"; break;
 						}
 					}
 				}
@@ -274,11 +274,11 @@ class Event extends BaseDefinition
 							else {
 								switch ( $group ) {
 									case 'event':
-										$tokens[ $arg_name . ":" . $tokenized_key ] = ucfirst( strtolower( $derivative_argument['label'] . ' for the ' . $mapped_class['label'] ) );
+										$tokens[ $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
 										break;
 									case 'global':
 										if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) { continue; }
-										$tokens[ 'global:' . $arg_name . ":" . $tokenized_key ] = ucfirst( strtolower( $derivative_argument['label'] . ' for the ' . ( isset( $global_args[ $arg_name ]['label'] ) ? $global_args[ $arg_name ]['label'] : 'global ' . $arg_name ) ) );
+										$tokens[ 'global:' . $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
 										break;
 								}									
 							}

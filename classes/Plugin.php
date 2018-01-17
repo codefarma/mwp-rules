@@ -528,7 +528,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 						'*' => array(
 							'argtype' => 'object',
 							'class' => $classname,
-							'label' => isset( $class['label'] ) ? $class['label'] : $classname,
+							'label' => ( isset( $class['label'] ) ? $class['label'] : $classname ) . ' Object',
 							'getter' => function( $object ) { return $object; },
 						),
 					),

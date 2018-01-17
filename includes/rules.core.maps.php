@@ -509,7 +509,7 @@ add_filter( 'rules_class_map', function( $map )
 				),
 				'comment_status' => array(
 					'argtype' => 'string',
-					'label' => 'Comments Status',
+					'label' => 'Comment Status',
 					'getter' => function( $post ) {
 						return $post->comment_status;
 					}
