@@ -211,7 +211,6 @@ class Event extends BaseDefinition
 	{
 		$rulesPlugin        = \MWP\Rules\Plugin::instance();
 		$global_args 		= $rulesPlugin->getGlobalArguments();
-		$class_mappings 	= $rulesPlugin->getClassMappings();
 		$tokens 		    = array();
 		$target_types       = array();      
 		
@@ -249,7 +248,7 @@ class Event extends BaseDefinition
 						}
 					}
 				}
-
+				
 				/**
 				 * Create tokens for derivative arguments also
 				 */

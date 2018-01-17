@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 add_filter( 'rules_global_arguments', function( $globals ) 
 {
-	return array_merge_recursive( $globals, array(
+	return array_replace_recursive( $globals, array(
 		'current_site' => array(
 			'argtype' => 'object',
 			'class' => 'MWP\Rules\WP\Site',
@@ -59,7 +59,7 @@ add_filter( 'rules_global_arguments', function( $globals )
  */
 add_filter( 'rules_class_map', function( $map ) 
 {
-	return array_merge_recursive( $map, array(
+	return array_replace_recursive( $map, array(
 		'MWP\Rules\WP\Site' => array(
 			'label' => 'Site',
 			'mappings' => array(

@@ -203,6 +203,20 @@ class Token
 					break; 
 				}
 				
+				/* Allow the asterik token to complete the process with the instantiated object(s) */
+				if ( $next_token == '*' ) {
+					$current_argument = array(
+						'argtype' => is_array( $currentValue ) ? 'array' : 'object',
+						'class' => $current_argument['class'],
+						'label' => isset( $current_argument_class['label'] ) ? $current_argument_class['label'] : $current_argument['class'],
+					);
+					if ( is_array( $currentValue ) ) {
+						$current_argument['subtype'] = 'object';
+					}
+					$this->history[] = 'Encountered the asterik token. Returning the loaded ' . ( is_array( $currentValue ) ? 'array' : 'object' ) . '.';
+					break;
+				}
+				
 				/* Prepare to get the next value. $current_argument switches to the next here */
 				if ( ! isset( $current_argument_class['mappings'][ $next_token ] ) ) { throw new \ErrorException( 'Class: "' . $class_name . '" does not have a mapping for: "' . $next_token . '"' ); }
 				$current_argument = $current_argument_class['mappings'][ $next_token ];

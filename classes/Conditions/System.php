@@ -67,10 +67,12 @@ class System
 	{
 		$plugin = $this->getPlugin();
 		
-		$plugin->registerCondition( 'rules_truth', function() {
-			return array(
-				'title' => __( 'Truth condition check', 'mwp-rules' ),
-				'description' => __( 'Checks if a value is equivalent to a boolean truth.', 'mwp-rules' ),
+		rules_register_conditions( array(
+			
+			/* Truth comparison */
+			array( 'rules_truth', array(
+				'title' => 'Truth condition check',
+				'description' => 'Checks if a value is equivalent to a boolean truth.',
 				'configuration' => array
 				(
 					'form' => function( $form, $values, $condition )
@@ -132,8 +134,8 @@ class System
 						default        :	return FALSE;
 					}
 				},
-			);
-		});
+			))
+		));
 
 		$plugin->registerCondition( 'rules_execute_php', function() use ( $plugin )
 		{

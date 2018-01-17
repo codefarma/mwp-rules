@@ -500,13 +500,12 @@ class Plugin extends \Modern\Wordpress\Plugin
 			return array();
 		}
 		
-		if ( $source_argument['argtype'] !== 'object' )
-		{			
+		if ( $source_argument['argtype'] !== 'object' ) {			
 			/* If the source argument can't be used to load an instance... it can't map to anything */
 			$source_class_map = $this->getClassMappings( $source_class );
 			if ( ! $source_class_map or ! isset( $source_class_map['loader'] ) or ! is_callable( $source_class_map['loader'] ) ) {
 				return array();
-			}			
+			}
 		}
 		
 		/**
@@ -524,7 +523,18 @@ class Plugin extends \Modern\Wordpress\Plugin
 		 */
 		foreach ( $this->getClassMappings() as $classname => $class ) {
 			if ( $this->isClassCompliant( $source_argument['class'], $classname ) ) {
-				$mappings[ $classname ] = $class;
+				$augmented_class = $source_argument['argtype'] == 'object' ? array() : array(
+					'mappings' => array(
+						'*' => array(
+							'argtype' => 'object',
+							'class' => $classname,
+							'label' => isset( $class['label'] ) ? $class['label'] : $classname,
+							'getter' => function( $object ) { return $object; },
+						),
+					),
+				);
+				
+				$mappings[ $classname ] = array_replace_recursive( $augmented_class, $class );
 			}
 		}
 		
