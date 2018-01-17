@@ -225,7 +225,7 @@ class Token
 				/**
 				 * For arrays, we have the option to directly get the value of a specific array key. 
 				 * This requires for a key to have been specified in the token identifier. Also, array
-				 * argument definitions can name a 'key_getter' callback to allow array key values to be
+				 * argument definitions can name a key getter callback to allow array key values to be
 				 * directly fetched
 				 */
 				if ( $current_argument['argtype'] == 'array' and isset( $token_key ) and is_object( $currentValue ) ) 
@@ -234,8 +234,8 @@ class Token
 					$sourceObj = $currentValue;
 					
 					// Use key getter if possible, or fallback to plucking the key from the whole array
-					if ( isset( $current_argument['key_getter'] ) and is_callable( $current_argument['key_getter'] ) ) {
-						$currentValue = call_user_func( $current_argument['key_getter'], $currentValue, $token_key );
+					if ( isset( $current_argument['keys']['getter'] ) and is_callable( $current_argument['keys']['getter'] ) ) {
+						$currentValue = call_user_func( $current_argument['keys']['getter'], $currentValue, $token_key );
 						$this->history[] = 'Used key getter to fetch array key: ' . $token_key . ' for token: ' . $next_token;
 					} else {
 						$currentValue = call_user_func( $current_argument['getter'], $currentValue );
@@ -246,11 +246,15 @@ class Token
 						}
 					}
 					
+					$key_mapped_argument = NULL;
+					if ( isset( $current_argument['keys']['default'] ) ) { $key_mapped_argument = $current_argument['keys']['default']; }
+					if ( isset( $current_argument['keys']['mappings'][ $token_key ] ) ) { $key_mapped_argument = $current_argument['keys']['mappings'][ $token_key ]; }
+					
 					// Use a provided key mapping if available, or fallback to auto detection of the new value
-					if ( isset( $current_argument['mappings'][ $token_key ] ) ) {
-						$current_argument = $current_argument['mappings'][ $token_key ];
-						if ( isset( $current_argument['mappings'][ $token_key ]['converter'] ) and is_callable( isset( $current_argument['mappings'][ $token_key ]['converter'] ) ) ) {
-							$currentValue = call_user_func( isset( $current_argument['mappings'][ $token_key ]['converter'] ), $currentValue, $sourceObj );
+					if ( isset( $key_mapped_argument ) ) {
+						$current_argument = $key_mapped_argument;
+						if ( isset( $key_mapped_argument['converter'] ) and is_callable( isset( $key_mapped_argument['converter'] ) ) ) {
+							$currentValue = call_user_func( isset( $key_mapped_argument['converter'] ), $currentValue, $sourceObj );
 						}
 					} else {
 						switch( gettype( $currentValue ) ) {
@@ -268,11 +272,10 @@ class Token
 								break 2;
 						}
 						
-						// Update getters
-						unset( $current_argument['key_getter'] );
-						$current_argument['getter'] = function( $val ) { return $val; };
+						unset( $current_argument['keys'] );
 					}
 					
+					$current_argument['getter'] = function( $val ) { return $val; };
 				} 
 				
 				/* For everything else, just use the standard getter */
@@ -284,7 +287,7 @@ class Token
 							$nextValue = array_merge( $nextValue, is_array( $_value ) ? $_value : array( $_value ) );
 						}
 						$currentValue = $nextValue;
-						$current_argument['subtype'] = $current_argument['argtype'] != 'array' ? $current_argument['argtype'] : ( isset( $current_argument['class'] ) ? 'object' : '' );
+						$current_argument['subtype'] = $current_argument['argtype'] != 'array' ? $current_argument['argtype'] : ( isset( $current_argument['class'] ) ? 'object' : 'mixed' );
 						$current_argument['argtype'] = 'array';
 						$this->history[] = 'Got new array of values for token: ' . $next_token;
 					}

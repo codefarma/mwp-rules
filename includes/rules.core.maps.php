@@ -388,16 +388,22 @@ add_filter( 'rules_class_map', function( $map )
 					'argtype' => 'array',
 					'label' => 'Meta Data',
 					'getter' => function( $user ) {
-						return get_user_meta( $user->ID );
+						$meta = array();
+						foreach( array_keys( get_user_meta( $user->ID ) ) as $meta_key ) {
+							$meta[ $meta_key ] = get_user_meta( $user->ID, $meta_key, true );
+						}
+						return $meta;
 					},
-					'key_getter' => function( $user, $meta_key ) {
-						return get_user_meta( $user->ID, $meta_key, true );
-					},
-					'mappings' => array(
-						'last_update' => array(
-							'argtype' => 'int',
-							'class' => 'DateTime',
-							'label' => 'Last Update',
+					'keys' => array(
+						'getter' => function( $user, $meta_key ) {
+							return get_user_meta( $user->ID, $meta_key, true );
+						},
+						'mappings' => array(
+							'last_update' => array(
+								'argtype' => 'int',
+								'class' => 'DateTime',
+								'label' => 'Last Update',
+							),
 						),
 					),
 				),
@@ -543,9 +549,11 @@ add_filter( 'rules_class_map', function( $map )
 					'getter' => function( $post ) {
 						return get_post_meta( $post->ID );
 					},
-					'key_getter' => function( $post, $meta_key ) {
-						return get_post_meta( $post->ID, $meta_key, true );
-					},
+					'keys' => array(
+						'getter' => function( $post, $meta_key ) {
+							return get_post_meta( $post->ID, $meta_key, true );
+						},
+					),
 				),
 				'taxonomies' => array(
 					'argtype' => 'array',
@@ -554,13 +562,15 @@ add_filter( 'rules_class_map', function( $map )
 					'getter' => function( $post ) {
 						return array_map( function( $name ) { return get_taxonomy( $name ); }, get_post_taxonomies( $post ) );
 					},
-					'key_getter' => function( $post, $taxonomy_name ) {
-						foreach( get_post_taxonomies( $post ) as $taxonomy ) {
-							if ( $taxonomy == $taxonomy_name ) {
-								return get_taxonomy( $taxonomy_name );
+					'keys' => array(
+						'getter' => function( $post, $taxonomy_name ) {
+							foreach( get_post_taxonomies( $post ) as $taxonomy ) {
+								if ( $taxonomy == $taxonomy_name ) {
+									return get_taxonomy( $taxonomy_name );
+								}
 							}
-						}
-					},
+						},
+					),
 				),
 				'terms' => array(
 					'argtype' => 'array',
@@ -569,15 +579,22 @@ add_filter( 'rules_class_map', function( $map )
 					'getter' => function( $post ) {
 						return wp_get_post_terms( $post->ID, get_post_taxonomies( $post ) );
 					},
-					'key_getter' => function( $post, $term_key ) {
-						$terms = array();
-						foreach( get_post_taxonomies( $post ) as $taxonomy_name ) {
-							if ( $_term = get_term_by( 'slug', $term_key, $taxonomy_name ) ) {
-								$terms[] = $_term;
+					'keys' => array(
+						'getter' => function( $post, $term_key ) {
+							$terms = array();
+							foreach( get_post_taxonomies( $post ) as $taxonomy_name ) {
+								if ( $_term = get_term_by( 'slug', $term_key, $taxonomy_name ) ) {
+									$terms[] = $_term;
+								}
 							}
-						}
-						return $terms;
-					}
+							return $terms;
+						},
+						'default' => array(
+							'argtype' => 'array',
+							'class' => 'WP_Term',
+							'label' => 'Terms',
+						),
+					),
 				),
 			),
 		),
@@ -656,9 +673,11 @@ add_filter( 'rules_class_map', function( $map )
 					'getter' => function( $comment ) {
 						return get_comment_meta( $comment->comment_ID );
 					},
-					'key_getter' => function( $comment, $meta_key ) {
-						return get_comment_meta( $comment->comment_ID, $meta_key, true );
-					},
+					'keys' => array(
+						'getter' => function( $comment, $meta_key ) {
+							return get_comment_meta( $comment->comment_ID, $meta_key, true );
+						},
+					),
 				),
 			),
 		),
@@ -717,9 +736,11 @@ add_filter( 'rules_class_map', function( $map )
 					'getter' => function( $taxonomy ) {
 						return get_terms( $taxonomy->name );
 					},
-					'key_getter' => function( $taxonomy, $term_key ) {
-						return get_term_by( 'slug', $term_key, $taxonomy->name ) ?: null;
-					},
+					'keys' => array(
+						'getter' => function( $taxonomy, $term_key ) {
+							return get_term_by( 'slug', $term_key, $taxonomy->name ) ?: null;
+						},
+					),
 				),
 			),
 		),
@@ -809,9 +830,11 @@ add_filter( 'rules_class_map', function( $map )
 					'getter' => function( $term ) {
 						return get_term_meta( $term->term_id );
 					},
-					'key_getter' => function( $term, $meta_key ) {
-						return get_term_meta( $term->term_id, $meta_key, true );
-					},
+					'keys' => array(
+						'getter' => function( $term, $meta_key ) {
+							return get_term_meta( $term->term_id, $meta_key, true );
+						},
+					),
 				),
 			),
 		),
