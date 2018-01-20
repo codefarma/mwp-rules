@@ -67,11 +67,12 @@ class System
 	{
 		$plugin = $this->getPlugin();
 		
-		$plugin->defineAction( 'rules_execute_php', function() use ( $plugin )
-		{
-			return array(
-				'title' => __( 'Execute custom PHP code', 'mwp-rules' ),
-				'description' => __( 'Run a custom block of php code.', 'mwp-rules' ),
+		rules_define_actions( array(
+			
+			/* Execute Custom PHP Code */
+			array( 'rules_execute_php', array(
+				'title' => 'Execute custom PHP code',
+				'description' => 'Run a custom block of php code.',
 				'configuration' => array(
 					'form' => function( $form, $saved_values, $operation ) use ( $plugin ) {
 						$form->addField( 'rules_custom_phpcode', 'textarea', array(
@@ -92,35 +93,34 @@ class System
 					
 					return $evaluate( $saved_values[ 'rules_custom_phpcode' ] );
 				},
-			);
-		});
-		
-		$plugin->defineAction( 'rules_modify_filtered_value', function() 
-		{
-			return array(
-				'title' => __( 'Modify the filtered value' ),
-				'description' => __( 'Change the value being filtered in a wordpress filter hook.', 'mwp-rules' ),
+			)),
+			
+			/* Modify the value being filtered */
+			array( 'rules_modify_filtered_value', array(
+				'title' => 'Modify the filtered value',
+				'description' => 'Change the value being filtered in a hook.',
+				'updates_filter' => true,
 				'arguments' => array(
 					'new_value' => array(
 						'required' => true,
 						'default' => 'manual',
 						'argtypes' => array(
-							'mixed' => array( 'description' => 'the new filtered value' ),
+							'mixed' => array( 'description' => 'The new value' ),
 						),
 						'configuration' => array(
-							'form' => function( $form, $saved_values ) {
+							'form' => function( $form, $saved_values, $operation ) {
 								
 							}
 						),
 					),
 				),
 				'callback' => function( $new_value, $saved_values, $event_args, $operation ) {
-					$rule = $operation->rule();
-					$rule->filtered_values[ $rule->event()->thread ] = $new_value;
-					
-					return 'filter value changed';
+					$operation->rule()->setReturnValue( $new_value );
+					return $new_value;
 				}
-			);
-		});
+			)),
+			
+		));
+		
 	}
 }

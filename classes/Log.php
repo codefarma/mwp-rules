@@ -158,7 +158,7 @@ class Log extends ActiveRecord
 		));
 		
 		$logSubrulesTable->displayBottomNavigation = false;
-		$logSubrulesTable->prepare_items( array( 'thread=? AND op_id=0 AND rule_parent=?', $this->thread, $this->rule_id ) );
+		$logSubrulesTable->prepare_items( array( 'thread=%s AND op_id=0 AND rule_parent=%d', $this->thread, $this->rule_id ) );
 		
 		return $this->getPlugin()->getTemplateContent( 'rules/logs/view', array( 
 			'log' => $this,

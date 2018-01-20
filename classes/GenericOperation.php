@@ -37,11 +37,11 @@ abstract class GenericOperation extends ActiveRecord
 	public static function buildConfigForm( $form, $operation )
 	{
 		$rulesPlugin = \MWP\Rules\Plugin::instance();
-		$operation_label = __( $optype == 'condition' ? 'Condition to apply' : 'Action to take', 'mwp-rules' );
 		$definition = $operation->definition();
 		$optype = $operation::$optype;
 		$opkey = $operation->key;
 		$request = Framework::instance()->getRequest();
+		$operation_label = __( $optype == 'condition' ? 'Condition to apply' : 'Action to take', 'mwp-rules' );
 		
 		/**
 		 * Operation title
@@ -113,7 +113,7 @@ abstract class GenericOperation extends ActiveRecord
 				{
 					$arg_sources = array();
 					$argNameKey = $opkey . '_' . $arg_name;
-					$default_source = isset( $arg['default_source'] ) ? $arg['default_source'] : null;
+					$default_source = isset( $arg['default'] ) ? $arg['default'] : null;
 					
 					/* Check if manual configuration is available for this argument */
 					$has_manual_config = ( 
@@ -122,7 +122,6 @@ abstract class GenericOperation extends ActiveRecord
 					);
 					
 					/* Look for event data that can be used to supply the value for this argument */
-					//$usable_event_data = $operation->getUsableEventArguments( $arg );
 					$usable_event_data = array();
 					if ( $event = $operation->event() ) {
 						$usable_event_data = $event->getArgumentTokens( $arg );
@@ -169,9 +168,9 @@ abstract class GenericOperation extends ActiveRecord
 						 * Note: Callbacks should return an array with the ID's of their
 						 * added form fields so we know what to toggle.
 						 */
-						$form->addHtml( 'manual_config_start', '<div id="' . $argNameKey . '_manualConfig">' );
+						$form->addHtml( 'manual_config_start_' . $arg_name, '<div id="' . $argNameKey . '_manualConfig">' );
 						$_fields = call_user_func_array( $arg[ 'configuration' ][ 'form' ], array( $form, $operation->data, $operation ) );
-						$form->addHtml( 'manual_config_end', '</div>' );
+						$form->addHtml( 'manual_config_end_' . $arg_name, '</div>' );
 					}
 					
 					/**
@@ -195,30 +194,23 @@ abstract class GenericOperation extends ActiveRecord
 					 *
 					 * Requires return argtype(s) to be specified
 					 */
-					if ( isset( $arg[ 'argtypes' ] ) )
-					{
+					if ( isset( $arg[ 'argtypes' ] ) ) {
 						/**
 						 * Compile argtype info
 						 */
 						$_arg_list 	= array();
 						
-						if ( is_array( $arg[ 'argtypes' ] ) )
-						{
-							foreach( $arg[ 'argtypes' ] as $_type => $_type_def )
-							{
-								if ( is_array( $_type_def ) )
-								{
-									if ( isset ( $_type_def[ 'description' ] ) )
-									{
+						if ( is_array( $arg[ 'argtypes' ] ) ) {
+							foreach( $arg[ 'argtypes' ] as $_type => $_type_def ) {
+								if ( is_array( $_type_def ) ) {
+									if ( isset ( $_type_def[ 'description' ] ) ) {
 										$_arg_list[] = "<strong>{$_type}</strong>" . ( $_type_def[ 'class' ] ? ' (' . implode( ',', (array) $_type_def[ 'class' ] ) . ')' : '' ) . ": {$_type_def[ 'description' ]}";
 									}
-									else
-									{
+									else {
 										$_arg_list[] = "<strong>{$_type}</strong>" . ( $_type_def[ 'class' ] ? ' (' . implode( ',', (array) $_type_def[ 'class' ] ) . ')' : '' );
 									}
 								}
-								else
-								{
+								else {
 									$_arg_list[] = "<strong>{$_type_def}</strong>";
 								}
 							}
@@ -254,6 +246,11 @@ abstract class GenericOperation extends ActiveRecord
 	 */
 	public function processConfigForm( $values )
 	{
+		foreach( $values as $key => $value ) {
+			if ( substr( $key, 0, 14 ) == 'manual_config_' ) {
+				unset( $values[$key] );
+			}
+		}
 		/* Remove non-custom configuration data */
 		unset( 
 			$values['key'],
@@ -262,8 +259,6 @@ abstract class GenericOperation extends ActiveRecord
 			$values['not'],
 			$values['group_compare'],
 			$values['enabled'],
-			$values['manual_config_start'],
-			$values['manual_config_end'],
 			$values['else'],
 			$values['schedule_mode'], 
 			$values['schedule_minutes'], 
@@ -313,6 +308,7 @@ abstract class GenericOperation extends ActiveRecord
 					{
 						$argument_missing 	= FALSE;
 						$argNameKey 		= $this->key . '_' . $arg_name;
+						$token              = NULL;
 						
 						/* Check which source the user has configured for the argument data */
 						switch ( $this->data[ $argNameKey . '_source' ] )
@@ -339,7 +335,7 @@ abstract class GenericOperation extends ActiveRecord
 								 */
 								if ( $event_arg_name == 'global' ) {
 									if ( $global_argument = $rulesPlugin->getGlobalArguments( $token_pieces[0] ) ) {
-										$token = new \MWP\Rules\ECA\Token( NULL, $global_argument, $tokenized_key );
+										$token = new \MWP\Rules\ECA\Token( NULL, $tokenized_key, $global_argument );
 										$event_arg = $token->getTokenValue();
 										$event_arg_def = $token->getArgument();
 										$event_arg_type = isset( $event_arg_def['argtype'] ) ? $event_arg_def['argtype'] : null;
@@ -352,7 +348,7 @@ abstract class GenericOperation extends ActiveRecord
 								else {
 									if ( isset( $event_arg_index[ $event_arg_name ] ) ) {
 										$_i = $event_arg_index[ $event_arg_name ];
-										$token = new \MWP\Rules\ECA\Token( $args[ $_i ], $event->arguments[ $event_arg_name ], implode( ':', $token_pieces ) );
+										$token = new \MWP\Rules\ECA\Token( $args[ $_i ], implode( ':', $token_pieces ), $event->arguments[ $event_arg_name ] );
 										$event_arg = $token->getTokenValue();
 										$event_arg_def = $token->getArgument();
 										$event_arg_type = isset( $event_arg_def['argtype'] ) ? $event_arg_def['argtype'] : null;
@@ -362,13 +358,11 @@ abstract class GenericOperation extends ActiveRecord
 								/**
 								 * Check if argument is present in the event
 								 */
-								if ( isset ( $event_arg ) )
-								{									
+								if ( isset ( $event_arg ) ) {									
 									/**
 									 * Argtypes must be defined to use event arguments
 									 */
-									if ( is_array( $arg[ 'argtypes' ] ) )
-									{
+									if ( is_array( $arg[ 'argtypes' ] ) ) {
 										/* Simple definitions with no processing callbacks */
 										if ( in_array( $event_arg_type, $arg[ 'argtypes' ] ) or in_array( 'mixed', $arg[ 'argtypes' ] ) ) {
 											$_operation_arg = $event_arg;
@@ -413,12 +407,10 @@ abstract class GenericOperation extends ActiveRecord
 								 * because it is expected that the designer of the operation will return an argument that is
 								 * already in a state that can be passed directly to the operation callback.
 								 */
-								if ( isset ( $arg[ 'configuration' ][ 'getArg' ] ) and is_callable( $arg[ 'configuration' ][ 'getArg' ] ) )
-								{
+								if ( isset ( $arg[ 'configuration' ][ 'getArg' ] ) and is_callable( $arg[ 'configuration' ][ 'getArg' ] ) ) {
 									$operation_args[] = call_user_func_array( $arg[ 'configuration' ][ 'getArg' ], array( $this->data, $this ) );
 								}
-								else
-								{
+								else {
 									$argument_missing = TRUE;
 								}
 								break;
@@ -428,8 +420,7 @@ abstract class GenericOperation extends ActiveRecord
 							 */
 							case 'phpcode':
 							
-								$evaluate = function( $phpcode ) use ( $arg_map )
-								{
+								$evaluate = function( $phpcode ) use ( $arg_map ) {
 									extract( $arg_map );								
 									return @eval( $phpcode );
 								};
@@ -453,42 +444,33 @@ abstract class GenericOperation extends ActiveRecord
 										$php_arg_type = $type_map[ gettype( $argVal ) ];
 										
 										/* Simple definitions with no value processing callbacks */
-										if ( in_array( $php_arg_type, $arg[ 'argtypes' ] ) or in_array( 'mixed', $arg[ 'argtypes' ] ) )
-										{
+										if ( in_array( $php_arg_type, $arg[ 'argtypes' ] ) or in_array( 'mixed', $arg[ 'argtypes' ] ) ) {
 											$operation_args[] = $argVal;
 										}
 										
 										/* Complex definitions, check for value processing callbacks */
-										else if ( isset( $arg[ 'argtypes' ][ $php_arg_type ] ) )
-										{
-											if ( isset ( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ] ) )
-											{
+										else if ( isset( $arg[ 'argtypes' ][ $php_arg_type ] ) ) {
+											if ( isset ( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ] ) ) {
 												$operation_args[] = call_user_func_array( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ], array( $argVal, $this->data ) );
 											}
-											else
-											{
+											else {
 												$operation_args[] = $argVal;
 											}
 										}
-										else if ( isset( $arg[ 'argtypes' ][ 'mixed' ] ) )
-										{
-											if ( isset ( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) )
-											{
+										else if ( isset( $arg[ 'argtypes' ][ 'mixed' ] ) ) {
+											if ( isset ( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) ) {
 												$operation_args[] = call_user_func_array( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ], array( $argVal, $this->data ) );
 											}
-											else
-											{
+											else {
 												$operation_args[] = $argVal;
 											}
 										
 										}
-										else
-										{
+										else {
 											$argument_missing = TRUE;
 										}
 									}
-									else
-									{
+									else {
 										/**
 										 * The argument cannot be processed because argtypes aren't supported
 										 */
@@ -600,19 +582,19 @@ abstract class GenericOperation extends ActiveRecord
 							}
 						}
 
-						if ( $argument_missing )
-						{
-							if ( $arg[ 'required' ] )
-							{
+						if ( $argument_missing ) {
+							if ( $arg[ 'required' ] ) {
 								/* Operation cannot be invoked because we're missing a required argument */
-								if ( $rule = $this->rule() and $rule->debug )
-								{
-									$rulesPlugin->rulesLog( $event, $this->rule(), $this, "No argument available for: " . $arg_name, 'Operation skipped (missing argument)' );
+								if ( $rule = $this->rule() and $rule->debug ) {
+									$log_message = "Missing value for: " . $arg_name;
+									if ( isset( $token ) ) {
+										$log_message = array( 'message' => $log_message, 'history' => $token->getHistory() );
+									}
+									$rulesPlugin->rulesLog( $event, $this->rule(), $this, $log_message, 'Operation skipped (missing argument)' );
 								}
 								return NULL;
 							}
-							else
-							{
+							else {
 								$operation_args[] = NULL;
 							}
 						}

@@ -48,6 +48,15 @@
 	font-family: monospace;
 }
 
+.mwp-rules-form .event-arguments ul.array-keys {
+	margin:0 0 0 20px;
+	list-style-type: square;
+}
+
+.mwp-rules-form .event-arguments ul.array-keys li {
+	margin:0;
+}
+
 .mwp-rules-form .CodeMirror {
 	border: 1px solid #ddd;
 }

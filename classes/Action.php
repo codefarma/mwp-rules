@@ -168,78 +168,88 @@ class Action extends GenericOperation
 		
 		static::buildConfigForm( $form, $action );
 		
-		$scheduling_options = array(
-			__( 'Immediately', 'mwp-rules' )                        => 0,
-			__( 'At the end of the event (default)', 'mwp-rules' )  => 1,
-			__( 'At the end of the page load', 'mwp-rules' )        => 5,
-			__( 'Fixed amount of time in the future', 'mwp-rules' ) => 2,
-			__( 'A specific date in the future', 'mwp-rules' )      => 3,
-			__( 'A calculated date and time', 'mwp-rules' )         => 4,
-		);
-		
-		$form->addField( 'schedule_mode', 'choice', array(
-			'label' => __( 'Action should be executed', 'mwp-rules' ),
-			'description' => "
-			  <ul>
-				<li>Immediate actions are taken before other rules on the same event are evaluated.</li>
-				<li>Actions executed at the end of the event allow actions to queue while other rules on the same event are tested.</li>
-				<li>Actions selected to execute at the end of the page load will queue until all events on the page have finished.</li>
-				<li>Actions selected to happen at a future time will be queued and executed via cron.</li>
-			  </ul>",
-			'choices' => $scheduling_options,
-			'data' => $action->schedule_mode !== NULL ? $action->schedule_mode : 1,
-			'required' => true,
-			'expanded' => true,
-			'toggles' => array(
-				2 => array( 'show' => array( '#schedule_key', '#schedule_minutes', '#schedule_hours', '#schedule_days', '#schedule_months' ) ),
-				3 => array( 'show' => array( '#schedule_key', '#schedule_date' ) ),
-				4 => array( 'show' => array( '#schedule_key', '#schedule_customcode' ) ),
+		if ( $action->id ) {
+			
+			if ( $action->definition()->updates_filter ) {
+				$scheduling_options = array(
+					__( 'Immediately', 'mwp-rules' ) => 0,
+				);
+			} 
+			else {
+				$scheduling_options = array(
+					__( 'Immediately', 'mwp-rules' )                        => 0,
+					__( 'At the end of the event (default)', 'mwp-rules' )  => 1,
+					__( 'At the end of the page load', 'mwp-rules' )        => 5,
+					__( 'Fixed amount of time in the future', 'mwp-rules' ) => 2,
+					__( 'A specific date in the future', 'mwp-rules' )      => 3,
+					__( 'A calculated date and time', 'mwp-rules' )         => 4,
+				);
+			}
+			
+			$form->addField( 'schedule_mode', 'choice', array(
+				'label' => __( 'Action should be executed', 'mwp-rules' ),
+				'description' => "
+				  <ul>
+					<li>Immediate actions are taken before other rules on the same event are evaluated.</li>
+					<li>Actions executed at the end of the event allow actions to queue while other rules on the same event are tested.</li>
+					<li>Actions selected to execute at the end of the page load will queue until all events on the page have finished.</li>
+					<li>Actions selected to happen at a future time will be queued and executed via cron.</li>
+				  </ul>",
+				'choices' => $scheduling_options,
+				'data' => $action->schedule_mode !== NULL ? $action->schedule_mode : ( isset( $action->definition()->default_mode ) ? $action->definition()->default_mode : ( (int) ! $action->definition()->updates_filter ) ),
+				'required' => true,
+				'expanded' => true,
+				'toggles' => array(
+					2 => array( 'show' => array( '#schedule_key', '#schedule_minutes', '#schedule_hours', '#schedule_days', '#schedule_months' ) ),
+					3 => array( 'show' => array( '#schedule_key', '#schedule_date' ) ),
+					4 => array( 'show' => array( '#schedule_key', '#schedule_customcode' ) ),
+				),
 			),
-		),
-		NULL, 'title' );
+			NULL, 'title' );
 		
-		/* Fixed amount of time in the future */
-		$form->addField( 'schedule_minutes', 'integer', array( 'label' => __( 'Minutes', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_minutes' ), 'data' => (int) $action->schedule_minutes ), NULL, 'schedule_mode' );
-		$form->addField( 'schedule_hours', 'integer', array( 'label' => __( 'Hours', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_hours' ), 'data' => (int) $action->schedule_hours ), NULL, 'schedule_minutes' );
-		$form->addField( 'schedule_days', 'integer', array( 'label' => __( 'Days', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_days' ), 'data' => (int) $action->schedule_days ), NULL, 'schedule_hours' );
-		$form->addField( 'schedule_months', 'integer', array( 'label' => __( 'Months', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_months' ), 'data' => (int) $action->schedule_months ), NULL, 'schedule_days' );
-		
-		/* Specific date in the future */
-		$form->addField( 'schedule_date', 'datetime', array(
-			'row_attr' => array( 'id' => 'schedule_date' ),
-			'label' => __( 'Date', 'mwp-rules' ),
-			'data' => $action->schedule_date ?: time(),
-			'input' => 'timestamp',
-			'widget' => 'single_text',
-			'view_timezone' => get_option('timezone_string'),
-		),
-		NULL, 'schedule_months' );
-		
-		/* Custom calculated date time */
-		$form->addField( 'schedule_customcode', 'codemirror', array( 
-			'row_attr' => array( 'id' => 'schedule_customcode' ),
-			'label' => __( 'Scheduled Date', 'mwp-rules' ),
-			'data' => $action->schedule_customcode ?: "// <?php\n\nreturn;",
-			'description' => $plugin->getTemplateContent( 'rules/phpcode_description', array( 
-				'operation' => $action, 
-				'event' => $action->event(), 
-				'return_args' => array( 
-					__( '<strong>int</strong> - A unix timestamp', 'mwp-rules' ), 
-					__( '<strong>object</strong> Instance of a DateTime object', 'mwp-rules' ),
-					__( '<strong>string</strong> - A date/time string', 'mwp-rules' ),
-				), 
-			)),
-		),
-		NULL, 'schedule_date' );
-		
-		$form->addField( 'schedule_key', 'text', array( 
-			'row_attr' => array( 'id' => 'schedule_key' ),
-			'label' => __( 'Unique Scheduling Keyphrase', 'mwp-rules' ),
-			'data' => $action->schedule_key,
-			'description' => __( 'Optional. Only one action will remain scheduled for any given keyphrase at a time. If an action is rescheduled, any previously scheduled actions with the same keyphrase will be removed.', 'mwp-rules' ),
-			'required' => false,
-		),
-		NULL, 'schedule_customcode' );
+			/* Fixed amount of time in the future */
+			$form->addField( 'schedule_minutes', 'integer', array( 'label' => __( 'Minutes', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_minutes' ), 'data' => (int) $action->schedule_minutes ), NULL, 'schedule_mode' );
+			$form->addField( 'schedule_hours', 'integer', array( 'label' => __( 'Hours', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_hours' ), 'data' => (int) $action->schedule_hours ), NULL, 'schedule_minutes' );
+			$form->addField( 'schedule_days', 'integer', array( 'label' => __( 'Days', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_days' ), 'data' => (int) $action->schedule_days ), NULL, 'schedule_hours' );
+			$form->addField( 'schedule_months', 'integer', array( 'label' => __( 'Months', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_months' ), 'data' => (int) $action->schedule_months ), NULL, 'schedule_days' );
+			
+			/* Specific date in the future */
+			$form->addField( 'schedule_date', 'datetime', array(
+				'row_attr' => array( 'id' => 'schedule_date' ),
+				'label' => __( 'Date', 'mwp-rules' ),
+				'data' => $action->schedule_date ?: time(),
+				'input' => 'timestamp',
+				'widget' => 'single_text',
+				'view_timezone' => get_option('timezone_string'),
+			),
+			NULL, 'schedule_months' );
+			
+			/* Custom calculated date time */
+			$form->addField( 'schedule_customcode', 'codemirror', array( 
+				'row_attr' => array( 'id' => 'schedule_customcode' ),
+				'label' => __( 'Scheduled Date', 'mwp-rules' ),
+				'data' => $action->schedule_customcode ?: "// <?php\n\nreturn;",
+				'description' => $plugin->getTemplateContent( 'rules/phpcode_description', array( 
+					'operation' => $action, 
+					'event' => $action->event(), 
+					'return_args' => array( 
+						__( '<strong>int</strong> - A unix timestamp', 'mwp-rules' ), 
+						__( '<strong>object</strong> Instance of a DateTime object', 'mwp-rules' ),
+						__( '<strong>string</strong> - A date/time string', 'mwp-rules' ),
+					), 
+				)),
+			),
+			NULL, 'schedule_date' );
+			
+			$form->addField( 'schedule_key', 'text', array( 
+				'row_attr' => array( 'id' => 'schedule_key' ),
+				'label' => __( 'Unique Scheduling Keyphrase', 'mwp-rules' ),
+				'data' => $action->schedule_key,
+				'description' => __( 'Optional. Only one action will remain scheduled for any given keyphrase at a time. If an action is rescheduled, any previously scheduled actions with the same keyphrase will be removed.', 'mwp-rules' ),
+				'required' => false,
+			),
+			NULL, 'schedule_customcode' );
+		}
 		
 		if ( ! $action->id ) {
 			$form->onComplete( function() use ( $action, $plugin ) {

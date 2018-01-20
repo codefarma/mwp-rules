@@ -67,7 +67,7 @@ class Users
 	{
 		rules_describe_events( array(
 			
-			/* Wordpress Init */
+			/* User Created */
 			array( 'action', 'user_register', array(
 				'title' => 'User Has Been Created',
 				'description' => 'Access data for a new user immediately after they are added to the database.',
@@ -79,6 +79,101 @@ class Users
 						'description' => 'The id of the newly created user',
 					),
 				),
+			)),
+			
+			/* User Updated */
+			array( 'action', 'profile_update', array(
+				'title' => 'User Profile Has Been Updated',
+				'description' => 'This hook allows you to access data for a user immediately after their database information is updated.',
+				'arguments' => array(
+					'user_id' => array( 
+						'argtype' => 'int',
+						'class' => 'WP_User',
+						'label' => 'User ID',
+						'description' => 'The id of the updated user',
+					),
+					'old_user' => array(
+						'argtype' => 'object',
+						'class' => 'WP_User',
+						'label' => 'Old User',
+						'description' => 'The object containing the old user data',
+					),
+				),
+			)),
+			
+			/* User Deleted */
+			array( 'action', 'delete_user', array(
+				'title' => 'User Is Being Deleted',
+				'description' => 'This event occurs just before a user is deleted from the database.',
+				'arguments' => array(
+					'user_id' => array(
+						'argtype' => 'int',
+						'class' => 'WP_User',
+						'label' => 'User ID',
+						'description' => 'The ID of the user being deleted',
+					),
+				),
+			)),
+			
+			/* User Logged In */
+			array( 'action', 'wp_login', array( 
+				'title' => 'User Has Logged In',
+				'description' => 'This event occurs when a user logs into the site.',
+				'arguments' => array(
+					'user_login' => array(
+						'argtype' => 'string',
+						'label' => 'User Login Name',
+						'description' => 'The login name of the user who logged in',
+					),
+					'user' => array(
+						'argtype' => 'object',
+						'class' => 'WP_User',
+						'label' => 'Logged In User',
+						'description' => 'The user object for the user who logged in',
+					),
+				),
+			)),
+			
+			/* User Logging Out */
+			array( 'action', 'clear_auth_cookie', array( 
+				'title' => 'User Is Logging Out',
+				'description' => 'This event occurs just before a user has their authentication cleared.',
+			)),
+			
+			/* User Meta Added */
+			array( 'action', 'added_user_meta', array(
+				'title' => 'User Meta Has Been Added',
+				'description' => 'This event occurs when user meta data is added for the first time.',
+				'arguments' => array(
+					'meta_id' => array( 'argtype' => 'int', 'label' => 'Meta ID', 'description' => 'The ID of the meta data row' ),
+					'user_id' => array( 'argtype' => 'int', 'class' => 'WP_User', 'label' => 'User ID', 'description' => 'The ID of the user that the meta data belongs to' ),
+					'meta_key' => array( 'argtype' => 'string', 'label' => 'Meta Key', 'description' => 'The meta key that was added' ),
+					'meta_value' => array( 'argtype' => 'mixed', 'label' => 'Meta Value', 'description' => 'The meta data value which was saved' ),
+				),
+			)),
+			
+			/* User Meta Updated */
+			array( 'action', 'updated_user_meta', array(
+				'title' => 'User Meta Has Been Updated',
+				'description' => 'This event occurs after user meta data has been successfully updated.',
+				'arguments' => array(
+					'meta_id' => array( 'argtype' => 'int', 'label' => 'Meta ID', 'description' => 'The ID of the meta data row' ),
+					'user_id' => array( 'argtype' => 'int', 'class' => 'WP_User', 'label' => 'User ID', 'description' => 'The ID of the user that the meta data belongs to' ),
+					'meta_key' => array( 'argtype' => 'string', 'label' => 'Meta Key', 'description' => 'The meta key that was updated' ),
+					'meta_value' => array( 'argtype' => 'mixed', 'label' => 'Meta Value', 'description' => 'The meta data value which was saved' ),
+				),
+			)),
+			
+			/* User Meta Deleted */
+			array( 'action', 'deleted_user_meta', array(
+				'title' => 'User Meta Has Been Deleted',
+				'description' => 'This event occurs after user meta data has been deleted.',
+				'arguments' => array(
+					'meta_ids' => array( 'argtype' => 'array', 'label' => "Meta IDs", 'description' => 'The IDs of the meta data rows that were deleted' ),
+					'user_id' => array( 'argtype' => 'int', 'class' => 'WP_User', 'label' => 'User ID', 'description' => 'The ID of the user that the meta data belongs to' ),
+					'meta_key' => array( 'argtype' => 'string', 'label' => 'Meta Key', 'description' => 'The meta key that was deleted' ),
+					'meta_value' => array( 'argtype' => 'mixed', 'label' => 'Meta Value', 'description' => 'The meta data value which was matched' ),
+				),				
 			)),
 			
 		));

@@ -101,6 +101,9 @@ class LogsController extends ActiveRecordController
 							catch( \OutOfRangeException $e ) { }
 						}					
 					},
+					'result' => function( $row ) {
+						return '<pre style="margin:0">' . json_encode( json_decode( $row['result'], true ), JSON_PRETTY_PRINT ) . '</pre>';
+					},
 					'time' => function( $row ) {
 						return get_date_from_gmt( date( 'Y-m-d H:i:s', $row['time'] ), 'F j, Y H:i:s' );
 					},

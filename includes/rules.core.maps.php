@@ -131,7 +131,10 @@ add_filter( 'rules_class_map', function( $map )
 					'nullable' => true,
 					'getter' => function( $url ) {
 						return $url->getComponent( 'query' );
-					}
+					},
+					'keys' => array(
+						'associative' => true,
+					),
 				),
 				'fragment' => array(
 					'argtype' => 'string',
@@ -341,7 +344,7 @@ add_filter( 'rules_class_map', function( $map )
 						return $user->user_email;
 					},
 				),
-				'website' => array(
+				'website_url' => array(
 					'argtype' => 'string',
 					'class' => 'MWP\Rules\WP\Url',
 					'label' => 'Website',
@@ -350,7 +353,7 @@ add_filter( 'rules_class_map', function( $map )
 						return $user->user_url ?: null;
 					}
 				),
-				'url' => array(
+				'posts_url' => array(
 					'argtype' => 'string',
 					'class' => 'MWP\Rules\WP\Url',
 					'label' => 'Author Posts Url',
@@ -375,7 +378,11 @@ add_filter( 'rules_class_map', function( $map )
 					'label' => 'Capabilities',
 					'getter' => function( $user ) {
 						return $user->allcaps;
-					}
+					},
+					'keys' => array(
+						'associative' => true,
+						'default' => array( 'argtype' => bool, 'label' => 'Capability' ),
+					),
 				),
 				'roles' => array(
 					'argtype' => 'array',
@@ -395,6 +402,7 @@ add_filter( 'rules_class_map', function( $map )
 						return $meta;
 					},
 					'keys' => array(
+						'associative' => true,
 						'getter' => function( $user, $meta_key ) {
 							return get_user_meta( $user->ID, $meta_key, true );
 						},
@@ -550,10 +558,19 @@ add_filter( 'rules_class_map', function( $map )
 						return get_post_meta( $post->ID );
 					},
 					'keys' => array(
+						'associative' => true,
 						'getter' => function( $post, $meta_key ) {
 							return get_post_meta( $post->ID, $meta_key, true );
 						},
 					),
+				),
+				'comments' => array(
+					'argtype' => 'array',
+					'class' => 'WP_Comment',
+					'label' => 'Comments',
+					'getter' => function( $post ) {
+						return get_comments( array( 'post_id' => $post->ID ) );
+					},
 				),
 				'taxonomies' => array(
 					'argtype' => 'array',
@@ -563,6 +580,7 @@ add_filter( 'rules_class_map', function( $map )
 						return array_map( function( $name ) { return get_taxonomy( $name ); }, get_post_taxonomies( $post ) );
 					},
 					'keys' => array(
+						'associative' => true,
 						'getter' => function( $post, $taxonomy_name ) {
 							foreach( get_post_taxonomies( $post ) as $taxonomy ) {
 								if ( $taxonomy == $taxonomy_name ) {
@@ -580,6 +598,7 @@ add_filter( 'rules_class_map', function( $map )
 						return wp_get_post_terms( $post->ID, get_post_taxonomies( $post ) );
 					},
 					'keys' => array(
+						'associative' => true,
 						'getter' => function( $post, $term_key ) {
 							$terms = array();
 							foreach( get_post_taxonomies( $post ) as $taxonomy_name ) {
@@ -619,6 +638,13 @@ add_filter( 'rules_class_map', function( $map )
 						return get_post( $comment->comment_post_ID );
 					}
 				),
+				'type' => array(
+					'argtype' => 'string',
+					'label' => 'Comment Type',
+					'getter' => function( $comment ) {
+						return $comment->comment_type ?: 'comment';
+					}
+				),
 				'author' => array(
 					'argtype' => 'object',
 					'label' => 'Author',
@@ -647,7 +673,7 @@ add_filter( 'rules_class_map', function( $map )
 					'argtype' => 'string',
 					'label' => 'Comment Content',
 					'getter' => function( $comment ) {
-						return $comment->comment_content;
+						return apply_filters( 'get_comment_text', $comment->comment_content, $comment, array() );
 					}
 				),
 				'parent' => array(
@@ -674,6 +700,7 @@ add_filter( 'rules_class_map', function( $map )
 						return get_comment_meta( $comment->comment_ID );
 					},
 					'keys' => array(
+						'associative' => true,
 						'getter' => function( $comment, $meta_key ) {
 							return get_comment_meta( $comment->comment_ID, $meta_key, true );
 						},
@@ -706,7 +733,11 @@ add_filter( 'rules_class_map', function( $map )
 					'label' => 'Labels',
 					'getter' => function( $taxonomy ) {
 						return (array) $taxonomy->labels;
-					}
+					},
+					'keys' => array(
+						'associative' => true,
+						'default' => array( 'label' => 'Label', 'argtype' => 'string' ),
+					),
 				),
 				'description' => array(
 					'argtype' => 'string',
@@ -726,8 +757,11 @@ add_filter( 'rules_class_map', function( $map )
 					'argtype' => 'array',
 					'label' => 'Capabilities',
 					'getter' => function( $taxonomy ) {
-						return $taxonomy->cap;
-					}
+						return (array) $taxonomy->cap;
+					},
+					'keys' => array(
+						'associative' => true,
+					),
 				),
 				'terms' => array(
 					'argtype' => 'array',
@@ -737,6 +771,7 @@ add_filter( 'rules_class_map', function( $map )
 						return get_terms( $taxonomy->name );
 					},
 					'keys' => array(
+						'associative' => true,
 						'getter' => function( $taxonomy, $term_key ) {
 							return get_term_by( 'slug', $term_key, $taxonomy->name ) ?: null;
 						},
@@ -747,7 +782,10 @@ add_filter( 'rules_class_map', function( $map )
 		'WP_Term' => array(
 			'label' => 'Taxonomy Term',
 			'loader' => function( $val, $type, $key ) {
-				return get_term( $val );
+				$term = get_term( $val );
+				if ( ! is_wp_error( $term ) ) {
+					return $term;
+				}
 			},
 			'mappings' => array(
 				'id' => array(
@@ -807,7 +845,10 @@ add_filter( 'rules_class_map', function( $map )
 					'label' => 'Parent Term',
 					'nullable' => true,
 					'getter' => function( $term ) {
-						return get_term( $term->parent ) ?: null;
+						$term = get_term( $term->parent );
+						if ( ! is_wp_error( $term ) ) {
+							return $term;
+						}
 					}
 				),
 				'count' => array(
@@ -831,6 +872,7 @@ add_filter( 'rules_class_map', function( $map )
 						return get_term_meta( $term->term_id );
 					},
 					'keys' => array(
+						'associative' => true,
 						'getter' => function( $term, $meta_key ) {
 							return get_term_meta( $term->term_id, $meta_key, true );
 						},

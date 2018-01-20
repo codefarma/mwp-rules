@@ -103,6 +103,51 @@ class Token
 	}
 	
 	/**
+	 * Get the sequence of variable conversions a token path will encounter
+	 *
+	 * @param	mixed		$argument			The starting argument or object
+	 * @param	string		$tokenpath			The token path to take
+	 * @return	array
+	 */
+	public static function getReflection( $argument, $tokenpath )
+	{
+		$plugin = \MWP\Rules\Plugin::instance();
+		$token_pieces = explode( ':', $tokenpath );
+		
+		if ( is_object( $argument ) ) {
+			$argument = array(
+				'argtype' => 'object',
+				'class' => get_class( $argument ),
+			);
+		}
+		
+		$reflectionData = array( 
+			'error' => false,
+			'token_path' => $tokenpath,
+			'starting_argument' => $argument,
+			'final_argument' => $argument,
+			'token_pieces' => $token_pieces,
+		);
+		
+		while( $token_piece = array_shift( $token_pieces ) ) {
+			$derivatives = $plugin->getDerivativeTokens( $argument );
+			if ( ! isset( $derivatives[ $token_piece ] ) ) {
+				$reflectionData['final_argument'] = null;
+				$reflectionData['error'] = 'Missing derivative value for token piece: ' . $token_piece;
+				break;
+			}
+			$argument = $derivatives[ $token_piece ];
+			$reflectionData['steps'][] = array(
+				'token' => $token_piece,
+				'result' => $argument,
+			);
+			$reflectionData['final_argument'] = $argument;
+		}
+		
+		return $reflectionData;
+	}
+	
+	/**
 	 * Get Token Value
 	 *
 	 * @return	string		The token value
@@ -160,7 +205,7 @@ class Token
 				list( $next_token, $token_key ) = $rulesPlugin->parseIdentifier( $token_identifier );
 				
 				/* Load the class map for the current argument */
-				if ( ! isset( $current_argument['class'] ) )  { throw new \ErrorException( 'Argument does not have an associated class: ' . print_r( $current_argument, true ) ); }
+				if ( ! isset( $current_argument['class'] ) )  { throw new \ErrorException( 'Argument does not have an associated class: ' . json_encode( $current_argument ) ); }
 				list( $class_name, $class_key )               = $rulesPlugin->parseIdentifier( $current_argument['class'] );
 				$current_argument_class                       = $rulesPlugin->getClassMappings( $class_name );
 				if ( ! $current_argument_class )              { throw new \ErrorException( 'Class mappings not available for: ' . $class_name ); }
@@ -191,7 +236,7 @@ class Token
 						$this->history[] = 'Loaded object instance of: ' . $class_name;
 					}
 				}
-				
+
 				/* If we don't have the correct object type, the process is broken */
 				if ( is_array( $currentValue ) ) {
 					$currentValue = array_filter( $currentValue, function( $_value ) use ( $class_name ) { return is_object( $_value ) and is_a( $_value, $class_name ); } );
@@ -203,7 +248,7 @@ class Token
 					break; 
 				}
 				
-				/* Allow the asterik token to complete the process with the instantiated object(s) */
+				/* Allow the asterik token to break the process and return the instantiated object(s) */
 				if ( $next_token == '*' ) {
 					$current_argument = array(
 						'argtype' => is_array( $currentValue ) ? 'array' : 'object',
@@ -217,65 +262,67 @@ class Token
 					break;
 				}
 				
-				/* Prepare to get the next value. $current_argument switches to the next here */
+				/* Prepare to get the next value. */
 				if ( ! isset( $current_argument_class['mappings'][ $next_token ] ) ) { throw new \ErrorException( 'Class: "' . $class_name . '" does not have a mapping for: "' . $next_token . '"' ); }
-				$current_argument = $current_argument_class['mappings'][ $next_token ];
-				if ( ! isset( $current_argument['getter'] ) or ! is_callable( $current_argument['getter'] ) ) { throw new \ErrorException( 'Argument does not have a getter: ' . print_r( $current_argument, true ) ); }
+				$next_argument = $current_argument_class['mappings'][ $next_token ];
+				if ( ! isset( $next_argument['getter'] ) or ! is_callable( $next_argument['getter'] ) ) { throw new \ErrorException( 'Argument does not have a getter: ' . json_encode( $next_argument ) ); }
 				
 				/**
-				 * For arrays, we have the option to directly get the value of a specific array key. 
+				 * When we get arrays, we have the option to pluck the value of a specific array key. 
 				 * This requires for a key to have been specified in the token identifier. Also, array
 				 * argument definitions can name a key getter callback to allow array key values to be
-				 * directly fetched
+				 * directly fetched.
 				 */
-				if ( $current_argument['argtype'] == 'array' and isset( $token_key ) and is_object( $currentValue ) ) 
+				if ( ( is_array( $currentValue ) or $next_argument['argtype'] == 'array' ) and isset( $token_key ) )
 				{
-					/* Save value for possible use later */
-					$sourceObj = $currentValue;
+					$key_mapped_argument = array( 'argtype' => isset( $next_argument['class'] ) ? 'object' : $next_argument['argtype'], 'label' => isset( $next_argument['label'] ) ? $next_argument['label'] : '' );
 					
-					// Use key getter if possible, or fallback to plucking the key from the whole array
-					if ( isset( $current_argument['keys']['getter'] ) and is_callable( $current_argument['keys']['getter'] ) ) {
-						$currentValue = call_user_func( $current_argument['keys']['getter'], $currentValue, $token_key );
-						$this->history[] = 'Used key getter to fetch array key: ' . $token_key . ' for token: ' . $next_token;
-					} else {
-						$currentValue = call_user_func( $current_argument['getter'], $currentValue );
-						$this->history[] = 'Loaded whole array for token: ' . $next_token;
+					// Use a key getter if possible
+					if ( isset( $next_argument['keys']['getter'] ) and is_callable( $next_argument['keys']['getter'] ) ) {
 						if ( is_array( $currentValue ) ) {
-							$currentValue = isset( $currentValue[ $token_key ] ) ? $currentValue[ $token_key ] : null;
-							$this->history[] = 'Plucked the value for the array key: ' . $token_key;
+							$nextValue = array();
+							foreach( $currentValue as $value ) { 
+								$_value = call_user_func( $next_argument['keys']['getter'], $value, $token_key );
+								if ( $_value !== NULL ) {
+									$nextValue = array_merge( $nextValue, is_array( $_value ) ? $_value : array( $_value ) );
+								}
+							}
+							$currentValue = $nextValue;
+							$key_mapped_argument['argtype'] = 'array';
+							$this->history[] = 'Got new array of values using key getter to fetch array key: ' . $token_key . ' for token: ' . $next_token;
+						} else {
+							$currentValue = call_user_func( $next_argument['keys']['getter'], $currentValue, $token_key );
+							$this->history[] = 'Used key getter to fetch array key: ' . $token_key . ' for token: ' . $next_token;
+						}
+					}
+					// or fallback to plucking the key from the whole array
+					else {
+						if ( is_array( $currentValue ) ) {
+							$nextValue = array();
+							foreach( $currentValue as $value ) {
+								$_value = call_user_func( $next_argument['getter'], $value );
+								if ( $_value !== NULL ) {
+									$nextValue = array_merge( $nextValue, is_array( $_value ) ? $_value : array( $_value ) );
+								}
+							}
+							$currentValue = isset( $nextValue[ $token_key ] ) ? $nextValue[ $token_key ] : null;
+							$this->history[] = 'Plucked the array key: ' . $token_key . ' from the merged results of token: ' . $next_token;
+						} else {
+							$currentValue = call_user_func( $next_argument['getter'], $currentValue );
+							$this->history[] = 'Loaded whole array for token: ' . $next_token;
+							if ( is_array( $currentValue ) ) {
+								$currentValue = isset( $currentValue[ $token_key ] ) ? $currentValue[ $token_key ] : null;
+								$this->history[] = 'Plucked the value for the array key: ' . $token_key;
+							}
 						}
 					}
 					
-					$key_mapped_argument = NULL;
-					if ( isset( $current_argument['keys']['default'] ) ) { $key_mapped_argument = $current_argument['keys']['default']; }
-					if ( isset( $current_argument['keys']['mappings'][ $token_key ] ) ) { $key_mapped_argument = $current_argument['keys']['mappings'][ $token_key ]; }
+					if ( isset( $next_argument['class'] ) ) { $key_mapped_argument = array_merge( $key_mapped_argument, array( 'class' => $next_argument['class'] ) ); }
+					if ( isset( $next_argument['keys']['default'] ) ) { $key_mapped_argument = array_merge( $key_mapped_argument, $next_argument['keys']['default'] ); }
+					if ( isset( $next_argument['keys']['mappings'][ $token_key ] ) ) { $key_mapped_argument = array_merge( $key_mapped_argument, $next_argument['keys']['mappings'][ $token_key ] ); }
 					
-					// Use a provided key mapping if available, or fallback to auto detection of the new value
-					if ( isset( $key_mapped_argument ) ) {
-						$current_argument = $key_mapped_argument;
-						if ( isset( $key_mapped_argument['converter'] ) and is_callable( isset( $key_mapped_argument['converter'] ) ) ) {
-							$currentValue = call_user_func( isset( $key_mapped_argument['converter'] ), $currentValue, $sourceObj );
-						}
-					} else {
-						switch( gettype( $currentValue ) ) {
-							case 'string':  $current_argument['argtype'] = 'string'; break;
-							case 'integer': $current_argument['argtype'] = 'int'; break;
-							case 'double':  $current_argument['argtype'] = 'float'; break;
-							case 'array':   $current_argument['argtype'] = 'array'; break;
-							case 'object':  $current_argument['argtype'] = 'object'; break;
-							case 'boolean': $current_argument['argtype'] = 'bool'; break;
-							default: 
-								$final_class = is_object( $currentValue ) ? get_class( $currentValue ) : gettype( $currentValue );
-								$current_argument = array();
-								$currentValue = null;
-								$this->history[] = 'Process broken. Expected to have a ' . $class_name . ' but ended up with ' . $final_class;
-								break 2;
-						}
-						
-						unset( $current_argument['keys'] );
-					}
-					
-					$current_argument['getter'] = function( $val ) { return $val; };
+					$next_argument = $key_mapped_argument;
+					$next_argument['getter'] = function( $val ) { return $val; };
 				} 
 				
 				/* For everything else, just use the standard getter */
@@ -283,19 +330,23 @@ class Token
 					if ( is_array( $currentValue ) ) {
 						$nextValue = array();
 						foreach( $currentValue as $value ) { 
-							$_value = call_user_func( $current_argument['getter'], $value );
-							$nextValue = array_merge( $nextValue, is_array( $_value ) ? $_value : array( $_value ) );
+							$_value = call_user_func( $next_argument['getter'], $value );
+							if ( $_value !== NULL ) {
+								$nextValue = array_merge( $nextValue, is_array( $_value ) ? $_value : array( $_value ) );
+							}
 						}
 						$currentValue = $nextValue;
-						$current_argument['subtype'] = $current_argument['argtype'] != 'array' ? $current_argument['argtype'] : ( isset( $current_argument['class'] ) ? 'object' : 'mixed' );
-						$current_argument['argtype'] = 'array';
+						$next_argument['subtype'] = $next_argument['argtype'] != 'array' ? $next_argument['argtype'] : ( isset( $next_argument['class'] ) ? 'object' : 'mixed' );
+						$next_argument['argtype'] = 'array';
 						$this->history[] = 'Got new array of values for token: ' . $next_token;
 					}
 					else {
-						$currentValue = call_user_func( $current_argument['getter'], $currentValue );					
+						$currentValue = call_user_func( $next_argument['getter'], $currentValue );					
 						$this->history[] = 'Got the new value for token: ' . $next_token;
 					}
 				}
+				
+				$current_argument = $next_argument;
 			}
 			
 			$this->argument = $current_argument;			

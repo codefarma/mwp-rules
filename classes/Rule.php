@@ -399,6 +399,28 @@ class Rule extends ActiveRecord
 	}
 	
 	/**
+	 * Set the return value used for filters
+	 *
+	 * @param	mixed		$value			The updated value
+	 * @return	void
+	 */
+	public function setReturnValue( $value )
+	{
+		$this->filtered_values[ $this->event()->thread ] = $value;
+	}
+	
+	/**
+	 * Get the return value used for filters
+	 *
+	 * @return	mixed
+	 */
+	public function getReturnValue()
+	{
+		return isset( $this->filtered_values[ $this->event()->thread ] ) ? $this->filtered_values[ $this->event()->thread ] : null;
+	}
+	
+	
+	/**
 	 * Deploy to wordpress via hooks
 	 *
 	 * @return	bool
