@@ -76,6 +76,16 @@ class Plugin extends \Modern\Wordpress\Plugin
 	public $nestedSortable = 'assets/js/jquery.mjs.nestedSortable.js';
 	
 	/**
+	 * @Wordpress\Script( deps={"jquery"} )
+	 */
+	public $selectizeJS = 'assets/js/selectize/js/selectize.min.js';
+	
+	/**
+	 * @Wordpress\Stylesheet
+	 */
+	public $selectizeCSS = 'assets/js/selectize/css/selectize.bootstrap3.css';
+	
+	/**
 	 * Admin Stylesheet
 	 *
 	 * @Wordpress\Stylesheet
@@ -137,6 +147,8 @@ class Plugin extends \Modern\Wordpress\Plugin
 		$this->useStyle( $this->codeMirrorStyle );
 		$this->useScript( $this->codeMirrorPHP );
 		$this->useStyle( $this->adminStyle );
+		$this->useScript( $this->selectizeJS );
+		$this->useStyle( $this->selectizeCSS );
 	}
 	
 	/**
