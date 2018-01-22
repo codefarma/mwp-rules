@@ -12,6 +12,7 @@ return <<<'JSON'
     "url": "",
     "slug": "mwp-rules",
     "vendor": "Miller Media",
-    "namespace": "MWP\\Rules"
+    "namespace": "MWP\\Rules",
+    "version": "0.0.0"
 }
 JSON;

@@ -6,7 +6,7 @@
  *
  * @package  MWP Rules
  * @author   Kevin Carwile
- * @since    {build_version}
+ * @since    0.0.0
  *
  * @param	Plugin			$this		The plugin instance which is loading this template
  *

@@ -6,7 +6,7 @@
  *
  * @package  MWP Rules
  * @author   Kevin Carwile
- * @since    {build_version}
+ * @since    0.0.0
  *
  * @param	MWP\Rules\Log										$log			The log record
  * @param	Modern\Wordpress\Helpers\ActiveRecordTable			$conditions		The table of associated conditions

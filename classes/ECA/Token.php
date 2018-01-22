@@ -6,7 +6,7 @@
  *
  * @package:  MWP Rules
  * @author:   Kevin Carwile
- * @since:    {build_version}
+ * @since:    0.0.0
  */
 namespace MWP\Rules\ECA;
 
