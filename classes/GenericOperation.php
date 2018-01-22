@@ -124,7 +124,7 @@ abstract class GenericOperation extends ActiveRecord
 					/* Look for event data that can be used to supply the value for this argument */
 					$usable_event_data = array();
 					if ( $event = $operation->event() ) {
-						$usable_event_data = $event->getArgumentTokens( $arg );
+						$usable_event_data = $event->getArgumentTokens( $arg, NULL, 2 );
 						foreach( $usable_event_data as $token => &$title ) {
 							$title = $token . ' - ' . $title;
 						}

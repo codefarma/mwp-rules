@@ -187,7 +187,7 @@ class Event extends BaseDefinition
 			return static::$tokensCache[ $cache_key ];
 		}
 		
-		$tokens = $this->getArgumentTokens( array( 'argtypes' => array( 'string', 'int', 'float', 'bool' ) ) );
+		$tokens = $this->getArgumentTokens( array( 'argtypes' => array( 'string', 'int', 'float', 'bool' ) ), $arg_map, 2 );
 		$_tokens = array();
 		
 		foreach( $tokens as $key => $value ) {
@@ -205,9 +205,10 @@ class Event extends BaseDefinition
 	 *
 	 * @param	array|NULL		$target_argument		The argument which is needed (or leave empty to return all derivatives)
 	 * @param	array|NULL		$arg_map				An associative array of the event arguments, if NULL then token/descriptions will be generated
+	 * @param	int				$depth					The depth of arguments to get tokens for
 	 * @return	array
 	 */
-	public function getArgumentTokens( $target_argument=NULL, $arg_map=NULL )
+	public function getArgumentTokens( $target_argument=NULL, $arg_map=NULL, $depth=1 )
 	{
 		$rulesPlugin        = \MWP\Rules\Plugin::instance();
 		$global_args 		= $rulesPlugin->getGlobalArguments();
@@ -250,7 +251,7 @@ class Event extends BaseDefinition
 				}
 				
 				/* Create tokens for derivative arguments also */
-				foreach ( $rulesPlugin->getDerivativeTokens( $argument, $target_argument ) as $tokenized_key => $derivative_argument ) {	
+				foreach ( $rulesPlugin->getDerivativeTokens( $argument, $target_argument, $depth ) as $tokenized_key => $derivative_argument ) {	
 					if ( is_callable( $derivative_argument['getter'] ) ) {
 						
 						// Building token values

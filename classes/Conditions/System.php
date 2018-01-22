@@ -430,7 +430,7 @@ class System
 						
 						$form->addField( 'rules_comparison_type', 'choice', array( 
 							'label' => __( 'Comparison Type', 'mwp-rules' ),
-							'choices' => array_flip( $compare_options ),
+							'choices' => array_flip( $date_compare_options ),
 							'expanded' => true,
 							'required' => true,
 							'data' => isset( $values['rules_comparison_type'] ) ? $values['rules_comparison_type'] : '<',

@@ -465,7 +465,7 @@ add_filter( 'rules_class_map', function( $map )
 				'url' => array(
 					'argtype' => 'string',
 					'class' => 'MWP\Rules\WP\Url',
-					'label' => 'Url',
+					'label' => 'Post Url',
 					'getter' => function( $post ) {
 						return get_permalink( $post );
 					}
