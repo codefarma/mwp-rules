@@ -206,9 +206,10 @@ class Event extends BaseDefinition
 	 * @param	array|NULL		$target_argument		The argument which is needed (or leave empty to return all derivatives)
 	 * @param	array|NULL		$arg_map				An associative array of the event arguments, if NULL then token/descriptions will be generated
 	 * @param	int				$depth					The depth of arguments to get tokens for
+	 * @param	bool			$include_arbitrary		Include an arbitrary keys representation token in the results
 	 * @return	array
 	 */
-	public function getArgumentTokens( $target_argument=NULL, $arg_map=NULL, $depth=1 )
+	public function getArgumentTokens( $target_argument=NULL, $arg_map=NULL, $depth=1, $include_arbitrary=FALSE )
 	{
 		$rulesPlugin        = \MWP\Rules\Plugin::instance();
 		$global_args 		= $rulesPlugin->getGlobalArguments();
@@ -243,34 +244,31 @@ class Event extends BaseDefinition
 				}
 				
 				/* Create tokens for derivative arguments also */
-				foreach ( $rulesPlugin->getDerivativeTokens( $argument, $target_argument, $depth ) as $tokenized_key => $derivative_argument ) {	
-					if ( is_callable( $derivative_argument['getter'] ) ) {
-						
-						// Building token values
-						if ( $arg_map !== NULL ) {
-							switch( $group ) {
-								case 'event':
-									$tokens[ $arg_name . ':' . $tokenized_key ] = new Token( $arg_map[ $arg_name ], $tokenized_key, $argument );
-									break;
-								case 'global':
-									if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) {	continue; }
-									$tokens[ 'global:' . $arg_name . ':' . $tokenized_key ] = new Token( NULL, 'global:' . $tokenized_key );
-									break;
-							}
+				foreach ( $rulesPlugin->getDerivativeTokens( $argument, $target_argument, $depth, $include_arbitrary ) as $tokenized_key => $derivative_argument ) {						
+					// Building token values
+					if ( $arg_map !== NULL ) {
+						switch( $group ) {
+							case 'event':
+								$tokens[ $arg_name . ':' . $tokenized_key ] = new Token( $arg_map[ $arg_name ], $tokenized_key, $argument );
+								break;
+							case 'global':
+								if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) {	continue; }
+								$tokens[ 'global:' . $arg_name . ':' . $tokenized_key ] = new Token( NULL, 'global:' . $tokenized_key );
+								break;
 						}
-						
-						// Building token descriptions
-						else {
-							switch ( $group ) {
-								case 'event':
-									$tokens[ $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
-									break;
-								case 'global':
-									if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) { continue; }
-									$tokens[ 'global:' . $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
-									break;
-							}									
-						}
+					}
+					
+					// Building token descriptions
+					else {
+						switch ( $group ) {
+							case 'event':
+								$tokens[ $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
+								break;
+							case 'global':
+								if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) { continue; }
+								$tokens[ 'global:' . $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
+								break;
+						}									
 					}
 				}
 			}

@@ -480,11 +480,12 @@ class Plugin extends \Modern\Wordpress\Plugin
 	 * @param	array	$source_argument		The starting argument
 	 * @param	array	$target_argument		The definition which derivative arguments must match (or leave empty to return all derivatives)
 	 * @param	int		$max_levels				The number of levels of recursion to dive
+	 * @param	bool	$include_arbitrary		Include an arbitrary keys representation token in the results
 	 * @param	string	$token_prefix			Prefix to apply to the tokenized keys (for internal use)
 	 * @param	int		$level					The current level of recursion (for internal use)
 	 * @return	array							Class converter methods
 	 */
-	public function getDerivativeTokens( $source_argument, $target_argument=NULL, $max_levels=1, $token_prefix='', $level=1 )
+	public function getDerivativeTokens( $source_argument, $target_argument=NULL, $max_levels=1, $include_arbitrary=TRUE, $token_prefix='', $level=1 )
 	{
 		/* Depth limit */
 		if ( $level > $max_levels ) {
@@ -574,7 +575,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 						}
 
 						// Add tokens for arbitrary array keys
-						if ( ! isset( $converted_argument['keys']['fixed'] ) or ! $converted_argument['keys']['fixed'] ) {
+						if ( $include_arbitrary and ( ! isset( $converted_argument['keys']['fixed'] ) or ! $converted_argument['keys']['fixed'] ) ) {
 							if ( $source_argument['argtype'] == 'array' and $original_converted_argtype == 'array' ) {
 								$default_array_argument['argtype'] = 'array';
 							}
@@ -583,7 +584,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 							}
 							
 							/* Go deep on arbitrary keys */
-							$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $default_array_argument, $target_argument, $max_levels, $token_prefix . $argument_key . '[' . $arbitrary_key_indicator . ']', $level + 1 ) );
+							$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $default_array_argument, $target_argument, $max_levels, $include_arbitrary, $token_prefix . $argument_key . '[' . $arbitrary_key_indicator . ']', $level + 1 ) );
 						}
 						
 						// Add tokens for specific array keys
@@ -601,14 +602,14 @@ class Plugin extends \Modern\Wordpress\Plugin
 								}
 								
 								/* Go deep on specific keys */
-								$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $converted_array_argument, $target_argument, $max_levels, $token_prefix . $argument_key . '[' . $converted_array_key . ']', $level + 1 ) );
+								$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $converted_array_argument, $target_argument, $max_levels, $include_arbitrary, $token_prefix . $argument_key . '[' . $converted_array_key . ']', $level + 1 ) );
 							}
 						}
 					}
 					
 					/* Go deep on token */
 					if ( $argument_key !== '*' ) {
-						$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $converted_argument, $target_argument, $max_levels, $token_prefix . $argument_key, $level + 1 ) );
+						$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $converted_argument, $target_argument, $max_levels, $include_arbitrary, $token_prefix . $argument_key, $level + 1 ) );
 					}
 				}
 			}
