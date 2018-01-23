@@ -555,7 +555,11 @@ add_filter( 'rules_class_map', function( $map )
 					'argtype' => 'array',
 					'label' => 'Meta Data',
 					'getter' => function( $post ) {
-						return get_post_meta( $post->ID );
+						$meta = array();
+						foreach( array_keys( get_post_meta( $post->ID ) ) as $meta_key ) {
+							$meta[ $meta_key ] = get_post_meta( $post->ID, $meta_key, true );
+						}
+						return $meta;
 					},
 					'keys' => array(
 						'associative' => true,
@@ -697,7 +701,11 @@ add_filter( 'rules_class_map', function( $map )
 					'argtype' => 'array',
 					'label' => 'Meta Data',
 					'getter' => function( $comment ) {
-						return get_comment_meta( $comment->comment_ID );
+						$meta = array();
+						foreach( array_keys( get_comment_meta( $comment->comment_ID ) ) as $meta_key ) {
+							$meta[ $meta_key ] = get_comment_meta( $comment->comment_ID, $meta_key, true );
+						}
+						return $meta;
 					},
 					'keys' => array(
 						'associative' => true,
@@ -869,7 +877,11 @@ add_filter( 'rules_class_map', function( $map )
 					'argtype' => 'array',
 					'label' => 'Meta Data',
 					'getter' => function( $term ) {
-						return get_term_meta( $term->term_id );
+						$meta = array();
+						foreach( array_keys( get_term_meta( $term->term_id ) ) as $meta_key ) {
+							$meta[ $meta_key ] = get_term_meta( $term->term_id, $meta_key, true );
+						}
+						return $meta;
 					},
 					'keys' => array(
 						'associative' => true,
