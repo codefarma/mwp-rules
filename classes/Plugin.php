@@ -475,18 +475,16 @@ class Plugin extends \Modern\Wordpress\Plugin
 	/**
 	 * Get possible derivative arguments using the class map
 	 *
-	 * Based on the argument provided, returns an array map of alternative arguments that it can
-	 * be converted into
+	 * Based on the arguments provided, returns a map of subsequent arguments that can be derived
 	 *
-	 * @param	array	$source_argument		The argument definition to map
-	 * @param	array	$target_argument		The argument which is needed (or leave empty to return all derivatives)
-	 * @param	int		$max_levels				The number of levels of recursion to go
-	 * @param	string	$token_prefix			Prefix to apply to the tokenized keys
-	 * @param	int		$level					The current level of recursion
-	 * @param	bool	$arbitrary_arrays		Flag indicating if arrays should also have tokens returned for their arbitrary array keys
+	 * @param	array	$source_argument		The starting argument
+	 * @param	array	$target_argument		The definition which derivative arguments must match (or leave empty to return all derivatives)
+	 * @param	int		$max_levels				The number of levels of recursion to dive
+	 * @param	string	$token_prefix			Prefix to apply to the tokenized keys (for internal use)
+	 * @param	int		$level					The current level of recursion (for internal use)
 	 * @return	array							Class converter methods
 	 */
-	public function getDerivativeTokens( $source_argument, $target_argument=NULL, $max_levels=1, $token_prefix='', $level=1, $arbitrary_arrays=TRUE )
+	public function getDerivativeTokens( $source_argument, $target_argument=NULL, $max_levels=1, $token_prefix='', $level=1 )
 	{
 		/* Depth limit */
 		if ( $level > $max_levels ) {
@@ -496,16 +494,9 @@ class Plugin extends \Modern\Wordpress\Plugin
 		$derivative_arguments = array();
 		$mappings             = array();
 		$source_class         = NULL;
-		$target_types         = array();
 
 		if ( $token_prefix ) {
 			$token_prefix .= ':';
-		}
-		
-		if ( isset( $target_argument['argtypes'] ) ) {
-			foreach( (array) $target_argument['argtypes'] as $k => $v ) {
-				$target_types[] = is_array( $v ) ? $k : $v;
-			}
 		}
 		
 		if ( isset( $source_argument['class'] ) ) {
@@ -555,14 +546,15 @@ class Plugin extends \Modern\Wordpress\Plugin
 			if ( isset( $class['mappings'] ) ) {
 				foreach ( $class['mappings'] as $argument_key => $converted_argument ) {
 					$original_converted_argtype = $converted_argument['argtype'];
+					
+					/* Source arrays are always going to produce another array */
 					if ( $source_argument['argtype'] == 'array' ) {
 						$converted_argument['subtype'] = $converted_argument['argtype'] != 'array' ? $converted_argument['argtype'] : ( isset( $converted_argument['class'] ) ? 'object' : '' );
 						$converted_argument['argtype'] = 'array';
 					}
-					if ( ! isset( $target_argument ) or in_array( 'mixed', $target_types ) or in_array( $converted_argument['argtype'], $target_types ) ) {
-						if ( ! isset( $target_argument['class'] ) or ( isset( $converted_argument['class'] ) and $this->isClassCompliant( $converted_argument['class'], $target_argument['class'] ) ) ) {
-							$derivative_arguments[ $token_prefix . $argument_key ] = $converted_argument;
-						}
+					
+					if ( $this->isArgumentCompliant( $converted_argument, $target_argument ) ) {
+						$derivative_arguments[ $token_prefix . $argument_key ] = $converted_argument;
 					}
 					
 					/* For arrays that have key mappings, let's look at those too to see what we have */
@@ -582,17 +574,16 @@ class Plugin extends \Modern\Wordpress\Plugin
 						}
 
 						// Add tokens for arbitrary array keys
-						if ( $arbitrary_arrays and ( ! isset( $converted_argument['keys']['fixed'] ) or ! $converted_argument['keys']['fixed'] ) ) {
+						if ( ! isset( $converted_argument['keys']['fixed'] ) or ! $converted_argument['keys']['fixed'] ) {
 							if ( $source_argument['argtype'] == 'array' and $original_converted_argtype == 'array' ) {
 								$default_array_argument['argtype'] = 'array';
 							}
-							if ( ! isset( $target_argument ) or in_array( 'mixed', $target_types ) or in_array( $default_array_argument['argtype'], $target_types ) ) {
-								if ( ! isset( $target_argument['class'] ) or ( isset( $default_array_argument['class'] ) and $this->isClassCompliant( $default_array_argument['class'], $target_argument['class'] ) ) ) {
-									$derivative_arguments[ $token_prefix . $argument_key . '[' . $arbitrary_key_indicator . ']' ] = $default_array_argument;
-								}
+							if ( $this->isArgumentCompliant( $default_array_argument, $target_argument ) ) {
+								$derivative_arguments[ $token_prefix . $argument_key . '[' . $arbitrary_key_indicator . ']' ] = $default_array_argument;
 							}
-							/* Go deep */
-							$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $default_array_argument, $target_argument, $max_levels, $token_prefix . $argument_key . '[' . $arbitrary_key_indicator . ']', $level + 1, $arbitrary_arrays ) );
+							
+							/* Go deep on arbitrary keys */
+							$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $default_array_argument, $target_argument, $max_levels, $token_prefix . $argument_key . '[' . $arbitrary_key_indicator . ']', $level + 1 ) );
 						}
 						
 						// Add tokens for specific array keys
@@ -605,20 +596,19 @@ class Plugin extends \Modern\Wordpress\Plugin
 									$converted_array_argument['argtype'] = 'array';
 								}
 								
-								if ( ! isset( $target_argument ) or in_array( 'mixed', $target_types ) or in_array( $converted_array_argument['argtype'], $target_types ) ) {
-									if ( ! isset( $target_argument['class'] ) or ( isset( $converted_array_argument['class'] ) and $this->isClassCompliant( $converted_array_argument['class'], $target_argument['class'] ) ) ) {
-										$derivative_arguments[ $token_prefix . $argument_key . '[' . $converted_array_key . ']' ] = $converted_array_argument;
-									}
+								if ( $this->isArgumentCompliant( $converted_array_argument, $target_argument ) ) {
+									$derivative_arguments[ $token_prefix . $argument_key . '[' . $converted_array_key . ']' ] = $converted_array_argument;
 								}
-								/* Go deep */
-								$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $converted_array_argument, $target_argument, $max_levels, $token_prefix . $argument_key . '[' . $converted_array_key . ']', $level + 1, $arbitrary_arrays ) );
+								
+								/* Go deep on specific keys */
+								$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $converted_array_argument, $target_argument, $max_levels, $token_prefix . $argument_key . '[' . $converted_array_key . ']', $level + 1 ) );
 							}
 						}
 					}
 					
-					/* Go deep */
+					/* Go deep on token */
 					if ( $argument_key !== '*' ) {
-						$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $converted_argument, $target_argument, $max_levels, $token_prefix . $argument_key, $level + 1, $arbitrary_arrays ) );
+						$derivative_arguments = array_merge( $derivative_arguments, $this->getDerivativeTokens( $converted_argument, $target_argument, $max_levels, $token_prefix . $argument_key, $level + 1 ) );
 					}
 				}
 			}
@@ -641,6 +631,56 @@ class Plugin extends \Modern\Wordpress\Plugin
 		}
 		
 		return array( $identifier, NULL );
+	}
+	
+	/**
+	 * Check For Argument Compliance
+	 *
+	 * @param	array	$source_argument		The argument definition to map
+	 * @param	array	$target_argument		The argument which is needed (or leave empty to return all derivatives)
+	 * @return	bool
+	 */
+	public function isArgumentCompliant( $source_argument, $target_argument=NULL )
+	{
+		if ( ! isset( $source_argument['argtype'] ) ) {
+			return false;
+		}
+		
+		if ( ! isset( $target_argument ) ) {
+			return true;
+		}
+		
+		$target_types = array();
+
+		if ( isset( $target_argument['argtypes'] ) ) {
+			foreach( (array) $target_argument['argtypes'] as $k => $v ) {
+				if ( is_array( $v ) ) {
+					$target_types[ $k ] = $v;
+				} else {
+					$target_types[ $v ] = array();
+				}
+			}
+		}
+		
+		if ( in_array( 'mixed', array_keys( $target_types ) ) or in_array( $source_argument['argtype'], array_keys( $target_types ) ) ) {
+			$is_compliant = true;
+			$target_type = ! empty( $target_types ) ? ( in_array( $source_argument['argtype'], array_keys( $target_types ) ) ? $target_types[ $source_argument['argtype'] ] : $target_types['mixed'] ) : array();
+			if ( isset( $target_type['classes'] ) ) {
+				$is_compliant = false;
+				if ( isset( $source_argument['class'] ) ) {
+					foreach( (array) $target_type['classes'] as $target_class ) {
+						if ( $this->isClassCompliant( $source_argument['class'], $target_class ) ) {
+							$is_compliant = true;
+							break;
+						}
+					}
+				}
+			}
+			
+			return $is_compliant;
+		}
+		
+		return false;
 	}
 
 	/**

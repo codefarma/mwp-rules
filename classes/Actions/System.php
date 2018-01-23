@@ -69,60 +69,9 @@ class System
 		
 		rules_define_actions( array(
 			
-			/* Execute Custom PHP Code */
-			array( 'rules_execute_php', array(
-				'title' => 'Execute custom PHP code',
-				'description' => 'Run a custom block of php code.',
-				'configuration' => array(
-					'form' => function( $form, $saved_values, $operation ) use ( $plugin ) {
-						$form->addField( 'rules_custom_phpcode', 'textarea', array(
-							'row_prefix' => '<hr>',
-							'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
-							'label' => __( 'PHP Code', 'mwp-rules' ),
-							'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
-							'data' => isset( $saved_values['rules_custom_phpcode'] ) ? $saved_values['rules_custom_phpcode'] : "// <?php\n\nreturn;",
-							'description' => $plugin->getTemplateContent( 'rules/phpcode_description', array( 'operation' => $operation, 'event' => $operation->event() ) ),
-						));
-					}
-				),
-				'callback' => function( $saved_values, $event_args, $operation ) {
-					$evaluate = function( $phpcode ) use ( $event_args, $operation ) {
-						extract( $event_args );
-						return @eval( $phpcode );
-					};
-					
-					return $evaluate( $saved_values[ 'rules_custom_phpcode' ] );
-				},
-			)),
-			
-			/* Modify the value being filtered */
-			array( 'rules_modify_filtered_value', array(
-				'title' => 'Modify the filtered value',
-				'description' => 'Change the value being filtered in a hook.',
-				'updates_filter' => true,
-				'arguments' => array(
-					'new_value' => array(
-						'required' => true,
-						'default' => 'manual',
-						'argtypes' => array(
-							'mixed' => array( 'description' => 'The new value' ),
-						),
-						'configuration' => array(
-							'form' => function( $form, $saved_values, $operation ) {
-								
-							}
-						),
-					),
-				),
-				'callback' => function( $new_value, $saved_values, $event_args, $operation ) {
-					$operation->rule()->setReturnValue( $new_value );
-					return $new_value;
-				}
-			)),
-			
 			/* Send an email */
 			array( 'rules_send_email', array( 
-				'title' => 'Send an email',
+				'title' => 'Send An Email',
 				'description' => 'Send an email to a user or users',
 				'configuration' => array(
 					'form' => function( $form, $values ) {
@@ -157,6 +106,7 @@ class System
 				'arguments' => array(
 					'to' => array(
 						'label' => 'Email Recipients',
+						'required' => true,
 						'argtypes' => array(
 							'array' => array( 'description' => 'an array of email addresses to send email to' ),
 							'string' => array( 'description' => 'an individual email address, or comma delimited list of addresses to send mail to' ),
@@ -177,6 +127,7 @@ class System
 					'subject' => array(
 						'label' => 'Email Subject Line',
 						'default' => 'manual',
+						'required' => true,
 						'argtypes' => array( 'string' => array( 'description' => 'The email subject line to send' ) ),
 						'configuration' => array(
 							'form' => function( $form, $values ) {
@@ -193,6 +144,7 @@ class System
 					'message' => array(
 						'label' => 'Email Message',
 						'default' => 'manual',
+						'required' => true,
 						'argtypes' => array(
 							'string' => array( 'description' => 'The email message to send' ),
 						),
@@ -248,9 +200,34 @@ class System
 				}
 			)),
 			
+			/* Modify the value being filtered */
+			array( 'rules_modify_filtered_value', array(
+				'title' => 'Modify The Filtered Value',
+				'description' => 'Change the value being filtered in a hook.',
+				'updates_filter' => true,
+				'arguments' => array(
+					'new_value' => array(
+						'required' => true,
+						'default' => 'manual',
+						'argtypes' => array(
+							'mixed' => array( 'description' => 'The new value' ),
+						),
+						'configuration' => array(
+							'form' => function( $form, $saved_values, $operation ) {
+								
+							}
+						),
+					),
+				),
+				'callback' => function( $new_value, $saved_values, $event_args, $operation ) {
+					$operation->rule()->setReturnValue( $new_value );
+					return $new_value;
+				}
+			)),
+			
 			/* Redirect the page */
 			array( 'rules_redirect', array(
-				'title' => 'Redirect the page',
+				'title' => 'Redirect To Page',
 				'description' => 'Issue an HTTP redirect to another page',
 				'arguments' => array(
 					'status' => array(
@@ -280,8 +257,9 @@ class System
 					'url' => array(
 						'label' => 'Redirect URL',
 						'default' => 'manual',
+						'required' => true,
 						'argtypes' => array( 
-							'object' => array( 'description' => 'The url to redirect to', 'class' => 'MWP\Rules\WP\Url' ),
+							'object' => array( 'description' => 'The url to redirect to', 'classes' => array( 'MWP\Rules\WP\Url' ) ),
 						),
 						'configuration' => array(
 							'form' => function( $form, $values ) {
@@ -298,19 +276,90 @@ class System
 					),
 				),
 				'callback' => function( $status, $url ) {
-					wp_redirect( (string) $url, $status );
-					exit;
+					$new_url = (string) $url;
+					if ( $new_url ) {
+						wp_redirect( (string) $url, $status );
+						exit;
+					}
+					
+					return 'Redirect url was empty. Skipped.';
 				},
+			)),
+			
+			/* Display Admin Notice */
+			array( 'rules_display_admin_notice', array(
+				'title' => 'Display Admin Notice',
+				'description' => 'Display a notice in the WP admin at the top of the page.',
+				'configuration' => array(
+					'form' => function( $form, $values ) {
+						$form->addField( 'rules_notice_type', 'choice', array(
+							'label' => __( 'Message Type', 'mwp-rules' ),
+							'choices' => array(
+								'Information' => 'info',
+								'Warning' => 'warning',
+								'Error' => 'error',
+								'Success' => 'success',
+							),
+							'required' => true,
+							'data' => isset( $values['rules_notice_type'] ) ? $values['rules_notice_type'] : 'info',
+						));
+					},
+				),
+				'arguments' => array(
+					'message' => array(
+						'label' => 'Message to display',
+						'default' => 'manual',
+						'required' => true,
+						'configuration' => array(
+							'form' => function( $form, $values ) {
+								$form->addField( 'rules_notice_message', 'text', array(
+									'label' => __( 'Message to display', 'mwp-rules' ),
+									'data' => isset( $values['rules_notice_message'] ) ? $values['rules_notice_message'] : '',
+								));
+							},
+							'getArg' => function( $values ) {
+								return $values['rules_notice_message'];
+							},
+						)
+					),
+				),
+				'callback' => function( $message, $values ) {
+					if ( $message ) {
+						add_action( 'admin_notices', function() use ( $message, $values ) {
+							$type = isset( $values['rules_notice_type'] ) ? $values['rules_notice_type'] : 'info';
+							echo "<div class=\"notice notice-{$type}\"><p>" . esc_html( $message ) . "</p></div>";
+						});
+						
+						return 'Added message: ' . esc_html( $message );
+					}
+					
+					return 'Message was blank. Skipping adding it.';
+				},
+			)),
+			
+			/* Update Meta Data */
+			array( 'rules_update_metadata', array(
+				'title' => 'Update Meta Data',
+				'description' => 'Update the meta data for a given object (User,Post,Comment,Term).',
+				'arguments' => array(
+					'object' => array(
+						'label' => 'Associated Object',
+						'argtypes' => array(
+							'object' => array( 'description' => 'The object that the meta data will be updated for' )
+						),
+					),
+				),
 			)),
 			
 			/* Unschedule an action */
 			array( 'rules_unschedule_action', array(
-				'title' => 'Unschedule an action',
+				'title' => 'Unschedule An Action',
 				'description' => 'Check for and remove a scheduled action by key.',
 				'arguments' => array(
 					'action_key' => array(
 						'label' => 'Action key to unschedule',
 						'default' => 'manual',
+						'required' => true,
 						'configuration' => array(
 							'form' => function( $form, $values ) {
 								$form->addField( 'rules_action_key', 'text', array(
@@ -332,6 +381,32 @@ class System
 					}
 					
 					return 'no action key specified';
+				},
+			)),
+			
+			/* Execute Custom PHP Code */
+			array( 'rules_execute_php', array(
+				'title' => 'Execute Custom PHP Code',
+				'description' => 'Run a custom block of php code.',
+				'configuration' => array(
+					'form' => function( $form, $saved_values, $operation ) use ( $plugin ) {
+						$form->addField( 'rules_custom_phpcode', 'textarea', array(
+							'row_prefix' => '<hr>',
+							'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
+							'label' => __( 'PHP Code', 'mwp-rules' ),
+							'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
+							'data' => isset( $saved_values['rules_custom_phpcode'] ) ? $saved_values['rules_custom_phpcode'] : "// <?php\n\nreturn;",
+							'description' => $plugin->getTemplateContent( 'rules/phpcode_description', array( 'operation' => $operation, 'event' => $operation->event() ) ),
+						));
+					}
+				),
+				'callback' => function( $saved_values, $event_args, $operation ) {
+					$evaluate = function( $phpcode ) use ( $event_args, $operation ) {
+						extract( $event_args );
+						return @eval( $phpcode );
+					};
+					
+					return $evaluate( $saved_values[ 'rules_custom_phpcode' ] );
 				},
 			)),
 			

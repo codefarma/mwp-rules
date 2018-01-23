@@ -71,7 +71,7 @@ class System
 			
 			/* Truth comparison */
 			array( 'rules_truth', array(
-				'title' => 'Truth condition check',
+				'title' => 'Check A Truth',
 				'description' => 'Checks if a value is equivalent to a boolean truth.',
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
@@ -129,7 +129,7 @@ class System
 			
 			/* Number Comparison */
 			array( 'rules_number_comparison', array(
-				'title' => 'Compare two numbers',
+				'title' => 'Compare Numbers',
 				'description' => 'Check the value of a number against another.',
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
@@ -213,7 +213,7 @@ class System
 			
 			/* String Comparision */
 			array( 'rules_string_comparison', array(
-				'title' => 'Compare two strings',
+				'title' => 'Compare Strings',
 				'description' => 'Check the contents of a string.',
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
@@ -285,7 +285,7 @@ class System
 			
 			/* Array Attributes */
 			array( 'rules_array_comparison', array(
-				'title' => 'Array attributes',
+				'title' => 'Inspect An Array',
 				'description' => 'Check the attributes of an array for specific conditions.',				
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
@@ -352,8 +352,8 @@ class System
 			
 			/* Object Comparision */
 			array( 'rules_object_comparison', array(
-				'title' => 'Compare object classes',
-				'description' => 'Compare two objects or the class of an object.',
+				'title' => 'Inspect An Object',
+				'description' => 'Inspect an object to compare its class or equality with another object.',
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
 						$compare_options = array(
@@ -375,15 +375,15 @@ class System
 				'arguments' => array(
 					'object' => array(
 						'argtypes' => array(
-							'object' 	=> array( 'description' => 'the object to compare' ),
+							'object' => array( 'description' => 'the object to compare' ),
 						),				
 						'required'	=> true,
 					),
 					'value' => array(
 						'default' => 'manual',
 						'argtypes' => array(
-							'string' => array( 'description' => 'a classname to compare' ),
-							'object' => array( 'description' => 'an object to compare' ),
+							'string' => array( 'description' => 'A classname to compare' ),
+							'object' => array( 'description' => 'An object to compare' ),
 						),				
 						'required'	=> true,
 						'configuration' => array(
@@ -417,8 +417,8 @@ class System
 			
 			/* Time Comparision */
 			array( 'rules_time_comparison', array(
-				'title' => 'Compare two dates',
-				'description' => 'Compare two date/time values with each other.',
+				'title' => 'Compare Dates',
+				'description' => 'Compare a date/time with another date/time.',
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
 						$date_compare_options = array (
@@ -450,9 +450,8 @@ class System
 					'date1' => array(
 						'label' => 'Date 1',
 						'argtypes' => array( 
-							'object' => array( 'description' => 'An instance of a DateTime object' ) 
+							'object' => array( 'description' => 'An instance of a DateTime object', 'classes' => array( 'DateTime' ) ) 
 						),
-						'class' => 'DateTime',
 						'configuration' => $plugin->configPreset( 'datetime', 'compare_date1', array( 'label' => 'Date 1' ) ),
 						'required'	=> true,
 					),
@@ -460,9 +459,8 @@ class System
 						'label' => 'Date 2',
 						'default'	=> 'manual',
 						'argtypes' => array( 
-							'object' => array( 'description' => 'An instance of a DateTime object' ) 
+							'object' => array( 'description' => 'An instance of a DateTime object', 'classes' => array( 'DateTime' ) ) 
 						),
-						'class' => 'DateTime',
 						'configuration' => $plugin->configPreset( 'datetime', 'compare_date2', array( 'label' => 'Date 2' ) ),
 						'required'	=> true,
 					),
@@ -500,7 +498,7 @@ class System
 			
 			/* Data Type Comparision */
 			array( 'rules_data_type_comparision', array(
-				'title' => 'Check a data type',
+				'title' => 'Check Data Type',
 				'description' => 'Check if a value has a certain data type.',
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
@@ -537,9 +535,40 @@ class System
 				},
 			)),
 			
+			/* Check For Scheduled Action */
+			array( 'rules_check_scheduled_action', array(
+				'title' => 'Check For A Scheduled Action',
+				'description' => 'Check to see if an action with a particular key has been scheduled.',
+				'arguments' => array(
+					'action_key' => array(
+						'label' => 'Action key to check',
+						'default' => 'manual',
+						'configuration' => array(
+							'form' => function( $form, $values ) {
+								$form->addField( 'rules_action_key', 'text', array(
+									'label' => 'Action Key',
+									'data' => isset( $values['rules_action_key'] ) ? $values['rules_action_key'] : '',
+								));
+							},
+							'getArg' => function( $values ) {
+								return $values['rules_action_key'];
+							},
+						),
+					),
+				),
+				'callback' => function( $action_key ) {
+					if ( $action_key ) {
+						$count = \MWP\Rules\ScheduledAction::countWhere( array( 'schedule_key=%s', $action_key ) );
+						return $count > 0;
+					}
+					
+					return false;
+				},
+			)),
+			
 			/* Execute Custom PHP Code */
 			array( 'rules_execute_php', array(
-				'title' => 'Execute custom PHP code',
+				'title' => 'Execute Custom PHP Code',
 				'description' => 'Run a custom block of php code.',
 				'configuration' => array(
 					'form' => function( $form, $saved_values, $operation ) use ( $plugin ) {

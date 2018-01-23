@@ -14,7 +14,7 @@ if ( ! class_exists( 'WP_UnitTestCase' ) )
 }
 
 /**
- * Example plugin tests
+ * Tests
  */
 class MWPRulesPluginTest extends WP_UnitTestCase 
 {

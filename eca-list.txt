@@ -57,5 +57,27 @@ Conditions
 ---------------------
 
 ## System
-- Truth Comparison
+- Check A Truth
+- Compare Numbers
+- Compare Strings
+- Inspect An Array
+- Inspect An Object
+- Compare Dates
+- Check Data Type
+- Check For A Scheduled Action
+- Execute Custom PHP Code
+
+
+Actions
+----------------------
+
+## System
+- Send An Email
+- Modify The Filtered Value
+- Redirect To Page
+- Display Admin Notice
+- Unschedule An Action
+- Execute Custom PHP Code
+
+
 
