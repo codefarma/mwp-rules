@@ -342,13 +342,72 @@ class System
 				'title' => 'Update Meta Data',
 				'description' => 'Update the meta data for a given object (User,Post,Comment,Term).',
 				'arguments' => array(
-					'object' => array(
-						'label' => 'Associated Object',
+					'association' => array(
+						'label' => 'Associated Object(s)',
+						'required' => true,
 						'argtypes' => array(
-							'object' => array( 'description' => 'The object that the meta data will be updated for' )
+							'object' => array( 'description' => 'An individual object that the meta data will be updated for', 'classes' => array( 'WP_User', 'WP_Post', 'WP_Comment', 'WP_Term' ) ),
+							'array' => array( 'description' => 'An array of objects to update the meta data for', 'classes' => array( 'WP_User', 'WP_Post', 'WP_Comment', 'WP_Term' ) ),
+						),
+					),
+					'meta_key' => array(
+						'label' => 'Meta Key',
+						'required' => true,
+						'default' => 'manual',
+						'argtypes' => array(
+							'string' => array( 'description' => 'The meta key to update the value for' ),
+						),
+						'configuration' => array(
+							'form' => function( $form, $values ) {
+								$form->addField( 'rules_meta_key', 'text', array(
+									'label' => __( 'Meta Key', 'mwp-rules' ),
+									'data' => isset( $values['rules_meta_key'] ) ? $values['rules_meta_key'] : '',
+								));
+							},
+							'getArg' => function( $values ) {
+								return $values['rules_meta_key'];
+							},
+						),
+					),
+					'meta_value' => array(
+						'label' => 'Meta Value',
+						'required' => false,
+						'argtypes' => array( 'mixed' ),
+						'configuration' => array(
+							'form' => function( $form, $values ) {
+								$form->addField( 'rules_meta_value', 'text', array(
+									'label' => __( 'Meta Value', 'mwp-rules' ),
+									'data' => isset( $values['rules_meta_value'] ) ? $values['rules_meta_value'] : '',
+								));
+							},
+							'getArg' => function( $values ) {
+								return $values['rules_meta_value'];
+							},
 						),
 					),
 				),
+				'callback' => function( $association, $meta_key, $meta_value ) {
+					if ( $meta_key ) {
+						$association = is_array( $association ) ? $association : array( $association );
+						$updates_count = 0;
+						foreach( $association as $object ) {
+							if ( is_object( $object ) ) {
+								$updates_count++;
+								switch( get_class( $object ) ) {
+									case 'WP_User': update_user_meta( $object->ID, $meta_key, $meta_value ); break;
+									case 'WP_Post': update_post_meta( $object->ID, $meta_key, $meta_value ); break;
+									case 'WP_Comment': update_comment_meta( $object->comment_ID, $meta_key, $meta_value ); break;
+									case 'WP_Term': update_term_meta( $object->term_id, $meta_key, $meta_value ); break;
+									default: $updates_count--;
+								}
+							}
+						}
+						
+						return 'Meta key ('. $meta_key . ') updated for ' . $updates_count . ' objects';
+					}
+					
+					return 'No meta key specified to update. Skipped.';
+				},
 			)),
 			
 			/* Unschedule an action */
