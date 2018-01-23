@@ -303,6 +303,38 @@ class System
 				},
 			)),
 			
+			/* Unschedule an action */
+			array( 'rules_unschedule_action', array(
+				'title' => 'Unschedule an action',
+				'description' => 'Check for and remove a scheduled action by key.',
+				'arguments' => array(
+					'action_key' => array(
+						'label' => 'Action key to unschedule',
+						'default' => 'manual',
+						'configuration' => array(
+							'form' => function( $form, $values ) {
+								$form->addField( 'rules_action_key', 'text', array(
+									'label' => 'Action Key',
+									'data' => isset( $values['rules_action_key'] ) ? $values['rules_action_key'] : '',
+								));
+							},
+							'getArg' => function( $values ) {
+								return $values['rules_action_key'];
+							},
+						),
+					),
+				),
+				'callback' => function( $action_key ) {
+					if ( $action_key ) {
+						$count = \MWP\Rules\ScheduledAction::countWhere( array( 'schedule_key=%s', $action_key ) );
+						\MWP\Rules\ScheduledAction::deleteWhere( array( 'schedule_key=%s', $action_key ) );
+						return 'Deleted ' . $count . ' scheduled actions.';
+					}
+					
+					return 'no action key specified';
+				},
+			)),
+			
 		));
 		
 	}
