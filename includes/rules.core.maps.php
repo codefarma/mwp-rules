@@ -471,8 +471,9 @@ add_filter( 'rules_class_map', function( $map )
 					}
 				),
 				'type' => array(
-					'argtype' => 'string',
 					'label' => 'Post Type',
+					'argtype' => 'string',
+					'class' => 'WP_Post_Type',
 					'getter' => function( $post ) {
 						return $post->post_type;
 					}
@@ -618,6 +619,78 @@ add_filter( 'rules_class_map', function( $map )
 							'label' => 'Terms',
 						),
 					),
+				),
+			),
+		),
+		'WP_Post_Type' => array(
+			'label' => 'Post Type',
+			'loader' => function( $name ) {
+				$post_types = get_post_types( array( 'name' => $name ) );
+				if ( ! empty( $post_types ) ) {
+					return array_shift( $post_types );
+				}
+				return null;
+			},
+			'mappings' => array(
+				'name' => array(
+					'label' => 'Name',
+					'argtype' => 'string',
+					'getter' => function( $post_type ) {
+						return $post_type->name;
+					}
+				),
+				'label' => array(
+					'label' => 'Label',
+					'argtype' => 'string',
+					'getter' => function( $post_type ) {
+						return $post_type->label;
+					}
+				),
+				'labels' => array(
+					'argtype' => 'array',
+					'label' => 'Labels',
+					'getter' => function( $post_type ) {
+						return (array) $post_type->labels;
+					},
+					'keys' => array(
+						'associative' => true,
+						'default' => array( 'label' => 'Label', 'argtype' => 'string' ),
+					),
+				),
+				'description' => array( 
+					'label' => 'Description',
+					'argtype' => 'string',
+					'getter' => function( $post_type ) {
+						return $post_type->description;
+					}
+				),
+				'public' => array(
+					'label' => 'Is Public',
+					'argtype' => 'bool',
+					'getter' => function( $post_type ) {
+						return (bool) $post_type->public;
+					}
+				),
+				'hierarchical' => array(
+					'label' => 'Is Hierarchical',
+					'argtype' => 'bool',
+					'getter' => function( $post_type ) {
+						return (bool) $post_type->hierarchical;
+					}
+				),
+				'menu_icon' => array(
+					'label' => 'Menu Icon',
+					'argtype' => 'string',
+					'getter' => function( $post_type ) {
+						return $post_type->menu_icon;
+					}
+				),
+				'capabilities' => array(
+					'label' => 'Mapped Capabilities',
+					'argtype' => 'array',
+					'getter' => function( $post_type ) {
+						return (array) $post_type->cap;
+					}
 				),
 			),
 		),
