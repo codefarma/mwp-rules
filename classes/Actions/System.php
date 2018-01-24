@@ -340,7 +340,7 @@ class System
 			/* Update Meta Data */
 			array( 'rules_update_metadata', array(
 				'title' => 'Update Meta Data',
-				'description' => 'Update the meta data for a given object (User,Post,Comment,Term).',
+				'description' => 'Update the meta data for a given object or array of objects (user,post,comment,term).',
 				'arguments' => array(
 					'association' => array(
 						'label' => 'Associated Object(s)',
@@ -407,6 +407,65 @@ class System
 					}
 					
 					return 'No meta key specified to update. Skipped.';
+				},
+			)),
+			
+			/* Delete Meta Data */
+			array( 'rules_delete_metadata', array(
+				'title' => 'Delete Meta Data',
+				'description' => 'Delete the meta data for a given object or array of objects (user,post,comment,term).',
+				'arguments' => array(
+					'association' => array(
+						'label' => 'Associated Object(s)',
+						'required' => true,
+						'argtypes' => array(
+							'object' => array( 'description' => 'An individual object that the meta data will be deleted for', 'classes' => array( 'WP_User', 'WP_Post', 'WP_Comment', 'WP_Term' ) ),
+							'array' => array( 'description' => 'An array of objects to delete the meta data for', 'classes' => array( 'WP_User', 'WP_Post', 'WP_Comment', 'WP_Term' ) ),
+						),
+					),
+					'meta_key' => array(
+						'label' => 'Meta Key',
+						'required' => true,
+						'default' => 'manual',
+						'argtypes' => array(
+							'string' => array( 'description' => 'The meta key to delete' ),
+						),
+						'configuration' => array(
+							'form' => function( $form, $values ) {
+								$form->addField( 'rules_meta_key', 'text', array(
+									'label' => __( 'Meta Key', 'mwp-rules' ),
+									'data' => isset( $values['rules_meta_key'] ) ? $values['rules_meta_key'] : '',
+								));
+							},
+							'getArg' => function( $values ) {
+								return $values['rules_meta_key'];
+							},
+						),
+					),
+				),
+				'callback' => function( $association, $meta_key, $meta_value ) {
+					if ( $meta_key ) {
+						$association = is_array( $association ) ? $association : array( $association );
+						$deletes_count = 0;
+						foreach( $association as $object ) {
+							if ( is_object( $object ) ) {
+								$result = false;
+								switch( get_class( $object ) ) {
+									case 'WP_User':    $result = delete_user_meta( $object->ID, $meta_key, $meta_value ); break;
+									case 'WP_Post':    $result = delete_post_meta( $object->ID, $meta_key, $meta_value ); break;
+									case 'WP_Comment': $result = delete_comment_meta( $object->comment_ID, $meta_key, $meta_value ); break;
+									case 'WP_Term':    $result = delete_term_meta( $object->term_id, $meta_key, $meta_value ); break;
+								}
+								if ( $result ) {
+									$deletes_count++;
+								}
+							}
+						}
+						
+						return 'Meta key ('. $meta_key . ') deleted for ' . $deletes_count . ' objects';
+					}
+					
+					return 'No meta key specified to delete. Skipped.';
 				},
 			)),
 			

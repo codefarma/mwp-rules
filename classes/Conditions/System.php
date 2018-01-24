@@ -290,8 +290,9 @@ class System
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
 						$compare_options = array(
-							'containsvalue' => 'Array contains a specific value',
 							'containskey'	=> 'Array contains a specific key',
+							'containsvalue' => 'Array contains a specific value',
+							'keyhasvalue'   => 'Array key has a specific value',
 							'lengthgreater'	=> 'Array size is greater than',
 							'lengthless' 	=> 'Array size is less than',
 							'lengthequal'	=> 'Array size is equal to',
@@ -303,7 +304,17 @@ class System
 							'expanded' => true,
 							'required' => true,
 							'data' => isset( $values['rules_comparison_type'] ) ? $values['rules_comparison_type'] : 'containsvalue',
-						));						
+							'toggles' => array(
+								'keyhasvalue' => array( 'show' => array( '#rules_array_key' ) ),
+							),
+						));
+
+						$form->addField( 'rules_array_key', 'text', array(
+							'row_attr' => array( 'id' => 'rules_array_key' ),
+							'label' => __( 'Array Key', 'mwp-rules' ),
+							'attr' => array( 'placeholder' => __( 'Enter the name of an array key', 'mwp-rules' ) ),
+							'data' => isset( $values['rules_array_key'] ) ? $values['rules_array_key'] : '',
+						));
 					},
 				),
 				'arguments' => array(
@@ -345,8 +356,14 @@ class System
 						case 'lengthequal':   return count( $array ) == (int) $value;
 						case 'containskey':   return in_array( $value, array_keys( $array ), true );
 						case 'containsvalue': return in_array( $value, $array, true );
-						default:              return false;
+						case 'keyhasvalue':
+							if ( $key = $values['rules_array_key'] ) {
+								return array_key_exists( $key, $array ) && $array[$key] === $value;
+							}
+							break;
 					}
+					
+					return false;
 				},
 			)),
 			

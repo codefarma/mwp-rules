@@ -139,7 +139,9 @@ abstract class GenericOperation extends ActiveRecord
 						$arg_sources[ 'Manual Configuration' ] = 'manual';
 					}
 					
-					$arg_sources[ 'Custom PHP Code' ] = 'phpcode';
+					if ( isset( $arg['argtypes'] ) ) {
+						$arg_sources[ 'Custom PHP Code' ] = 'phpcode';
+					}
 					
 					$form->addHeading( $arg_name . '_heading', isset( $arg['label'] ) ? $arg['label'] : $arg_name );
 					
@@ -204,10 +206,10 @@ abstract class GenericOperation extends ActiveRecord
 							foreach( $arg[ 'argtypes' ] as $_type => $_type_def ) {
 								if ( is_array( $_type_def ) ) {
 									if ( isset ( $_type_def[ 'description' ] ) ) {
-										$_arg_list[] = "<strong>{$_type}</strong>" . ( $_type_def[ 'class' ] ? ' (' . implode( ',', (array) $_type_def[ 'class' ] ) . ')' : '' ) . ": {$_type_def[ 'description' ]}";
+										$_arg_list[] = "<strong>{$_type}</strong>" . ( $_type_def[ 'classes' ] ? ' (' . implode( ',', (array) $_type_def[ 'classes' ] ) . ')' : '' ) . ": {$_type_def[ 'description' ]}";
 									}
 									else {
-										$_arg_list[] = "<strong>{$_type}</strong>" . ( $_type_def[ 'class' ] ? ' (' . implode( ',', (array) $_type_def[ 'class' ] ) . ')' : '' );
+										$_arg_list[] = "<strong>{$_type}</strong>" . ( $_type_def[ 'classes' ] ? ' (' . implode( ',', (array) $_type_def[ 'classes' ] ) . ')' : '' );
 									}
 								}
 								else {

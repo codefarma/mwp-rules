@@ -78,6 +78,7 @@ Actions
 - Display Admin Notice
 - Unschedule An Action
 - Execute Custom PHP Code
-
+- Update Meta Data
+- Delete Meta Data
 
 
