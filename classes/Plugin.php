@@ -724,13 +724,49 @@ class Plugin extends \Modern\Wordpress\Plugin
 	 */
 	public function configPreset( $key, $field_name, $options=array() )
 	{
+		$config = array();
+		
 		switch ( $key ) {
 			
+			/* Simple Text Field */
+			case 'text':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'text', array_replace_recursive( array(
+							'label' => __( 'Text', 'mwp-rules' ),
+							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values ) use ( $field_name ) {
+						return $values[ $field_name ];
+					}
+				);
+				break;
+			
+			/* Simple Textarea Field */
+			case 'textarea':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'label' => __( 'Text', 'mwp-rules' ),
+							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values ) use ( $field_name ) {
+						return $values[ $field_name ];
+					}
+				);
+				break;
+				
 			/* Date/Time */
 			case 'datetime':
 			
-				return array(
-					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
 						$values[ $field_name ] = isset( $values[ $field_name ] ) ? $values[ $field_name ] : time();
 						$form->addField( $field_name, 'datetime', array_replace_recursive( array(
 							'label' => ucwords( str_replace( '_', ' ', $field_name ) ),
@@ -745,19 +781,278 @@ class Plugin extends \Modern\Wordpress\Plugin
 							$values[ $field_name ] = $values[ $field_name ]->getTimestamp();
 						}
 					},
-					'getArg' => function( $values, $operation ) use ( $field_name ) {
+					'getArg' => function( $values ) use ( $field_name ) {
 						$date = new \DateTime();
 						$date->setTimestamp( $values[ $field_name ] );
 						
 						return $date;
 					},
 				);
+				break;
 
-			default:
+			/* Individual User */
+			case 'user':
 			
-				return array();
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'text', array_replace_recursive( array(
+							'label' => __( 'User', 'mwp-rules' ),
+							'description' => __( 'Select a user by field value (id, slug, email, or login). i.e. "id: 1" or "login: administrator"', 'mwp-rules' ),
+							'attr' => array( 'placeholder' => 'id: 1' ),
+							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$user_string = $operation->event()->replaceTokens( $values[$field_name], $arg_map );
+						$pieces = explode( ':', $user_string );
+						$field = trim( array_shift( $pieces ) );
+						$attribute = trim( implode( ':', $pieces ) );
+						if ( in_array( $field, array( 'id', 'slug', 'email', 'login' ) ) ) {
+							return get_user_by( $field, $attribute );
+						}
+					},
+				);
+				break;
+				
+			/* Multiple Users */
+			case 'users':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'label' => __( 'Users', 'mwp-rules' ),
+							'description' => __( 'Enter each user selection on a new line identified by field value (id, slug, email, or login). i.e. "id: 1" or "login: administrator"', 'mwp-rules' ),
+							'attr' => array( 'placeholder' => "id: 1&#10;id: 2" ),
+							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$user_strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$users = array();
+						foreach( $user_strings as $user_string ) {
+							$pieces = explode( ':', $user_string );
+							$field = trim( array_shift( $pieces ) );
+							$attribute = trim( implode( ':', $pieces ) );
+							if ( in_array( $field, array( 'id', 'slug', 'email', 'login' ) ) ) {
+								$users[] = get_user_by( $field, $attribute );
+							}
+						}
+						
+						return array_filter( $users );
+					},
+				);
+				break;
+				
+			/* Individual Post */
+			case 'post':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'text', array_replace_recursive( array(
+							'label' => __( 'Post', 'mwp-rules' ),
+							'description' => __( 'Select a post by field value (id). i.e. "id: 1"', 'mwp-rules' ),
+							'attr' => array( 'placeholder' => 'id: 1' ),
+							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$pieces = explode( ':', $operation->event()->replaceTokens( $values[$field_name], $arg_map ) );
+						$field = trim( array_shift( $pieces ) );
+						$attribute = trim( implode( ':', $pieces ) );
+						if ( in_array( $field, array( 'id' ) ) ) {
+							return get_post( $attribute );
+						}
+					},
+				);
+				break;
+			
+			/* Multiple Posts */
+			case 'posts':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'label' => __( 'Posts', 'mwp-rules' ),
+							'description' => __( 'Enter each post selection on a new line identified by field value (id). i.e. "id: 1"', 'mwp-rules' ),
+							'attr' => array( 'placeholder' => "id: 1&#10;id: 2" ),
+							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$post_strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$posts = array();
+						foreach( $post_strings as $post_string ) {
+							$pieces = explode( ':', $post_string );
+							$field = trim( array_shift( $pieces ) );
+							$attribute = trim( implode( ':', $pieces ) );
+							if ( in_array( $field, array( 'id' ) ) ) {
+								$posts[] = get_post( $attribute );
+							}
+						}
+						
+						return array_filter( $posts );
+					},
+				);
+				break;
+				
+			/* Individual Comment */
+			case 'comment':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'text', array_replace_recursive( array(
+							'label' => __( 'Comment', 'mwp-rules' ),
+							'description' => __( 'Select a comment by field value (id). i.e. "id: 1"', 'mwp-rules' ),
+							'attr' => array( 'placeholder' => 'id: 1' ),
+							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$pieces = explode( ':', $operation->event()->replaceTokens( $values[$field_name], $arg_map ) );
+						$field = trim( array_shift( $pieces ) );
+						$attribute = trim( implode( ':', $pieces ) );
+						if ( in_array( $field, array( 'id' ) ) ) {
+							return get_comment( $attribute );
+						}
+					},
+				);
+				break;
+			
+			/* Multiple Comments */
+			case 'comments':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'label' => __( 'Comments', 'mwp-rules' ),
+							'description' => __( 'Enter each comment selection on a new line identified by field value (id). i.e. "id: 1"', 'mwp-rules' ),
+							'attr' => array( 'placeholder' => "id: 1&#10;id: 2" ),
+							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$comment_strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$comments = array();
+						foreach( $comment_strings as $comment_string ) {
+							$pieces = explode( ':', $comment_string );
+							$field = trim( array_shift( $pieces ) );
+							$attribute = trim( implode( ':', $pieces ) );
+							if ( in_array( $field, array( 'id' ) ) ) {
+								$comments[] = get_comment( $attribute );
+							}
+						}
+						
+						return array_filter( $comments );
+					},
+				);
+				break;
+				
+			/* Meta Data */
+			case 'meta_values':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'label' => __( 'Meta Values', 'mwp-rules' ),
+							'description' => __( 'Enter meta values one per line, in the format of "meta_key: meta_value".', 'mwp-rules' ),
+							'attr' => array( 'placeholder' => 'meta_key: meta_value' ),
+							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$meta_values = array();
+						$meta_strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						foreach( $meta_strings as $meta_string ) {
+							$pieces = explode( ':', $meta_string );
+							$key = trim( array_shift( $pieces ) );
+							$value = trim( implode( ':', $pieces ) );
+							if ( $key ) {
+								$meta_values[ $key ] = $value;
+							}
+						}
+						
+						return $meta_values;
+					}
+				);
+				break;
+				
+			/* Individual Term */
+			case 'term':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'text', array_replace_recursive( array(
+							'label' => __( 'Taxonomy Term', 'mwp-rules' ),
+							'description' => "<div class='alert alert-info'>" . __( 'Select a term by field value (id, slug, or name). When identifying a term by it\'s slug or name, you must also specify the taxonomy to get it from.', 'mwp-rules' ) . "</div>" . __( 'Examples:', 'mwp-rules' ) . "<br><br><pre>id: 1&#10;slug: taxonomy_name/term-slug&#10;name: taxonomy_name/Term Name</pre>",
+							'attr' => array( 'placeholder' => 'id: 1' ),
+							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$pieces = explode( ':', $operation->event()->replaceTokens( $values[$field_name], $arg_map ) );
+						$field = trim( array_shift( $pieces ) );
+						$attribute = trim( implode( ':', $pieces ) );
+						if ( in_array( $field, array( 'id', 'slug', 'name' ) ) ) {
+							if ( $field == 'id' ) {
+								return get_term( (int) $attribute ) ?: null;
+							}
+							$more_pieces = explode( '/', $attribute );
+							$taxonomy = array_shift( $more_pieces );
+							$attribute = implode( '/', $more_pieces );
+							return get_term_by( $field, $attribute, $taxonomy ) ?: null;
+						}
+					},
+				);
+				break;
+			
+			/* Multiple Terms */
+			case 'terms':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'label' => __( 'Taxonomy Terms', 'mwp-rules' ),
+							'description' => "<div class='alert alert-info'>" . __( 'Enter each term selection on a new line identified by field value (id, slug, or name). When identifying a term by it\'s slug or name, you must also specify the taxonomy to get it from.', 'mwp-rules' ) . "</div>" . __( 'Examples:', 'mwp-rules' ) . "<br><br><pre>id: 1&#10;slug: taxonomy_name/term-slug&#10;name: taxonomy_name/Term Name</pre>",
+							'attr' => array( 'placeholder' => "id: 1&#10;id: 2" ),
+							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$term_strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$terms = array();
+						foreach( $term_strings as $term_string ) {
+							$pieces = explode( ':', $term_string );
+							$field = trim( array_shift( $pieces ) );
+							$attribute = trim( implode( ':', $pieces ) );
+							if ( in_array( $field, array( 'id', 'slug', 'name' ) ) ) {
+								if ( $field == 'id' ) {
+									$terms[] = get_term( (int) $attribute );
+									continue;
+								}
+								$more_pieces = explode( '/', $attribute );
+								$taxonomy = array_shift( $more_pieces );
+								$attribute = implode( '/', $more_pieces );
+								$terms[] = get_term_by( $field, $attribute, $taxonomy );
+							}
+						}
+						
+						return array_filter( $terms );
+					},
+				);
+				break;
 			
 		}
+		
+		return apply_filters( 'rules_config_preset', $config, $key, $field_name, $options );
 	}
 
 	/**
