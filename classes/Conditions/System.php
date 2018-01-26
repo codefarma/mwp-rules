@@ -107,7 +107,7 @@ class System
 									'data' => isset( $values['compare_value'] ) ? $values['compare_value'] : '',
 								));
 							},
-							'getArg' => function( $values, $condition ) {
+							'getArg' => function( $values ) {
 								return $values[ 'compare_value' ];
 							},
 						),
@@ -169,7 +169,7 @@ class System
 							'saveValues' => function( &$values, $condition ) {
 								settype( $values['rules_comparison_number1'], 'float' ); 
 							},
-							'getArg' => function( $values, $condition ) {
+							'getArg' => function( $values ) {
 								return $values['rules_comparison_number1'];
 							},
 						),
@@ -192,7 +192,7 @@ class System
 							'saveValues' => function( &$values, $condition ) {
 								settype( $values['rules_comparison_number2'], 'float' ); 
 							},
-							'getArg' => function( $values, $condition ) {
+							'getArg' => function( $values ) {
 								return $values['rules_comparison_number2'];
 							},
 						),
@@ -247,7 +247,7 @@ class System
 									'data' => isset( $values['rules_comparison_string1'] ) ? $values['rules_comparison_string1'] : '',
 								));
 							},
-							'getArg' => function( $values, $condition ) {
+							'getArg' => function( $values ) {
 								return $values['rules_comparison_string1' ];
 							},
 						),
@@ -266,7 +266,7 @@ class System
 									'data' => isset( $values['rules_comparison_string2'] ) ? $values['rules_comparison_string2'] : '',
 								));
 							},
-							'getArg' => function( $values, $condition ) {
+							'getArg' => function( $values ) {
 								return $values['rules_comparison_string2' ];
 							},
 						),
@@ -339,7 +339,7 @@ class System
 									'data' => isset( $values['compare_value'] ) ? $values['compare_value'] : '',
 								));
 							},
-							'getArg' => function( $values, $condition ) {
+							'getArg' => function( $values ) {
 								return $values[ 'compare_value' ];
 							},
 						),
@@ -411,7 +411,7 @@ class System
 									'attr' => array( 'placeholder' => 'Enter a fully qualified object class name' ),
 								));
 							},
-							'getArg' => function( $values, $condition ) {
+							'getArg' => function( $values ) {
 								return $values[ 'compare_value' ];
 							},
 						),

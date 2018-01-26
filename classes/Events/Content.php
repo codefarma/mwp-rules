@@ -189,6 +189,19 @@ class Content
 				),
 			)),
 			
+			/* Post Terms Updated */
+			array( 'action', 'set_object_terms', array(
+				'title' => 'Post Taxonomy Terms Have Been Updated',
+				'description' => 'This event occurs when a post has had new taxonomy terms assigned.',
+				'arguments' => array(
+					'post_id' => array( 'argtype' => 'int', 'class' => 'WP_Post', 'label' => 'Post ID', 'description' => 'The ID of the post which was assigned the taxonomy terms' ),
+					'terms' => array( 'argtype' => 'array', 'class' => 'WP_Term', 'label' => 'Term IDs', 'description' => 'The IDs of the terms which were set on the post' ),
+					'tt_ids' => array( 'argtype' => 'array', 'label' => 'Term/Taxonomy IDs', 'description' => 'The IDs of the relationships that link the post/taxonomy/term' ),
+					'taxonomy' => array( 'argtype' => 'string', 'class' => 'WP_Taxonomy', 'label' => 'Taxonomy Name', 'description' => 'The name of the taxonomy the terms belong to' ),
+					'append' => array( 'argtype' => 'bool', 'label' => 'Appended Flag', 'description' => 'Boolean value indicating if the terms were appended to the existing terms for the post' ),
+				),
+			)),
+			
 			/* Comment Created */
 			array( 'action', 'wp_insert_comment', array( 
 				'title' => 'Comment Is Posted',

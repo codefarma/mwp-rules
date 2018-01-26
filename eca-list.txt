@@ -34,6 +34,7 @@ Events
 - Post Meta Has Been Added
 - Post Meta Has Been Updated
 - Post Meta Has Been Deleted
+- Post Taxonomy Terms Have Been Updated
 - Comment Is Posted
 - Comment Is Edited
 - Comment Status Has Been Changed
@@ -80,5 +81,22 @@ Actions
 - Execute Custom PHP Code
 - Update Meta Data
 - Delete Meta Data
+
+## Content
+- Create A Post
+- Update A Post
+  * Comment Status
+  * Ping Status
+  * Post Type
+  * Author
+  * Post Title
+  * Post Content
+  * Post Excerpt
+  * Post Status
+  * Post Date
+  * Taxonomy Terms
+  * Meta Data
+- Trash/Delete A Post
+
 
 

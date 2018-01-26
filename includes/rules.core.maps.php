@@ -381,7 +381,7 @@ add_filter( 'rules_class_map', function( $map )
 					},
 					'keys' => array(
 						'associative' => true,
-						'default' => array( 'argtype' => bool, 'label' => 'Capability' ),
+						'default' => array( 'argtype' => 'bool', 'label' => 'Capability' ),
 					),
 				),
 				'roles' => array(
