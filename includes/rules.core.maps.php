@@ -334,7 +334,7 @@ add_filter( 'rules_class_map', function( $map )
 					'argtype' => 'string',
 					'label' => 'Nice Name',
 					'getter' => function( $user ) {
-						return $user->nicename;
+						return $user->user_nicename;
 					},
 				),
 				'email' => array(
@@ -423,7 +423,7 @@ add_filter( 'rules_class_map', function( $map )
 					'getter' => function( $user ) {
 						$posts = get_posts( array(
 							'numberposts' => 1, 
-							'orderby' => 'post_date',
+							'orderby' => 'date',
 							'order' => 'DESC',
 							'author' => $user->ID,
 						));
@@ -625,9 +625,9 @@ add_filter( 'rules_class_map', function( $map )
 		'WP_Post_Type' => array(
 			'label' => 'Post Type',
 			'loader' => function( $name ) {
-				$post_types = get_post_types( array( 'name' => $name ) );
+				$post_types = get_post_types( array( 'name' => $name ), 'objects' );
 				if ( ! empty( $post_types ) ) {
-					return array_shift( $post_types );
+					return $post_types[$name];
 				}
 				return null;
 			},
@@ -704,7 +704,7 @@ add_filter( 'rules_class_map', function( $map )
 					'argtype' => 'int',
 					'label' => 'Comment ID',
 					'getter' => function( $comment ) {
-						return $comment->post_ID;
+						return $comment->comment_ID;
 					}
 				),
 				'post' => array(
@@ -767,7 +767,7 @@ add_filter( 'rules_class_map', function( $map )
 					'class' => 'WP_Comment',
 					'label' => 'Children Comments',
 					'getter' => function( $comment ) {
-						return $comment->get_children();
+						return array_values( $comment->get_children() );
 					}
 				),
 				'meta' => array(
@@ -903,13 +903,6 @@ add_filter( 'rules_class_map', function( $map )
 					'label' => 'Url',
 					'getter' => function( $term ) {
 						return get_term_link( $term );
-					}
-				),
-				'group' => array(
-					'argtype' => 'string',
-					'label' => 'Group',
-					'getter' => function( $term ) {
-						return $term->term_group;
 					}
 				),
 				'taxonomy' => array(

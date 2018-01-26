@@ -275,7 +275,7 @@ class Token
 				 */
 				if ( ( is_array( $currentValue ) or $next_argument['argtype'] == 'array' ) and isset( $token_key ) )
 				{
-					$key_mapped_argument = array( 'argtype' => isset( $next_argument['class'] ) ? 'object' : $next_argument['argtype'], 'label' => isset( $next_argument['label'] ) ? $next_argument['label'] : '' );
+					$key_mapped_argument = array( 'argtype' => isset( $next_argument['keys']['default']['argtype'] ) ? $next_argument['keys']['default']['argtype'] : ( isset( $next_argument['class'] ) ? 'object' : 'mixed' ), 'label' => isset( $next_argument['label'] ) ? $next_argument['label'] : '' );
 					
 					// Use a key getter if possible
 					if ( isset( $next_argument['keys']['getter'] ) and is_callable( $next_argument['keys']['getter'] ) ) {

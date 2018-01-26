@@ -550,7 +550,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 					
 					/* Source arrays are always going to produce another array */
 					if ( $source_argument['argtype'] == 'array' ) {
-						$converted_argument['subtype'] = $converted_argument['argtype'] != 'array' ? $converted_argument['argtype'] : ( isset( $converted_argument['class'] ) ? 'object' : '' );
+						$converted_argument['subtype'] = $converted_argument['argtype'] != 'array' ? $converted_argument['argtype'] : ( isset( $converted_argument['class'] ) ? 'object' : 'mixed' );
 						$converted_argument['argtype'] = 'array';
 					}
 					
@@ -561,7 +561,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 					/* For arrays that have key mappings, let's look at those too to see what we have */
 					if ( $converted_argument['argtype'] == 'array' ) {
 						
-						$default_array_argument = array( 'argtype' => $original_converted_argtype, 'label' => isset( $converted_argument['label'] ) ? $converted_argument['label'] : '' );
+						$default_array_argument = array( 'argtype' => $original_converted_argtype != 'array' ? $original_converted_argtype : ( isset( $converted_argument['class'] ) ? 'object' : 'mixed' ), 'label' => isset( $converted_argument['label'] ) ? $converted_argument['label'] : '' );
 						$arbitrary_key_indicator = ( isset( $converted_argument['keys']['associative'] ) and $converted_argument['keys']['associative'] ) ? 'a-z' : '0-9';
 						
 						// Default for arrays with a class specification
