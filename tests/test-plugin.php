@@ -18,14 +18,22 @@ if ( ! class_exists( 'WP_UnitTestCase' ) )
  */
 class MWPRulesPluginTest extends WP_UnitTestCase 
 {
+	public $plugin;
+	
+	public function __construct()
+	{
+		error_reporting( E_ALL & ~E_NOTICE );
+		
+		$this->plugin = \MWP\Rules\Plugin::instance();
+		$this->plugin->describeEvent( 'action', 'unit_test_action' );
+	}
+	
 	/**
 	 * Test that the plugin is a modern wordpress plugin
 	 */
 	public function test_plugin_class() 
 	{
-		$plugin = \MWP\Rules\Plugin::instance();
-		
 		// Check that the plugin is a subclass of Modern\Wordpress\Plugin 
-		$this->assertTrue( $plugin instanceof \Modern\Wordpress\Plugin );
+		$this->assertTrue( $this->plugin instanceof \Modern\Wordpress\Plugin );
 	}
 }
