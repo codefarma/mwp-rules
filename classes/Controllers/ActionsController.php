@@ -107,14 +107,26 @@ class ActionsController extends ActiveRecordController
 	}
 	
 	/**
+	 * Initialize
+	 */
+	public function init()
+	{
+		$rule_id = isset( $_REQUEST['rule_id'] ) ? $_REQUEST['rule_id'] : NULL;
+		$action = isset( $_REQUEST['do'] ) ? $_REQUEST['do'] : NULL;
+		if ( ! $action or $action == 'index' ) {
+			wp_redirect( \MWP\Rules\Plugin::instance()->getRulesController()->getUrl( array( 'id' => $rule_id, 'do' => 'edit', '_tab' => 'rule_actions' ) ) );
+			exit;
+		}
+	}
+	
+	/**
 	 * Index Page
 	 * 
 	 * @return	string
 	 */
 	public function do_index()
 	{
-		$rule_id = isset( $_REQUEST['rule_id'] ) ? $_REQUEST['rule_id'] : NULL;
-		wp_redirect( \MWP\Rules\Plugin::instance()->getRulesController()->getUrl( array( 'id' => $rule_id, 'do' => 'edit', '_tab' => 'rule_actions' ) ) );
+		
 	}
 	
 	/**
