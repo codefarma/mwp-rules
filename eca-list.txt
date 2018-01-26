@@ -97,6 +97,7 @@ Actions
   * Taxonomy Terms
   * Meta Data
 - Trash/Delete A Post
+- Create A Comment
 
 
 
