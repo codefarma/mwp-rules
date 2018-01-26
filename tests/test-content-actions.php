@@ -298,104 +298,84 @@ class MWPRulesActionsTest extends WP_UnitTestCase
 		$this->assertEquals( $subcomment->comment_author_email, $values['comment_author_email'] );
 		$this->assertEquals( $subcomment->comment_author_url, $values['comment_author_url'] );
 		
-		return;
-		
 		/* Update A Comment */
-		$update_action = $this->plugin->getAction( 'rules_update_post' );
+		$update_action = $this->plugin->getAction( 'rules_update_comment' );
 		$this->assertTrue( $update_action instanceof \MWP\Rules\ECA\Action );
 		
 		$values = array(
-			'rules_post_update_attributes' => array( 'type', 'author', 'date', 'status', 'title', 'content', 'excerpt', 'meta', 'comment_status', 'ping_status', 'terms' ),
-			'rules_post' => 'id: ' . $post->ID,
-			'post_comment_status' => 'closed',
-			'post_ping_status' => 'open',
-			'rules_post_type' => 'page',
-			'post_author' => 'id: 1',
-			'rules_post_title' => 'Updated Test Post',
-			'rules_post_content' => 'New post content.',
-			'rules_post_excerpt' => 'New post excerpt.',
-			'rules_post_status' => 'draft',
-			'rules_post_date' => 1,
-			'post_tax_terms' => 'id: 1',
-			'post_tax_terms_method' => 'set',
-			'post_meta_values' => "hero: Joker\nvillain: Batman",
+			'rules_update_attributes' => array( 'comment_approved', 'post', 'parent', 'author', 'content', 'date', 'meta' ),
+			'rules_comment' => 'id: ' . $subcomment->comment_ID,
+			'rules_comment_post' => 'id:' . $post_id,
+			'rules_comment_parent' => 0,
+			'comment_author_type' => 'existing',
+			'comment_author' => 'id:1',
+			'comment_author_name' => 'Captain America',
+			'comment_author_email' => 'captain@america.com',
+			'comment_author_url' => 'http://blueshield.marvel.com',
+			'rules_comment_content' => "Happy go lucky.",
+			'rules_comment_date' => time(),
+			'comment_meta_values' => "smoke: And Mirrors",
+			'comment_approved' => 1,
 		);
+		
+		$update_comment = call_user_func( $update_action->arguments['comment']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
+		$this->assertTrue( $post instanceof \WP_Post );
 		
 		$post = call_user_func( $update_action->arguments['post']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
 		$this->assertTrue( $post instanceof \WP_Post );
 		
-		$type = call_user_func( $update_action->arguments['type']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
-		$this->assertTrue( $type instanceof \WP_Post_Type );
+		$parent = call_user_func( $update_action->arguments['parent']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
+		$this->assertNull( $parent );
 		
 		$author = call_user_func( $update_action->arguments['author']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
 		$this->assertTrue( $author instanceof \WP_User );
 		
-		$title = call_user_func( $update_action->arguments['title']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
-		$this->assertEquals( $title, 'Updated Test Post' );
-		
 		$content = call_user_func( $update_action->arguments['content']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
-		$this->assertEquals( $content, 'New post content.' );
-		
-		$excerpt = call_user_func( $update_action->arguments['excerpt']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
-		$this->assertEquals( $excerpt, 'New post excerpt.' );
-		
-		$status = call_user_func( $update_action->arguments['status']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
-		$this->assertEquals( $status, 'draft' );
+		$this->assertEquals( $content, $values['rules_comment_content'] );
 		
 		$date = call_user_func( $update_action->arguments['date']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
 		$this->assertTrue( $date instanceof \DateTime );
 		
-		$terms = call_user_func( $update_action->arguments['terms']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
-		$this->assertTrue( is_array( $terms ) );
-		$this->assertTrue( $terms[0] instanceof \WP_Term );
-		
 		$meta = call_user_func( $update_action->arguments['meta']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
 		$this->assertTrue( is_array( $meta ) );
-		$this->assertEquals( $meta['villain'], "Batman" );
-		$this->assertEquals( $meta['hero'], "Joker" );
+		$this->assertEquals( $meta['smoke'], "And Mirrors" );
 		
-		$result = call_user_func( $update_action->callback, $post, $type, $author, $title, $content, $excerpt, $status, $date, $terms, $meta, $values, $arg_map, $this->test_operation );
+		$result = call_user_func( $update_action->callback, $update_comment, $post, $parent, $author, $content, $date, $meta, $values, $arg_map, $this->test_operation );
 		$this->assertTrue( is_array( $result ) and $result['success'] );
 		
-		$post = get_post( $post->ID );
-		$this->assertEquals( $post->post_title, $title );
-		$this->assertEquals( $post->post_author, $author->ID );
-		$this->assertEquals( $post->post_content, $content );
-		$this->assertEquals( $post->post_excerpt, $excerpt );
-		$this->assertEquals( $post->post_status, 'draft' );
-		$this->assertEquals( $post->post_date, '1970-01-01 00:00:01' );
-		$this->assertEquals( $post->post_date_gmt, '1970-01-01 00:00:01' );
-		$this->assertEquals( $post->post_type, 'page' );
-		$this->assertEquals( $post->comment_status, 'closed' );
-		$this->assertEquals( $post->ping_status, 'open' );
-		$this->assertEquals( get_post_meta( $post->ID, 'villain', true ), "Batman" );
-		$this->assertEquals( get_post_meta( $post->ID, 'hero', true ), "Joker" );		
-		$this->assertTrue( has_term( 1, 'category', $post->ID ) );
-		$this->assertTrue( ! has_term( $created_term['term_id'], 'category', $post->ID ) );
+		$comment = get_comment( $result['args']['comment_ID'] );
+		$this->assertTrue( $comment instanceof \WP_Comment );
+		$this->assertTrue( $comment->comment_parent == 0 );
+		$this->assertTrue( $comment->comment_approved == 1 );
+		$this->assertTrue( $comment->comment_post_ID == $post->ID );
+		$this->assertTrue( $comment->user_id == $author->ID );
+		$this->assertEquals( $comment->comment_content, $content );
+		$this->assertEquals( $comment->comment_date_gmt, date( 'Y-m-d H:i:s', $date->getTimestamp() ) );
+		$this->assertEquals( get_comment_meta( $comment->comment_ID, 'smoke', true ), "And Mirrors" );
 
 		/* Trash / Delete A Post */
-		$delete_action = $this->plugin->getAction( 'rules_delete_post' );
+		$delete_action = $this->plugin->getAction( 'rules_delete_comment' );
 
 		$values = array( 
-			'rules_post' => 'id: ' . $post->ID,
-			'rules_post_trash' => 'trash',
+			'rules_comment' => 'id: ' . $comment->comment_ID,
+			'rules_comment_trash' => 'trash',
 		);
 		
-		$post = call_user_func( $delete_action->arguments['post']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
-		$this->assertTrue( $post instanceof \WP_Post );
+		$comment = call_user_func( $delete_action->arguments['comment']['configuration']['getArg'], $values, $arg_map, $this->test_operation );
+		$this->assertTrue( $comment instanceof \WP_Comment );
 		
-		$result = call_user_func( $delete_action->callback, $post, $values, $arg_map, $this->test_operation );
+		$result = call_user_func( $delete_action->callback, $comment, $values, $arg_map, $this->test_operation );
 		$this->assertTrue( is_array( $result ) and $result['success'] );
 		
-		$post = get_post( $post->ID );
-		$this->assertTrue( $post->post_status == 'trash' );
+		$comment = get_comment( $comment->comment_ID );
+		$this->assertTrue( $comment->comment_approved == 'trash' );
 		
-		$values['rules_post_trash'] = 'delete';
-		$result = call_user_func( $delete_action->callback, $post, $values, $arg_map, $this->test_operation );
+		$values['rules_comment_trash'] = 'delete';
+		$result = call_user_func( $delete_action->callback, $comment, $values, $arg_map, $this->test_operation );
 		$this->assertTrue( is_array( $result ) and $result['success'] );
 		
-		$post = get_post( $post->ID );
-		$this->assertNull( $post );
+		$comment = get_comment( $comment->comment_ID );
+		$this->assertNull( $comment );
 	}
 	
 }

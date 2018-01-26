@@ -85,19 +85,9 @@ Actions
 ## Content
 - Create A Post
 - Update A Post
-  * Comment Status
-  * Ping Status
-  * Post Type
-  * Author
-  * Post Title
-  * Post Content
-  * Post Excerpt
-  * Post Status
-  * Post Date
-  * Taxonomy Terms
-  * Meta Data
 - Trash/Delete A Post
 - Create A Comment
-
+- Update A Comment
+- Trash/Delete A Comment
 
 

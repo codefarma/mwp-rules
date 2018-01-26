@@ -57,6 +57,84 @@ class Content
 	}
 	
 	/**
+	 * Get a decorated user select field for comment authors
+	 *
+	 * @return	array
+	 */
+	public function commentAuthorConfig()
+	{
+		$plugin = $this->plugin;
+		
+		/* Get the user selection config preset */
+		$config = $plugin->configPreset( 'user', 'comment_author', array( 'label' => 'Comment Author', 'row_attr' => array( 'id' => 'comment_author' ) ) );
+		
+		/* Reference base implementations */
+		$baseFormBuilder = $config['form'];
+		$baseArgGetter = $config['getArg'];
+		
+		/* Decorate the base form builder */
+		$config['form'] = function( $form, $values, $operation ) use ( $baseFormBuilder ) {
+			$form->addField( 'comment_author_type', 'choice', array(
+				'label' => __( 'Author Type', 'mwp-user' ),
+				'choices' => array(
+					__( 'Existing User', 'mwp-rules' ) => 'existing',
+					__( 'Anonymous User', 'mwp-rules' ) => 'anonymous',
+				),
+				'expanded' => true,
+				'required' => true,
+				'toggles' => array(
+					'existing' => array( 'show' => array( '#comment_author' ) ),
+					'anonymous' => array( 'show' => array( '#comment_author_name', '#comment_author_email', '#comment_author_url' ) ),
+				),
+				'data' => isset( $values['comment_author_type'] ) ? $values['comment_author_type'] : 'existing',
+			));
+			
+			call_user_func( $baseFormBuilder, $form, $values, $operation );
+			
+			$form->addField( 'comment_author_name', 'text', array(
+				'row_attr' => array( 'id' => 'comment_author_name' ),
+				'label' => __( 'Author Name', 'mwp-rules' ),
+				'description' => __( 'Optional. Enter the name of the comment author.', 'mwp-rules' ),
+				'data' => isset( $values['comment_author_name'] ) ? $values['comment_author_name'] : '',
+			));
+			
+			$form->addField( 'comment_author_email', 'text', array(
+				'row_attr' => array( 'id' => 'comment_author_email' ),
+				'label' => __( 'Author Email', 'mwp-rules' ),
+				'description' => __( 'Optional. Enter the email of the comment author.', 'mwp-rules' ),
+				'data' => isset( $values['comment_author_email'] ) ? $values['comment_author_email'] : '',
+			));
+			
+			$form->addField( 'comment_author_url', 'text', array(
+				'row_attr' => array( 'id' => 'comment_author_url' ),
+				'label' => __( 'Author Url', 'mwp-rules' ),
+				'description' => __( 'Optional. Enter the url of the comment author.', 'mwp-rules' ),
+				'data' => isset( $values['comment_author_url'] ) ? $values['comment_author_url'] : '',
+			));								
+		};
+		
+		/* Decorate the base argument getter */
+		$config['getArg'] = function( $values, $arg_map, $operation ) use ( $baseArgGetter ) {
+			$event = $operation->event();
+			if ( $values['comment_author_type'] == 'existing' ) {
+				return call_user_func( $baseArgGetter, $values, $arg_map, $operation );
+			} else {
+				$name = $event->replaceTokens( $values['comment_author_name'], $arg_map );
+				$email = $event->replaceTokens( $values['comment_author_email'], $arg_map );
+				$url = $event->replaceTokens( $values['comment_author_url'], $arg_map );
+				
+				return array( 
+					'name' => $name, 
+					'email' => $email, 
+					'url' => $url,
+				);
+			}								
+		};
+		
+		return $config;		
+	}
+	
+	/**
 	 * Register ECA's
 	 * 
 	 * @Wordpress\Action( for="rules_register_ecas" )
@@ -157,7 +235,7 @@ class Content
 						'argtypes' => array(
 							'object' => array( 'description' => 'The author of the post', 'classes' => array( 'WP_User' ) ),
 						),
-						'configuration' => $plugin->configPreset( 'user', 'post_author', array( 'label' => __( 'Post Author', 'mwp-rules' ) ) ),
+						'configuration' => $plugin->configPreset( 'user', 'post_author', array( 'label' => 'Post Author' ) ),
 					),
 					'title' => array(
 						'label' => 'Post Title',
@@ -166,7 +244,7 @@ class Content
 						'argtypes' => array(
 							'string' => array( 'description' => 'The title of the post' ),
 						),
-						'configuration' => $plugin->configPreset( 'text', 'rules_post_title', array( 'label' => __( 'Post Title', 'mwp-rules' ), 'attr' => array( 'placeholder' => __( 'Enter title', 'mwp-rules' ) ) ) ),
+						'configuration' => $plugin->configPreset( 'text', 'rules_post_title', array( 'label' => 'Post Title', 'attr' => array( 'placeholder' => __( 'Enter title', 'mwp-rules' ) ) ) ),
 					),
 					'content' => array(
 						'label' => 'Post Content',
@@ -174,7 +252,7 @@ class Content
 						'argtypes' => array(
 							'string' => array( 'description' => 'The content of the post' ),
 						),
-						'configuration' => $plugin->configPreset( 'textarea', 'rules_post_content', array( 'label' => __( 'Post Content', 'mwp-rules' ), 'attr' => array( 'style' => 'min-height: 250px' ) ) ),
+						'configuration' => $plugin->configPreset( 'textarea', 'rules_post_content', array( 'label' => 'Post Content', 'attr' => array( 'style' => 'min-height: 250px' ) ) ),
 					),
 					'excerpt' => array(
 						'label' => 'Post Excerpt',
@@ -182,7 +260,7 @@ class Content
 						'argtypes' => array(
 							'string' => array( 'description' => 'An excerpt of the post content' ),
 						),
-						'configuration' => $plugin->configPreset( 'textarea', 'rules_post_excerpt', array( 'label' => __( 'Post Excerpt', 'mwp-rules' ) ) ),
+						'configuration' => $plugin->configPreset( 'textarea', 'rules_post_excerpt', array( 'label' => 'Post Excerpt' ) ),
 					),
 					'status' => array(
 						'label' => 'Status',
@@ -232,7 +310,7 @@ class Content
 						'argtypes' => array(
 							'array' => array( 'description' => 'An associative array of meta values to add to the post' ),
 						),
-						'configuration' => $plugin->configPreset( 'meta_values', 'post_meta_values', array() ),
+						'configuration' => $plugin->configPreset( 'meta_values', 'post_meta_values' ),
 					),
 				),
 				'callback' => function( $type, $author, $title, $content, $excerpt, $status, $date, $terms, $meta, $values, $arg_map ) {
@@ -428,7 +506,7 @@ class Content
 						'argtypes' => array(
 							'object' => array( 'description' => 'The author of the post', 'classes' => array( 'WP_User' ) ),
 						),
-						'configuration' => $plugin->configPreset( 'user', 'post_author', array( 'label' => __( 'Post Author', 'mwp-rules' ) ) ),
+						'configuration' => $plugin->configPreset( 'user', 'post_author', array( 'label' => 'Post Author' ) ),
 					),
 					'title' => array(
 						'label' => 'Post Title',
@@ -437,7 +515,7 @@ class Content
 						'argtypes' => array(
 							'string' => array( 'description' => 'The title of the post' ),
 						),
-						'configuration' => $plugin->configPreset( 'text', 'rules_post_title', array( 'label' => __( 'Post Title', 'mwp-rules' ), 'attr' => array( 'placeholder' => __( 'Enter title', 'mwp-rules' ) ) ) ),
+						'configuration' => $plugin->configPreset( 'text', 'rules_post_title', array( 'label' => 'Post Title', 'attr' => array( 'placeholder' => __( 'Enter title', 'mwp-rules' ) ) ) ),
 					),
 					'content' => array(
 						'label' => 'Post Content',
@@ -445,7 +523,7 @@ class Content
 						'argtypes' => array(
 							'string' => array( 'description' => 'The content of the post' ),
 						),
-						'configuration' => $plugin->configPreset( 'textarea', 'rules_post_content', array( 'label' => __( 'Post Content', 'mwp-rules' ), 'attr' => array( 'style' => 'min-height: 250px' ) ) ),
+						'configuration' => $plugin->configPreset( 'textarea', 'rules_post_content', array( 'label' => 'Post Content', 'attr' => array( 'style' => 'min-height: 250px' ) ) ),
 					),
 					'excerpt' => array(
 						'label' => 'Post Excerpt',
@@ -453,7 +531,7 @@ class Content
 						'argtypes' => array(
 							'string' => array( 'description' => 'An excerpt of the post content' ),
 						),
-						'configuration' => $plugin->configPreset( 'textarea', 'rules_post_excerpt', array( 'label' => __( 'Post Excerpt', 'mwp-rules' ) ) ),
+						'configuration' => $plugin->configPreset( 'textarea', 'rules_post_excerpt', array( 'label' => 'Post Excerpt' ) ),
 					),
 					'status' => array(
 						'label' => 'Status',
@@ -528,7 +606,7 @@ class Content
 						'argtypes' => array(
 							'array' => array( 'description' => 'An associative array of meta values to update for the post' ),
 						),
-						'configuration' => $plugin->configPreset( 'meta_values', 'post_meta_values', array() ),
+						'configuration' => $plugin->configPreset( 'meta_values', 'post_meta_values' ),
 					),
 				),
 				'callback' => function( $post, $type, $author, $title, $content, $excerpt, $status, $date, $terms, $meta, $values, $arg_map ) {
@@ -629,7 +707,7 @@ class Content
 					
 					return array( 'success' => true, 'message' => 'Post updated successfully.', 'args' => $post_args );
 				}
-			)),			
+			)),
 			
 			/* Delete A Post */
 			array( 'rules_delete_post', array(
@@ -687,7 +765,7 @@ class Content
 							'choices' => $status_choices,
 							'expanded' => true,
 							'required' => true,
-							'data' => isset( $values['comment_approved'] ) ? $values['comment_approved'] : 'approve',
+							'data' => isset( $values['comment_approved'] ) ? $values['comment_approved'] : '1',
 						));
 						
 						$form->addField( 'post_run_php', 'checkbox', array(
@@ -720,14 +798,14 @@ class Content
 						'argtypes' => array(
 							'object' => array( 'description' => 'The post to assign the comment to', 'classes' => array( 'WP_Post' ) ),
 						),
-						'configuration' => $plugin->configPreset( 'post', 'rules_comment_post', array( 'label' => __( 'Parent Post', 'mwp-rules' ) ) ),
+						'configuration' => $plugin->configPreset( 'post', 'rules_comment_post', array( 'label' => 'Parent Post' ) ),
 					),
 					'parent' => array(
 						'label' => 'Parent Comment',
 						'argtypes' => array(
 							'object' => array( 'description' => 'The parent comment', 'classes' => array( 'WP_Comment' ) ),
 						),
-						'configuration' => $plugin->configPreset( 'comment', 'rules_comment_parent', array( 'label' => __( 'Parent Comment', 'mwp-rules' ) ) ),
+						'configuration' => $plugin->configPreset( 'comment', 'rules_comment_parent', array( 'label' => 'Parent Comment' ) ),
 					),
 					'author' => array(
 						'label' => 'Author',
@@ -736,75 +814,7 @@ class Content
 						'argtypes' => array(
 							'object' => array( 'description' => 'The author of the comment', 'classes' => array( 'WP_User' ) ),
 						),
-						'configuration' => call_user_func( function() use ( $plugin ) {
-							/* Get the user selection config preset */
-							$config = $plugin->configPreset( 'user', 'comment_author', array( 'label' => __( 'Comment Author', 'mwp-rules' ), 'row_attr' => array( 'id' => 'comment_author' ) ) );
-							
-							/* Reference base implementations */
-							$baseFormBuilder = $config['form'];
-							$baseArgGetter = $config['getArg'];
-							
-							/* Decorate the base form builder */
-							$config['form'] = function( $form, $values, $operation ) use ( $baseFormBuilder ) {
-								$form->addField( 'comment_author_type', 'choice', array(
-									'label' => __( 'Author Type', 'mwp-user' ),
-									'choices' => array(
-										__( 'Existing User', 'mwp-rules' ) => 'existing',
-										__( 'Anonymous User', 'mwp-rules' ) => 'anonymous',
-									),
-									'expanded' => true,
-									'required' => true,
-									'toggles' => array(
-										'existing' => array( 'show' => array( '#comment_author' ) ),
-										'anonymous' => array( 'show' => array( '#comment_author_name', '#comment_author_email', '#comment_author_url' ) ),
-									),
-									'data' => isset( $values['comment_author_type'] ) ? $values['comment_author_type'] : 'existing',
-								));
-								
-								call_user_func( $baseFormBuilder, $form, $values, $operation );
-								
-								$form->addField( 'comment_author_name', 'text', array(
-									'row_attr' => array( 'id' => 'comment_author_name' ),
-									'label' => __( 'Author Name', 'mwp-rules' ),
-									'description' => __( 'Optional. Enter the name of the comment author.', 'mwp-rules' ),
-									'data' => isset( $values['comment_author_name'] ) ? $values['comment_author_name'] : '',
-								));
-								
-								$form->addField( 'comment_author_email', 'text', array(
-									'row_attr' => array( 'id' => 'comment_author_email' ),
-									'label' => __( 'Author Email', 'mwp-rules' ),
-									'description' => __( 'Optional. Enter the email of the comment author.', 'mwp-rules' ),
-									'data' => isset( $values['comment_author_email'] ) ? $values['comment_author_email'] : '',
-								));
-								
-								$form->addField( 'comment_author_url', 'text', array(
-									'row_attr' => array( 'id' => 'comment_author_url' ),
-									'label' => __( 'Author Url', 'mwp-rules' ),
-									'description' => __( 'Optional. Enter the url of the comment author.', 'mwp-rules' ),
-									'data' => isset( $values['comment_author_url'] ) ? $values['comment_author_url'] : '',
-								));								
-							};
-							
-							/* Decorate the base argument getter */
-							$config['getArg'] = function( $values, $arg_map, $operation ) use ( $baseArgGetter ) {
-								$event = $operation->event();
-								if ( $values['comment_author_type'] == 'existing' ) {
-									return call_user_func( $baseArgGetter, $values, $arg_map, $operation );
-								} else {
-									$name = $event->replaceTokens( $values['comment_author_name'], $arg_map );
-									$email = $event->replaceTokens( $values['comment_author_email'], $arg_map );
-									$url = $event->replaceTokens( $values['comment_author_url'], $arg_map );
-									
-									return array( 
-										'name' => $name, 
-										'email' => $email, 
-										'url' => $url,
-									);
-								}								
-							};
-							
-							return $config;
-						}),
+						'configuration' => $this->commentAuthorConfig(),
 					),
 					'content' => array(
 						'label' => 'Comment Content',
@@ -812,14 +822,14 @@ class Content
 						'argtypes' => array(
 							'string' => array( 'description' => 'The content of the comment' ),
 						),
-						'configuration' => $plugin->configPreset( 'textarea', 'rules_comment_content', array( 'label' => __( 'Comment Content', 'mwp-rules' ), 'attr' => array( 'style' => 'min-height: 250px' ) ) ),
+						'configuration' => $plugin->configPreset( 'textarea', 'rules_comment_content', array( 'label' => 'Comment Content', 'attr' => array( 'style' => 'min-height: 250px' ) ) ),
 					),
 					'date' => array(
 						'label' => 'Comment Date',
 						'argtypes' => array(
 							'object' => array( 'description' => 'The date for the comment', 'classes' => array( 'DateTime' ) ),
 						),
-						'configuration' => $plugin->configPreset( 'datetime', 'rules_comment_date', array( 'label' => __( 'Comment Date', 'mwp-rules' ) ) ),
+						'configuration' => $plugin->configPreset( 'datetime', 'rules_comment_date', array( 'label' => 'Comment Date' ) ),
 					),
 					'meta' => array(
 						'label' => 'Meta Values',
@@ -827,7 +837,7 @@ class Content
 						'argtypes' => array(
 							'array' => array( 'description' => 'An associative array of meta values to add to the comment' ),
 						),
-						'configuration' => $plugin->configPreset( 'meta_values', 'comment_meta_values', array() ),
+						'configuration' => $plugin->configPreset( 'meta_values', 'comment_meta_values' ),
 					),
 				),
 				'callback' => function( $post, $parent, $author, $content, $date, $meta, $values, $arg_map ) {
@@ -895,9 +905,228 @@ class Content
 			)),
 			
 			/* Update A Comment */
+			array( 'rules_update_comment', array(
+				'title' => 'Update A Comment',
+				'description' => 'Update the attributes of an existing comment.',
+				'configuration' => array(
+					'form' => function( $form, $values, $operation ) use ( $plugin ) {
+						
+						$form->addField( 'rules_update_attributes', 'choice', array(
+							'label' => __( 'Attributes to update', 'mwp-rules' ),
+							'choices' => array(
+								__( 'Comment Approved', 'mwp-rules' ) => 'comment_approved',
+								__( 'Assigned Post', 'mwp-rules' ) => 'post',
+								__( 'Parent Comment', 'mwp-rules' ) => 'parent',
+								__( 'Author', 'mwp-rules' ) => 'author',
+								__( 'Comment Content', 'mwp-rules' ) => 'content',
+								__( 'Comment Date', 'mwp-rules' ) => 'date',
+								__( 'Meta Data', 'mwp-rules' ) => 'meta',
+							),
+							'expanded' => true,
+							'multiple' => true,
+							'data' => isset( $values['rules_update_attributes'] ) ? $values['rules_update_attributes'] : array(),
+							'description' => __( 'Choose the attributes that you want to update with this action.', 'mwp-rules' ),
+							'toggles' => array(
+								'comment_approved' => array( 'show' => array( '#update_comment_approved' ) ),
+								'post' => array( 'show' => array( '#rules_update_comment_post_form_wrapper' ) ),
+								'parent' => array( 'show' => array( '#rules_update_comment_parent_form_wrapper' ) ),
+								'author' => array( 'show' => array( '#rules_update_comment_author_form_wrapper' ) ),
+								'content' => array( 'show' => array( '#rules_update_comment_content_form_wrapper' ) ),
+								'date' => array( 'show' => array( '#rules_update_comment_date_form_wrapper' ) ),
+								'meta' => array( 'show' => array( '#rules_update_comment_meta_form_wrapper' ) ),
+							),
+						));
+						
+						$status_choices = array(
+							__( 'Approved', 'mwp-rules' ) => 1,
+							__( 'Unapproved', 'mwp-rules' ) => 0,
+						);
+						
+						$form->addField( 'comment_approved', 'choice', array(
+							'row_attr' => array( 'id' => 'update_comment_approved' ),
+							'label' => __( 'Comment Status', 'mwp-rules' ),
+							'choices' => $status_choices,
+							'expanded' => true,
+							'required' => true,
+							'data' => isset( $values['comment_approved'] ) ? $values['comment_approved'] : '1',
+						));
+					},
+				),
+				'arguments' => array(
+					'comment' => array(
+						'label' => 'Comment To Update',
+						'required' => true,
+						'argtypes' => array(
+							'object' => array( 'description' => 'The comment to update', 'classes' => array( 'WP_Comment' ) ),
+						),
+						'configuration' => $plugin->configPreset( 'comment', 'rules_comment', array( 'label' => 'Comment' ) ),
+					),
+					'post' => array(
+						'label' => 'Post Comment Is Assigned To',
+						'argtypes' => array(
+							'object' => array( 'description' => 'The post to assign the comment to', 'classes' => array( 'WP_Post' ) ),
+						),
+						'configuration' => $plugin->configPreset( 'post', 'rules_comment_post', array( 'label' => 'Parent Post' ) ),
+					),
+					'parent' => array(
+						'label' => 'Parent Comment',
+						'argtypes' => array(
+							'object' => array( 'description' => 'The parent comment', 'classes' => array( 'WP_Comment' ) ),
+						),
+						'configuration' => $plugin->configPreset( 'comment', 'rules_comment_parent', array( 'label' => 'Parent Comment' ) ),
+					),
+					'author' => array(
+						'label' => 'Author',
+						'default' => 'manual',
+						'argtypes' => array(
+							'object' => array( 'description' => 'The author of the comment', 'classes' => array( 'WP_User' ) ),
+						),
+						'configuration' => $this->commentAuthorConfig(),
+					),
+					'content' => array(
+						'label' => 'Comment Content',
+						'default' => 'manual',
+						'argtypes' => array(
+							'string' => array( 'description' => 'The content of the comment' ),
+						),
+						'configuration' => $plugin->configPreset( 'textarea', 'rules_comment_content', array( 'label' => 'Comment Content', 'attr' => array( 'style' => 'min-height: 250px' ) ) ),
+					),
+					'date' => array(
+						'label' => 'Comment Date',
+						'argtypes' => array(
+							'object' => array( 'description' => 'The date for the comment', 'classes' => array( 'DateTime' ) ),
+						),
+						'configuration' => $plugin->configPreset( 'datetime', 'rules_comment_date', array( 'label' => 'Comment Date' ) ),
+					),
+					'meta' => array(
+						'label' => 'Meta Values',
+						'default' => 'manual',
+						'argtypes' => array(
+							'array' => array( 'description' => 'An associative array of meta values to add to the comment' ),
+						),
+						'configuration' => $plugin->configPreset( 'meta_values', 'comment_meta_values' ),
+					),
+				),
+				'callback' => function( $comment, $post, $parent, $author, $content, $date, $meta, $values, $arg_map ) {
+					
+					if ( ! $comment instanceof \WP_Comment ) {
+						return array( 'error' => 'Comment is not an instance of WP_Comment', 'comment' => $comment );
+					}
+					
+					$update_attributes = (array) $values['rules_update_attributes'];
+					$comment_args = array( 'comment_ID' => $comment->comment_ID );
+					
+					if ( in_array( 'comment_approved', $update_attributes ) ) {
+						$comment_args['comment_approved'] = $values['comment_approved'];
+					}
+					
+					if ( in_array( 'post', $update_attributes ) ) {
+						if ( ! $post instanceof \WP_Post ) {
+							return array( 'error' => 'Post is not an instance of WP_Post. Aborted.', 'post' => $post );
+						}
+						$comment_args['comment_post_ID'] = $post->ID;
+					}
+					
+					if ( in_array( 'parent', $update_attributes ) ) {
+						if ( $parent && ! $parent instanceof \WP_Comment ) {
+							return array( 'error' => "Parent comment is not an instance of WP_Comment. Aborted.", 'parent' => $parent );
+						}
+						$comment_args['comment_parent'] = $parent ? $parent->comment_ID : 0;
+					}
+					
+					if ( in_array( 'date', $update_attributes ) ) {
+						if ( ! $date instanceof \DateTime ) {
+							return array( 'error' => 'Date is not an instance of DateTime. Aborted.', 'date' => $date );
+						}
+						$comment_args['comment_date'] = date( 'Y-m-d H:i:s', $date->getTimestamp() );
+						$comment_args['comment_date_gmt'] = date( 'Y-m-d H:i:s', $date->getTimestamp() );
+					}
+					
+					if ( in_array( 'author', $update_attributes ) ) {
+						if ( $values['comment_author_type'] == 'existing' and ! $author instanceof \WP_User ) {
+							return array( 'error' => 'Author is not an instance of WP_User. Aborted.', 'author' => $author );
+						}
+						if ( is_array( $author ) ) {
+							$comment_args['comment_author'] = isset( $author['name'] ) ? $author['name'] : '';
+							$comment_args['comment_author_email'] = isset( $author['email'] ) ? $author['email'] : '';
+							$comment_args['comment_author_url'] = isset( $author['url'] ) ? $author['url'] : '';
+							$comment_args['user_id'] = 0;
+						} else {
+							$comment_args['comment_author'] = '';
+							$comment_args['comment_author_email'] =  '';
+							$comment_args['comment_author_url'] =  '';
+							$comment_args['user_id'] = $author->ID;
+						}
+					}
+					
+					if ( in_array( 'content', $update_attributes ) ) {
+						if ( empty( $content ) ) {
+							return array( 'error' => 'Comment content is empty. Aborted.' );
+						}
+						$comment_args['comment_content'] = $content;
+					}
+					
+					$result = wp_update_comment( $comment_args, true );
+					
+					if ( ! $result ) {
+						return array( 'success' => false, 'message' => 'Comment update failed.', 'args' => $comment_args );
+					}
+					
+					if ( in_array( 'meta', $update_attributes ) and is_array( $meta ) ) {
+						foreach( $meta as $key => $value ) {
+							update_comment_meta( $comment->comment_ID, $key, $value );
+						}
+					}
+					
+					return array( 'success' => true, 'message' => 'Comment updated successfully.', 'args' => $comment_args );
+
+				}
+			)),
 			
 			/* Delete A Comment */
-			
+			array( 'rules_delete_comment', array(
+				'title' => 'Trash/Delete A Comment',
+				'description' => 'Delete or trash a comment.',
+				'configuration' => array(
+					'form' => function( $form, $values ) {
+						$form->addField( 'rules_comment_trash', 'choice', array(
+							'label' => __( 'Delete Method', 'mwp-rules' ),
+							'choices' => array(
+								__( 'Move to trash only', 'mwp-rules' ) => 'trash',
+								__( 'Delete permanently', 'mwp-rules' ) => 'delete',
+							),
+							'data' => isset( $values['rules_comment_trash'] ) ? $values['rules_comment_trash'] : 'trash',
+							'expanded' => true,
+							'required' => true,
+						));
+					},
+				),
+				'arguments' => array(
+					'comment' => array(
+						'label' => 'Comment To Delete',
+						'required' => true,
+						'argtypes' => array(
+							'object' => array( 'description' => 'The comment to delete', 'classes' => array( 'WP_Comment' ) ),
+						),
+						'configuration' => $plugin->configPreset( 'comment', 'rules_comment', array( 'label' => 'Comment To Delete' ) ),
+					),
+				),
+				'callback' => function( $comment, $values ) {
+					
+					if ( ! $comment instanceof \WP_Comment ) {
+						return array( 'error' => 'Comment is not an instance of WP_Comment', 'comment' => $comment );
+					}
+					
+					$force_delete = ( isset( $values['rules_comment_trash'] ) and $values['rules_comment_trash'] == 'delete' ) ? true : false;
+					$result = wp_delete_comment( $comment->comment_ID, $force_delete );
+					
+					if ( $result ) {
+						return array( 'success' => true, 'message' => ( $force_delete ? 'Comment permanently deleted.' : 'Comment moved to trash.' ), 'comment' => $comment, 'forced' => $forced_delete );
+					}
+					
+					return array( 'success' => false, 'message' => 'Delete failed.', 'comment' => $comment, 'forced' => $forced_delete );
+				},
+			)),			
 		));
 		
 	}	
