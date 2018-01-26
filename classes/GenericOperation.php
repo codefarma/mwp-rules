@@ -143,9 +143,10 @@ abstract class GenericOperation extends ActiveRecord
 						$arg_sources[ 'Custom PHP Code' ] = 'phpcode';
 					}
 					
-					$form->addHeading( $arg_name . '_heading', isset( $arg['label'] ) ? $arg['label'] : $arg_name );
+					$form->addHtml( '__' . $arg_name . '_form_wrapper_start', '<div id="' . $argNameKey . '_form_wrapper">' );
+					$form->addHeading( '__' . $arg_name . '_heading', isset( $arg['label'] ) ? $arg['label'] : $arg_name );
 					
-					$argSourceField = $form->addField( $argNameKey . '_source', 'choice', array(
+					$form->addField( $argNameKey . '_source', 'choice', array(
 						'label' => __( 'Source', 'mwp-rules' ),
 						'choices' => $arg_sources,
 						'data' => isset( $operation->data[ $argNameKey . '_source' ] ) ? $operation->data[ $argNameKey . '_source' ] : $default_source,
@@ -170,9 +171,9 @@ abstract class GenericOperation extends ActiveRecord
 						 * Note: Callbacks should return an array with the ID's of their
 						 * added form fields so we know what to toggle.
 						 */
-						$form->addHtml( 'manual_config_start_' . $arg_name, '<div id="' . $argNameKey . '_manualConfig">' );
+						$form->addHtml( '__manual_config_start_' . $arg_name, '<div id="' . $argNameKey . '_manualConfig">' );
 						$_fields = call_user_func_array( $arg[ 'configuration' ][ 'form' ], array( $form, $operation->data, $operation ) );
-						$form->addHtml( 'manual_config_end_' . $arg_name, '</div>' );
+						$form->addHtml( '__manual_config_end_' . $arg_name, '</div>' );
 					}
 					
 					/**
@@ -227,6 +228,8 @@ abstract class GenericOperation extends ActiveRecord
 							'required' => false,
 						));
 					}
+					
+					$form->addHtml( '__' . $arg_name . '_form_wrapper_end', '</div>' );
 				}
 			}
 			
@@ -249,7 +252,7 @@ abstract class GenericOperation extends ActiveRecord
 	public function processConfigForm( $values )
 	{
 		foreach( $values as $key => $value ) {
-			if ( substr( $key, 0, 14 ) == 'manual_config_' ) {
+			if ( substr( $key, 0, 2 ) == '__' ) {
 				unset( $values[$key] );
 			}
 		}
@@ -410,7 +413,7 @@ abstract class GenericOperation extends ActiveRecord
 								 * already in a state that can be passed directly to the operation callback.
 								 */
 								if ( isset ( $arg[ 'configuration' ][ 'getArg' ] ) and is_callable( $arg[ 'configuration' ][ 'getArg' ] ) ) {
-									$operation_args[] = call_user_func_array( $arg[ 'configuration' ][ 'getArg' ], array( $this->data, $this ) );
+									$operation_args[] = call_user_func_array( $arg[ 'configuration' ][ 'getArg' ], array( $this->data, $arg_map, $this ) );
 								}
 								else {
 									$argument_missing = TRUE;
@@ -611,10 +614,9 @@ abstract class GenericOperation extends ActiveRecord
 					/**
 					 * Perform token replacements on string value arguments
 					 */
-					$tokens = $event->getTokens( $arg_map );
 					foreach ( $operation_args as &$_operation_arg ) {
 						if ( in_array( gettype( $_operation_arg ), array( 'string' ) ) ) {
-							$_operation_arg = $event->replaceTokens( $_operation_arg, $tokens );
+							$_operation_arg = $event->replaceTokens( $_operation_arg, $arg_map );
 						}
 					}
 					
@@ -667,8 +669,7 @@ abstract class GenericOperation extends ActiveRecord
 								 * On a calculated date
 								 */
 								case 4:
-									$evaluate = function( $phpcode ) use ( $arg_map )
-									{
+									$evaluate = function( $phpcode ) use ( $arg_map ) {
 										extract( $arg_map );
 										return @eval( $phpcode );
 									};

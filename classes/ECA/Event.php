@@ -281,17 +281,17 @@ class Event extends BaseDefinition
 	 * Replace Tokens
 	 * 
 	 * @param 	string		$string				The string with possible tokens to replace
-	 * @param	array		$replacements		An array of string replacement values
+	 * @param	array		$arg_map			The argument map of starting values to use with tokens
 	 * @return	string							The string with tokens replaced
 	 */
-	public function replaceTokens( $string, $replacements )
+	public function replaceTokens( $string, $arg_map )
 	{
-		if ( empty( $replacements ) or ! is_array( $replacements ) )
-		{
+		$tokens = $this->getTokens( $arg_map );
+		if ( empty( $tokens ) or ! is_array( $tokens ) ) {
 			return $string;
 		}
 		
-		return strtr( $string, $replacements );
+		return strtr( (string) $string, $tokens );
 	}
 
 	/**
