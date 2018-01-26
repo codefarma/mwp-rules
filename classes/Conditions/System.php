@@ -421,7 +421,7 @@ class System
 					if ( ! is_object( $object ) ) {
 						return FALSE;
 					}
-				
+					
 					switch ( $values['rules_comparison_type'] ) {
 						case 'isa':        return is_a( $object, is_object( $value ) ? get_class( $value ) : $value );
 						case 'isclass':	   return get_class( $object ) == ltrim( is_object( $value ) ? get_class( $value ) : $value, '\\' );
@@ -489,11 +489,12 @@ class System
 					
 					switch ( $values['rules_comparison_type'] ) {
 						case '?':
-							$value =  intval( $values[ '_compare_minutes' ] 	) * 60
-								+ intval( $values[ 'compare_hours' ]  ) * ( 60 * 60 )
-								+ intval( $values[ 'compare_days' ]   ) * ( 60 * 60 * 24 )
-								+ intval( $values[ 'compare_months' ] ) * ( 60 * 60 * 24 * 30 )
-								+ intval( $values[ 'compare_years' ]  ) * ( 60 * 60 * 24 * 365 );
+							$value = 0
+								+ ( intval( $values[ 'compare_minutes' ] ) * 60 )
+								+ ( intval( $values[ 'compare_hours' ]  ) * ( 60 * 60 ) )
+								+ ( intval( $values[ 'compare_days' ]   ) * ( 60 * 60 * 24 ) )
+								+ ( intval( $values[ 'compare_months' ] ) * ( 60 * 60 * 24 * 30 ) )
+								+ ( intval( $values[ 'compare_years' ]  ) * ( 60 * 60 * 24 * 365 ) );
 								
 							return abs( $date1->getTimestamp() - $date2->getTimestamp() ) < $value;
 							
@@ -514,7 +515,7 @@ class System
 			)),
 			
 			/* Data Type Comparision */
-			array( 'rules_data_type_comparision', array(
+			array( 'rules_data_type_comparison', array(
 				'title' => 'Check Data Type',
 				'description' => 'Check if a value has a certain data type.',
 				'configuration' => array(
@@ -575,7 +576,7 @@ class System
 				),
 				'callback' => function( $action_key ) {
 					if ( $action_key ) {
-						$count = \MWP\Rules\ScheduledAction::countWhere( array( 'schedule_key=%s', $action_key ) );
+						$count = \MWP\Rules\ScheduledAction::countWhere( array( 'schedule_unique_key=%s', $action_key ) );
 						return $count > 0;
 					}
 					
