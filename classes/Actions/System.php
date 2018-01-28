@@ -340,7 +340,43 @@ class System
 			/* Update Meta Data */
 			array( 'rules_update_metadata', array(
 				'title' => 'Update Meta Data',
-				'description' => 'Update the meta data for a given object or array of objects (user,post,comment,term).',
+				'description' => 'Update the meta data for given object(s) (user, post, comment, or term).',
+				'configuration' => array(
+					'form' => function( $form, $values ) {
+						$form->addField( 'rules_meta_update_method', 'choice', array(
+							'label' => __( 'Update Method', 'mwp-rules' ),
+							'description' => "<br><p class='alert alert-success'>" . __( 'The update method allows you to choose how the provided value will be used to update any existing value for the meta key. If an existing value does not exist, it will be created.', 'mwp-rules' ) . "</p>",
+							'choices' => array(
+								__( 'Set to provided value explicitly', 'mwp-rules' ) => 'explicit',
+								__( 'String: Append provided value to end of existing value', 'mwp-rules' ) => 'append_string',
+								__( 'String: Prepend provided value to beginning of existing value', 'mwp-rules' ) => 'prepend_string',
+								__( 'String: Remove provided value from existing value if existing value contains it', 'mwp-rules' ) => 'remove_string',
+								__( 'Array: Append provided value to the end of the existing value', 'mwp-rules' ) => 'append_array',
+								__( 'Array: Prepend provided value to the beginning of existing value', 'mwp-rules' ) => 'prepend_array',
+								__( 'Array: Remove provided value from existing value if existing value contains it', 'mwp-rules' ) => 'remove_array',
+								__( 'Math: Add provided value to existing value', 'mwp-rules' ) => 'add',
+								__( 'Math: Subtract provided value from existing value', 'mwp-rules' ) => 'subtract',
+								__( 'Math: Multiply existing value by provided value', 'mwp-rules' ) => 'multiply',
+								__( 'Math: Divide existing value by provided value', 'mwp-rules' ) => 'divide',
+							),
+							'expanded' => false,
+							'required' => true,
+							'data' => isset( $values['rules_meta_update_method'] ) ? $values['rules_meta_update_method'] : 'explicit',
+							'toggles' => array(
+								'append_array' => array( 'show' => array( '#rules_meta_array_unique' ) ),
+								'prepend_array' => array( 'show' => array( '#rules_meta_array_unique' ) ),
+							),
+						));
+						
+						$form->addField( 'rules_meta_array_unique', 'checkbox', array(
+							'row_attr' => array( 'id' => 'rules_meta_array_unique' ),
+							'label' => __( 'Keep Values Unique', 'mwp-rules' ),
+							'description' => __( 'Choose whether the array saved in the meta field should only contain unique values.', 'mwp-rules' ),
+							'data' => isset( $values['rules_meta_array_unique'] ) ? (bool) $values['rules_meta_array_unique'] : true,
+							'value' => 1,
+						));
+					},
+				),
 				'arguments' => array(
 					'association' => array(
 						'label' => 'Associated Object(s)',
@@ -361,6 +397,8 @@ class System
 							'form' => function( $form, $values ) {
 								$form->addField( 'rules_meta_key', 'text', array(
 									'label' => __( 'Meta Key', 'mwp-rules' ),
+									'description' => __( 'Enter the key for the meta value you want to update.', 'mwp-rules' ),
+									'attr' => array( 'placeholder' => 'meta_key' ),
 									'data' => isset( $values['rules_meta_key'] ) ? $values['rules_meta_key'] : '',
 								));
 							},
@@ -377,6 +415,7 @@ class System
 							'form' => function( $form, $values ) {
 								$form->addField( 'rules_meta_value', 'text', array(
 									'label' => __( 'Meta Value', 'mwp-rules' ),
+									'description' => __( 'Input the value that will be used to update the meta key.', 'mwp-rules' ),
 									'data' => isset( $values['rules_meta_value'] ) ? $values['rules_meta_value'] : '',
 								));
 							},
@@ -390,23 +429,77 @@ class System
 					if ( $meta_key ) {
 						$association = is_array( $association ) ? $association : array( $association );
 						$updates_count = 0;
+						$update_method = isset( $values['rules_meta_update_method'] ) ? $values['rules_meta_update_method'] : 'explicit';
 						foreach( $association as $object ) {
 							if ( is_object( $object ) ) {
-								$updates_count++;
+								$entity = null;
 								switch( get_class( $object ) ) {
-									case 'WP_User': update_user_meta( $object->ID, $meta_key, $meta_value ); break;
-									case 'WP_Post': update_post_meta( $object->ID, $meta_key, $meta_value ); break;
-									case 'WP_Comment': update_comment_meta( $object->comment_ID, $meta_key, $meta_value ); break;
-									case 'WP_Term': update_term_meta( $object->term_id, $meta_key, $meta_value ); break;
-									default: $updates_count--;
+									case 'WP_User':    $entity = 'user';    break;
+									case 'WP_Post':    $entity = 'post';    break; 
+									case 'WP_Comment': $entity = 'comment'; break; 
+									case 'WP_Term':    $entity = 'term';    break;
+								}
+								if ( $entity !== null ) {
+									$new_value = $existing_value = call_user_func( 'get_' . $entity . '_meta', $object->ID, $meta_key, true );
+									switch( $update_method ) {
+										case 'explicit': 
+											$new_value = $meta_value; 
+											break;
+										case 'append_string':
+											$new_value = (string) $existing_value . (string) $meta_value;
+											break;
+										case 'prepend_string':
+											$new_value = (string) $meta_value . (string) $existing_value;
+											break;
+										case 'remove_string':
+											$new_value = str_replace( (string) $meta_value, '', (string) $existing_value );
+											break;
+										case 'append_array':
+											$new_value = array_filter( array_merge( ( is_array( $existing_value ) ? $existing_value : array( $existing_value ) ), ( is_array( $meta_value ) ? $meta_value : array( $meta_value ) ) ) );
+											if ( $values['rules_meta_array_unique'] ) {
+												$new_value = array_unique( $new_value );
+											}
+											break;
+										case 'prepend_array':
+											$new_value = array_filter( array_merge( ( is_array( $meta_value ) ? $meta_value : array( $meta_value ) ), ( is_array( $existing_value ) ? $existing_value : array( $existing_value ) ) ) );
+											if ( $values['rules_meta_array_unique'] ) {
+												$new_value = array_unique( $new_value );
+											}
+											break;
+										case 'remove_array':
+											$new_value = array_filter( array_diff( ( is_array( $existing_value ) ? $existing_value : array( $existing_value ) ), ( is_array( $meta_value ) ? $meta_value : array( $meta_value ) ) ) );
+											if ( $values['rules_meta_array_unique'] ) {
+												$new_value = array_unique( $new_value );
+											}
+											break;
+										case 'add':
+											$new_value = $existing_value + $meta_value;
+											break;
+										case 'subtract':
+											$new_value = $existing_value - $meta_value;
+											break;
+										case 'multiply':
+											$new_value = $existing_value * $meta_value;
+											break;
+										case 'divide':
+											if ( $meta_value == 0 ) {
+												return array( 'error' => 'Division by zero is not possible.', 'meta_value' => $meta_value );
+											}
+											$new_value = $existing_value / $meta_value;
+											break;
+									}
+									
+									if ( call_user_func( 'update_' . $entity . '_meta', $object->ID, $meta_key, $new_value ) ) {
+										$updates_count++;
+									}
 								}
 							}
 						}
 						
-						return 'Meta key ('. $meta_key . ') updated for ' . $updates_count . ' objects';
+						return array( 'success' => true, 'message' => 'Meta key update successful.', 'updates_count' => $updates_count, 'update_method' => $update_method, 'objects' => $association, 'meta_key' => $meta_key, 'meta_value' => $meta_value );
 					}
 					
-					return 'No meta key specified to update. Skipped.';
+					return array( 'error' => 'No meta key specified to update.', 'meta_key' => $meta_key );
 				},
 			)),
 			
