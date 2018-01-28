@@ -34,7 +34,7 @@ $controller = $table->getController();
 					<?php if ( isset( $_action['icon'] ) ) : ?>
 						<i class="<?php echo $_action['icon'] ?>"></i>
 					<?php endif ?>
-					<?php echo $_action['title'] ?>
+					<?php echo isset( $_action['title'] ) ? $_action['title'] : '' ?>
 				</a>
 			<?php endforeach ?>
 		</div>

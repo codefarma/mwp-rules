@@ -207,10 +207,10 @@ abstract class GenericOperation extends ActiveRecord
 							foreach( $arg[ 'argtypes' ] as $_type => $_type_def ) {
 								if ( is_array( $_type_def ) ) {
 									if ( isset ( $_type_def[ 'description' ] ) ) {
-										$_arg_list[] = "<strong>{$_type}</strong>" . ( $_type_def[ 'classes' ] ? ' (' . implode( ',', (array) $_type_def[ 'classes' ] ) . ')' : '' ) . ": {$_type_def[ 'description' ]}";
+										$_arg_list[] = "<strong>{$_type}</strong>" . ( isset( $_type_def[ 'classes' ] ) ? ' (' . implode( ',', (array) $_type_def[ 'classes' ] ) . ')' : '' ) . ": {$_type_def[ 'description' ]}";
 									}
 									else {
-										$_arg_list[] = "<strong>{$_type}</strong>" . ( $_type_def[ 'classes' ] ? ' (' . implode( ',', (array) $_type_def[ 'classes' ] ) . ')' : '' );
+										$_arg_list[] = "<strong>{$_type}</strong>" . ( isset( $_type_def[ 'classes' ] ) ? ' (' . implode( ',', (array) $_type_def[ 'classes' ] ) . ')' : '' );
 									}
 								}
 								else {
