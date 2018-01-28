@@ -61,6 +61,9 @@ if ( ! class_exists( 'MWPRulesPlugin' ) )
 			$plugin->getConditionsController() ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ) );
 			$plugin->getActionsController()    ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ) );
 			
+			/* Backwards Compat */
+			include_once( 'includes/backwards.functions.php' );
+			
 			/* Core class map */
 			include_once( 'includes/rules.core.maps.php' );
 		}
