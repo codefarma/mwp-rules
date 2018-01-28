@@ -425,19 +425,20 @@ class System
 						),
 					),
 				),
-				'callback' => function( $association, $meta_key, $meta_value ) {
+				'callback' => function( $association, $meta_key, $meta_value, $values ) {
 					if ( $meta_key ) {
 						$association = is_array( $association ) ? $association : array( $association );
 						$updates_count = 0;
 						$update_method = isset( $values['rules_meta_update_method'] ) ? $values['rules_meta_update_method'] : 'explicit';
 						foreach( $association as $object ) {
+							$object_id = 0;
 							if ( is_object( $object ) ) {
 								$entity = null;
 								switch( get_class( $object ) ) {
-									case 'WP_User':    $entity = 'user';    break;
-									case 'WP_Post':    $entity = 'post';    break; 
-									case 'WP_Comment': $entity = 'comment'; break; 
-									case 'WP_Term':    $entity = 'term';    break;
+									case 'WP_User':    $entity = 'user';    $object_id = $object->ID;         break;
+									case 'WP_Post':    $entity = 'post';    $object_id = $object->ID;         break; 
+									case 'WP_Comment': $entity = 'comment'; $object_id = $object->comment_ID; break; 
+									case 'WP_Term':    $entity = 'term';    $object_id = $object->term_id;    break;
 								}
 								if ( $entity !== null ) {
 									$new_value = $existing_value = call_user_func( 'get_' . $entity . '_meta', $object->ID, $meta_key, true );
@@ -459,18 +460,21 @@ class System
 											if ( $values['rules_meta_array_unique'] ) {
 												$new_value = array_unique( $new_value );
 											}
+											$new_value = array_values( $new_value );
 											break;
 										case 'prepend_array':
 											$new_value = array_filter( array_merge( ( is_array( $meta_value ) ? $meta_value : array( $meta_value ) ), ( is_array( $existing_value ) ? $existing_value : array( $existing_value ) ) ) );
 											if ( $values['rules_meta_array_unique'] ) {
 												$new_value = array_unique( $new_value );
 											}
+											$new_value = array_values( $new_value );
 											break;
 										case 'remove_array':
 											$new_value = array_filter( array_diff( ( is_array( $existing_value ) ? $existing_value : array( $existing_value ) ), ( is_array( $meta_value ) ? $meta_value : array( $meta_value ) ) ) );
 											if ( $values['rules_meta_array_unique'] ) {
 												$new_value = array_unique( $new_value );
 											}
+											$new_value = array_values( $new_value );
 											break;
 										case 'add':
 											$new_value = $existing_value + $meta_value;
@@ -489,7 +493,7 @@ class System
 											break;
 									}
 									
-									if ( call_user_func( 'update_' . $entity . '_meta', $object->ID, $meta_key, $new_value ) ) {
+									if ( call_user_func( 'update_' . $entity . '_meta', $object_id, $meta_key, $new_value ) ) {
 										$updates_count++;
 									}
 								}
