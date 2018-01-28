@@ -170,40 +170,44 @@ class Action extends GenericOperation
 		
 		if ( $action->id ) {
 			
-			if ( $action->definition()->updates_filter ) {
+			$schedule_default = 1;
+			
+			if ( isset( $action->definition()->updates_filter ) and $action->definition()->updates_filter ) {
+				$schedule_default = 0;
 				$scheduling_options = array(
-					__( 'Immediately', 'mwp-rules' ) => 0,
+					__( 'Immediate - No Delay', 'mwp-rules' ) => 0,
 				);
 			} 
 			else {
 				$scheduling_options = array(
-					__( 'Immediately', 'mwp-rules' )                        => 0,
-					__( 'At the end of the event (default)', 'mwp-rules' )  => 1,
-					__( 'At the end of the page load', 'mwp-rules' )        => 5,
+					__( 'Immediate - No Delay', 'mwp-rules' ) => 0,
+					__( 'Queued until the end of the event (default)', 'mwp-rules' ) => 1,
+					__( 'Queued until the end of the page load', 'mwp-rules' ) => 5,
 					__( 'Fixed amount of time in the future', 'mwp-rules' ) => 2,
-					__( 'A specific date in the future', 'mwp-rules' )      => 3,
-					__( 'A calculated date and time', 'mwp-rules' )         => 4,
+					__( 'A specific date in the future', 'mwp-rules' ) => 3,
+					__( 'A calculated date and time', 'mwp-rules' ) => 4,
 				);
 			}
 			
 			$form->addField( 'schedule_mode', 'choice', array(
-				'label' => __( 'Action should be executed', 'mwp-rules' ),
+				'label' => __( 'Action execution is', 'mwp-rules' ),
 				'description' => "
 				  <ul>
-					<li>Immediate actions are taken before other rules on the same event are evaluated.</li>
-					<li>Actions executed at the end of the event allow actions to queue while other rules on the same event are tested.</li>
-					<li>Actions selected to execute at the end of the page load will queue until all events on the page have finished.</li>
-					<li>Actions selected to happen at a future time will be queued and executed via cron.</li>
+					<li style='margin-bottom:0'>Immediate actions happen in real time and can affect other rules attached to the same event that come afterwards.</li>
+					<li style='margin-bottom:0'>Actions queued until the end of the event allow other rules on the event to operate using the same starting conditions.</li>
+					<li style='margin-bottom:0'>Actions queued until the end of the page load allow all rules on all other events to happen before the action is taken.</li>
+					<li style='margin-bottom:0'>Actions selected to happen at a future time will be queued and executed via cron when the designated time comes.</li>
 				  </ul>",
 				'choices' => $scheduling_options,
-				'data' => $action->schedule_mode !== NULL ? $action->schedule_mode : ( isset( $action->definition()->default_mode ) ? $action->definition()->default_mode : ( (int) ! $action->definition()->updates_filter ) ),
+				'data' => $action->schedule_mode !== NULL ? $action->schedule_mode : ( isset( $action->definition()->default_mode ) ? $action->definition()->default_mode : $schedule_default ),
 				'required' => true,
-				'expanded' => true,
+				'expanded' => false,
 				'toggles' => array(
 					2 => array( 'show' => array( '#schedule_key', '#schedule_minutes', '#schedule_hours', '#schedule_days', '#schedule_months' ) ),
 					3 => array( 'show' => array( '#schedule_key', '#schedule_date' ) ),
 					4 => array( 'show' => array( '#schedule_key', '#schedule_customcode' ) ),
 				),
+				'row_suffix' => '<hr>',
 			),
 			NULL, 'title' );
 		
