@@ -237,7 +237,7 @@ class MWPRulesConditionsTest extends WP_UnitTestCase
 	{
 		$condition = $this->plugin->getCondition( 'rules_execute_php' );
 		$this->assertTrue( $condition instanceof \MWP\Rules\ECA\Condition );
-		$this->assertEquals( call_user_func( $condition->callback, array( 'rules_custom_phpcode' => 'return "boob";' ), array(), $this->test_operation ), "boob" );
+		$this->assertEquals( call_user_func( $condition->callback, array( 'rules_custom_phpcode' => 'return "test success";' ), array(), $this->test_operation ), "test succes" );
 	}
 	
 }
