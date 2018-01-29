@@ -6,7 +6,7 @@
  * Author: Kevin Carwile
  * Author URI: http://millermedia.io
  * Depends: lib-modern-framework
- * Version: 0.9.0
+ * Version: 0.9.1
  */
  
 if ( ! defined( 'ABSPATH' ) ) {
