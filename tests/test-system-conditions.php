@@ -189,7 +189,7 @@ class MWPRulesConditionsTest extends WP_UnitTestCase
 		$this->assertTrue( call_user_func( $condition->callback, $date, $date2->sub( new \DateInterval('P1D') ), array( 'rules_comparison_type' => '=' ) ) );
 		$this->assertFalse( call_user_func( $condition->callback, $date, $date2->sub( new \DateInterval('P1D') ), array( 'rules_comparison_type' => '=' ) ) );
 		$this->assertTrue( call_user_func( $condition->callback, $date, $date3->add( new \DateInterval('P1Y1M1DT1H') ), array( 'rules_comparison_type' => '?', 'compare_minutes' => 1, 'compare_hours' => 1, 'compare_days' => 6, 'compare_months' => 1, 'compare_years' => 1 ) ) );
-		$this->assertFalse( call_user_func( $condition->callback, $date, $date4->add( new \DateInterval('P1Y1M1DT1H2M') ), array( 'rules_comparison_type' => '?', 'compare_minutes' => 1, 'compare_hours' => 1, 'compare_days' => 0, 'compare_months' => 1, 'compare_years' => 1 ) ) );
+		$this->assertFalse( call_user_func( $condition->callback, $date, $date4->add( new \DateInterval('P1Y1M2DT1H2M') ), array( 'rules_comparison_type' => '?', 'compare_minutes' => 1, 'compare_hours' => 1, 'compare_days' => 0, 'compare_months' => 1, 'compare_years' => 1 ) ) );
 		
 	}
 	
@@ -237,7 +237,7 @@ class MWPRulesConditionsTest extends WP_UnitTestCase
 	{
 		$condition = $this->plugin->getCondition( 'rules_execute_php' );
 		$this->assertTrue( $condition instanceof \MWP\Rules\ECA\Condition );
-		$this->assertEquals( call_user_func( $condition->callback, array( 'rules_custom_phpcode' => 'return "test success";' ), array(), $this->test_operation ), "test succes" );
+		$this->assertEquals( call_user_func( $condition->callback, array( 'rules_custom_phpcode' => 'return "test success";' ), array(), $this->test_operation ), "test success" );
 	}
 	
 }

@@ -168,7 +168,7 @@ class MWPRulesSystemActionsTest extends WP_UnitTestCase
 	{
 		$action = $this->plugin->getAction( 'rules_execute_php' );
 		$this->assertTrue( $action instanceof \MWP\Rules\ECA\Action );
-		$this->assertEquals( call_user_func( $actopm->callback, array( 'rules_custom_phpcode' => 'return "test success";' ), array(), $this->test_operation ), "test success" );
+		$this->assertEquals( call_user_func( $action->callback, array( 'rules_custom_phpcode' => 'return "test success";' ), array(), $this->test_operation ), "test success" );
 	}
 	
 }
