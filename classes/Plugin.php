@@ -953,6 +953,63 @@ class Plugin extends \Modern\Wordpress\Plugin
 				);
 				break;
 				
+			/* Indexed Array */
+			case 'array':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'label' => __( 'Values', 'mwp-rules' ),
+							'description' => __( 'Enter values one per line.', 'mwp-rules' ),
+							'attr' => array( 'placeholder' => 'Value1&#10;Value2' ),
+							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$values = array();
+						$strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						foreach( $strings as $value ) {
+							$values[] = $value;
+						}
+						
+						return $values;
+					}
+				);
+				break;
+				
+			/* Keyed Array */
+			case 'key_array':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'label' => __( 'Key/Value Pairs', 'mwp-rules' ),
+							'description' => __( 'Enter keyed values one per line, in the format of "key: value".', 'mwp-rules' ),
+							'attr' => array( 'placeholder' => 'key1: value1&#10;key2: value2' ),
+							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$values = array();
+						$strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						foreach( $strings as $string ) {
+							if ( strpos( $string, ':' ) !== false ) {
+								$pieces = explode( ':', $string );
+								$key = trim( array_shift( $pieces ) );
+								$value = trim( implode( ':', $pieces ) );
+								if ( $key or strval( $key ) === '0' ) {
+									$meta_values[ $key ] = $value;
+								}
+							}
+						}
+						
+						return $values;
+					}
+				);
+				break;
+				
 			/* Meta Data */
 			case 'meta_values':
 			
@@ -970,11 +1027,13 @@ class Plugin extends \Modern\Wordpress\Plugin
 						$meta_values = array();
 						$meta_strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
 						foreach( $meta_strings as $meta_string ) {
-							$pieces = explode( ':', $meta_string );
-							$key = trim( array_shift( $pieces ) );
-							$value = trim( implode( ':', $pieces ) );
-							if ( $key ) {
-								$meta_values[ $key ] = $value;
+							if ( strpos( $meta_string, ':' ) !== false ) {
+								$pieces = explode( ':', $meta_string );
+								$key = trim( array_shift( $pieces ) );
+								$value = trim( implode( ':', $pieces ) );
+								if ( $key ) {
+									$meta_values[ $key ] = $value;
+								}
 							}
 						}
 						
@@ -1052,6 +1111,15 @@ class Plugin extends \Modern\Wordpress\Plugin
 			
 		}
 		
+		/**
+		 * Allow custom presets to be used
+		 *
+		 * @param    array     $config        The existing configuration preset (if any)
+		 * @param    string    $key           The key of the preset requested
+		 * @param    string    $field_name    The name to use when creating form fields
+		 * @param    array     $options       Customized options to use when creating the configuration
+		 * @return   array
+		 */
 		return apply_filters( 'rules_config_preset', $config, $key, $field_name, $options );
 	}
 
