@@ -5,8 +5,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- (added) changelog.md
 
+## [0.9.2] - 2018-02-28
+
+### Added
+- changelog.md
+- Array value form config presets
+
+### Changed
+- Updated to use MWP Application Framework 2.x
+
+### Fixed 
+- Broken tests
+- Missing calls to `saveValues()` callbacks on form configs
 
 ## [0.9.1] - 2018-01-29
 - (changed) The meta data update action now has additional options for how to update existing meta data
