@@ -139,7 +139,7 @@ class Action extends GenericOperation
 	{
 		$plugin = \MWP\Rules\Plugin::instance();
 		$action = $action ?: new static;
-		$form = $plugin->createForm( 'mwp_rules_action_form', array(), array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ), 'symfony' );
+		$form = $plugin->createForm( 'mwp_rules_action_form', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		
 		/* Display details for the event */
 		if ( $event = $action->event() ) {

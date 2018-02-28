@@ -148,7 +148,7 @@ class Condition extends GenericOperation
 	{
 		$plugin = \MWP\Rules\Plugin::instance();
 		$condition = $condition ?: new static;
-		$form = $plugin->createForm( 'mwp_rules_condition_form', array(), array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ), 'symfony' );
+		$form = $plugin->createForm( 'mwp_rules_condition_form', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		
 		/* Display details for the event */
 		if ( $event = $condition->event() ) {

@@ -144,7 +144,7 @@ class Rule extends ActiveRecord
 	{
 		$plugin = \MWP\Rules\Plugin::instance();
 		$rule = $rule ?: new Rule;
-		$form = $plugin->createForm( 'mwp_rules_rule_form', array(), array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ), 'symfony' );
+		$form = $plugin->createForm( 'mwp_rules_rule_form', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		
 		/* Display details for the event */
 		if ( $event = $rule->event() ) {
