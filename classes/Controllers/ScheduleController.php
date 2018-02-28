@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use Modern\Wordpress\Helpers\ActiveRecordController;
+use MWP\Framework\Helpers\ActiveRecordController;
 
 /**
  * Schedule Controller Class

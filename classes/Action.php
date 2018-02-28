@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use \Modern\Wordpress\Pattern\ActiveRecord;
+use \MWP\Framework\Pattern\ActiveRecord;
 
 /**
  * Action Class
@@ -133,7 +133,7 @@ class Action extends GenericOperation
 	 * Build an editing form
 	 *
 	 * @param	ActiveRecord					$action					The action to edit
-	 * @return	Modern\Wordpress\Helpers\Form
+	 * @return	MWP\Framework\Helpers\Form
 	 */
 	public static function getForm( $action=NULL )
 	{

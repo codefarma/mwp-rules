@@ -17,8 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 const ACTION_STANDARD = 0;
 const ACTION_ELSE = 1;
 
-use Modern\Wordpress\Framework;
-use Modern\Wordpress\Task;
+use MWP\Framework\Framework;
+use MWP\Framework\Task;
 use MWP\Rules\ECA\Loader;
 use MWP\Rules\ECA\Token;
 use MWP\Rules\Rule;
@@ -27,7 +27,7 @@ use MWP\Rules\ScheduledAction;
 /**
  * Plugin Class
  */
-class Plugin extends \Modern\Wordpress\Plugin
+class Plugin extends \MWP\Framework\Plugin
 {
 	/**
 	 * Instance Cache - Required
@@ -66,76 +66,76 @@ class Plugin extends \Modern\Wordpress\Plugin
 	public $actionQueue = array();
 	
 	/**
-	 * @Wordpress\Script( deps={"mwp"} )
+	 * @MWP\WordPress\Script( deps={"mwp"} )
 	 */
 	public $mainController = 'assets/js/main.js';
 	
 	/**
-	 * @Wordpress\Script( deps={"jquery-ui-sortable"} )
+	 * @MWP\WordPress\Script( deps={"jquery-ui-sortable"} )
 	 */
 	public $nestedSortable = 'assets/js/jquery.mjs.nestedSortable.js';
 	
 	/**
-	 * @Wordpress\Script( deps={"jquery"} )
+	 * @MWP\WordPress\Script( deps={"jquery"} )
 	 */
 	public $selectizeJS = 'assets/js/selectize/js/selectize.min.js';
 	
 	/**
-	 * @Wordpress\Stylesheet
+	 * @MWP\WordPress\Stylesheet
 	 */
 	public $selectizeCSS = 'assets/js/selectize/css/selectize.bootstrap3.css';
 	
 	/**
 	 * Admin Stylesheet
 	 *
-	 * @Wordpress\Stylesheet
+	 * @MWP\WordPress\Stylesheet
 	 */
 	public $adminStyle = 'assets/css/admin_style.css';
 	
 	/**
-	 * @Wordpress\Script( handle="codemirror" )
+	 * @MWP\WordPress\Script( handle="codemirror" )
 	 */
 	public $codeMirror = 'assets/js/codemirror/codemirror.js';
 	
 	/**
-	 * @Wordpress\Script( handle="codemirror-xml" )
+	 * @MWP\WordPress\Script( handle="codemirror-xml" )
 	 */
 	public $codeMirrorXML = 'assets/js/codemirror/mode/xml/xml.js';
 
 	/**
-	 * @Wordpress\Script( handle="codemirror-css" )
+	 * @MWP\WordPress\Script( handle="codemirror-css" )
 	 */
 	public $codeMirrorCSS = 'assets/js/codemirror/mode/css/css.js';
 
 	/**
-	 * @Wordpress\Script( handle="codemirror-javascript" )
+	 * @MWP\WordPress\Script( handle="codemirror-javascript" )
 	 */
 	public $codeMirrorJS = 'assets/js/codemirror/mode/javascript/javascript.js';
 
 	/**
-	 * @Wordpress\Script( handle="codemirror-clike" )
+	 * @MWP\WordPress\Script( handle="codemirror-clike" )
 	 */
 	public $codeMirrorCLIKE = 'assets/js/codemirror/mode/clike/clike.js';
 
 	/**
-	 * @Wordpress\Script( handle="codemirror-htmlmixed", deps={"codemirror-xml","codemirror-javascript","codemirror-css"} )
+	 * @MWP\WordPress\Script( handle="codemirror-htmlmixed", deps={"codemirror-xml","codemirror-javascript","codemirror-css"} )
 	 */
 	public $codeMirrorHTML = 'assets/js/codemirror/mode/htmlmixed/htmlmixed.js';
 	
 	/**
-	 * @Wordpress\Script( handle="codemirror-php", deps={"codemirror","codemirror-htmlmixed","codemirror-clike"} )
+	 * @MWP\WordPress\Script( handle="codemirror-php", deps={"codemirror","codemirror-htmlmixed","codemirror-clike"} )
 	 */
 	public $codeMirrorPHP = 'assets/js/codemirror/mode/php/php.js';
 	
 	/**
-	 * @Wordpress\Stylesheet
+	 * @MWP\WordPress\Stylesheet
 	 */
 	public $codeMirrorStyle = 'assets/css/codemirror.css';
 	
 	/**
 	 * Enqueue scripts and stylesheets
 	 * 
-	 * @Wordpress\Action( for="admin_enqueue_scripts" )
+	 * @MWP\WordPress\Action( for="admin_enqueue_scripts" )
 	 *
 	 * @return	void
 	 */
@@ -154,7 +154,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 	/**
 	 * Give plugins a common hook to register ECA's
 	 *
-	 * @Wordpress\Action( for="plugins_loaded", priority=1 )
+	 * @MWP\WordPress\Action( for="mwp_framework_init", priority=99 )
 	 *
 	 * @return	void
 	 */
@@ -172,7 +172,7 @@ class Plugin extends \Modern\Wordpress\Plugin
 	/**
 	 * Run scheduled actions
 	 *
-	 * @Wordpress\Action( for="mwp_rules_run_scheduled_actions" )
+	 * @MWP\WordPress\Action( for="mwp_rules_run_scheduled_actions" )
 	 *
 	 * @return	void
 	 */

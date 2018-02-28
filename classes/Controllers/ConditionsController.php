@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use Modern\Wordpress\Helpers\ActiveRecordController;
+use MWP\Framework\Helpers\ActiveRecordController;
 
 /**
  * Conditions Class
@@ -95,7 +95,7 @@ class ConditionsController extends ActiveRecordController
 	 * Get the active record display table
 	 *
 	 * @param	array			$override_options			Default override options
-	 * @return	Modern\Wordpress\Helpers\ActiveRecordTable
+	 * @return	MWP\Framework\Helpers\ActiveRecordTable
 	 */
 	public function createDisplayTable( $override_options=array() )
 	{

@@ -35,8 +35,8 @@ class MWPRulesPluginTest extends WP_UnitTestCase
 	 */
 	public function test_plugin_class() 
 	{
-		// Check that the plugin is a subclass of Modern\Wordpress\Plugin 
-		$this->assertTrue( $this->plugin instanceof \Modern\Wordpress\Plugin );
+		// Check that the plugin is a subclass of MWP\Framework\Plugin 
+		$this->assertTrue( $this->plugin instanceof \MWP\Framework\Plugin );
 	}
 	
 	public function test_token_values()

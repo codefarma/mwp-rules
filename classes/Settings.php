@@ -17,13 +17,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin Settings
  *
- * @Wordpress\Options
- * @Wordpress\Options\Section( title="General Settings" )
- * @Wordpress\Options\Field( name="setting1", type="text", title="Setting 1" )
- * @Wordpress\Options\Field( name="setting2", type="select", title="Setting 2", options={ "opt1":"Option1", "opt2": "Option2" } )
- * @Wordpress\Options\Field( name="setting3", type="select", title="Setting 3", options="optionsCallback" )
+ * @MWP\WordPress\Options
+ * @MWP\WordPress\Options\Section( title="General Settings" )
+ * @MWP\WordPress\Options\Field( name="setting1", type="text", title="Setting 1" )
+ * @MWP\WordPress\Options\Field( name="setting2", type="select", title="Setting 2", options={ "opt1":"Option1", "opt2": "Option2" } )
+ * @MWP\WordPress\Options\Field( name="setting3", type="select", title="Setting 3", options="optionsCallback" )
  */
-class Settings extends \Modern\Wordpress\Plugin\Settings
+class Settings extends \MWP\Framework\Plugin\Settings
 {
 	/**
 	 * Instance Cache - Required for singleton

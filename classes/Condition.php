@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use \Modern\Wordpress\Pattern\ActiveRecord;
+use \MWP\Framework\Pattern\ActiveRecord;
 
 /**
  * Condition Class
@@ -142,7 +142,7 @@ class Condition extends GenericOperation
 	 * Build an editing form
 	 *
 	 * @param	ActiveRecord					$condition					The condition to edit
-	 * @return	Modern\Wordpress\Helpers\Form
+	 * @return	MWP\Framework\Helpers\Form
 	 */
 	public static function getForm( $condition=NULL )
 	{

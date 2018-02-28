@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use \Modern\Wordpress\Pattern\ActiveRecord;
+use \MWP\Framework\Pattern\ActiveRecord;
 
 /**
  * Log Class

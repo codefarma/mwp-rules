@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use Modern\Wordpress\Pattern\ActiveRecord;
+use MWP\Framework\Pattern\ActiveRecord;
 use MWP\Rules\Condition;
 use MWP\Rules\Action;
 
@@ -138,7 +138,7 @@ class Rule extends ActiveRecord
 	 * Build an editing form
 	 *
 	 * @param	ActiveRecord		$rule					The rule to edit
-	 * @return	Modern\Wordpress\Helpers\Form
+	 * @return	MWP\Framework\Helpers\Form
 	 */
 	public static function getForm( $rule=NULL )
 	{

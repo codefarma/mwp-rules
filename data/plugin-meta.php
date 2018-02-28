@@ -3,8 +3,6 @@ return <<<'JSON'
 {
     "type": "plugin",
     "pluginFramework": "mwp",
-    "themeFramework": "none",
-    "parentTheme": "bizznis",
     "name": "MWP Rules",
     "description": "A rules engine for wordpress",
     "author": "Kevin Carwile",

@@ -14,8 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use Modern\Wordpress\Pattern\ActiveRecord;
-use Modern\Wordpress\Framework;
+use MWP\Framework\Pattern\ActiveRecord;
+use MWP\Framework\Framework;
 
 /**
  * GenericOperation Class
@@ -30,7 +30,7 @@ abstract class GenericOperation extends ActiveRecord
 	/**
 	 * Build Operation Form ( Condition / Action )
 	 *
-	 * @param	Modern\Wordpress\Helpers\Form	$form		The form to build
+	 * @param	MWP\Framework\Helpers\Form	$form		The form to build
 	 * @param	MWP\Rules\(Condition/Action)	$operation	The condition or action node
 	 * @return	void
 	 */
