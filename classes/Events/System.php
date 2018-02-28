@@ -82,7 +82,7 @@ class System
 			/* Init */
 			array( 'action', 'init', array(
 				'title' => 'WordPress Is Being Initialized',
-				'description' => 'The wordpress init hook is fired just after all plugins have been loaded.',
+				'description' => 'The init hook is fired just after all plugins have been loaded.',
 			)),
 			
 			/* Wordpress Loaded */
