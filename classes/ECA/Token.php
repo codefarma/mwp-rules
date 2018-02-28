@@ -57,13 +57,39 @@ class Token
 	/**
 	 * Constructor
 	 *
-	 * @param 	mixed			$original		The starting value to get the token value from
+	 * @param 	mixed			$original		The starting value to start the translation from
+	 * @param	string|NULL		$tokenPath		The token path to take during translation
 	 * @param	array|NULL		$argument		The starting argument definition
-	 * @param	string|NULL		$tokenPath		The token path to take to get the value
 	 * @return 	void
 	 */
 	public function __construct( $original, $tokenPath=NULL, $argument=NULL )
 	{
+		$typeMap = array(
+			'object' => 'object',
+			'integer' => 'int',
+			'double' => 'float',
+			'boolean' => 'bool',
+			'string' => 'string',
+			'array' => 'array',
+			'NULL' => '',
+		);
+		
+		/* Extrapolate starting argument properties */
+		if ( is_object( $original ) ) {
+			$argument = array_merge( array(
+				'argtype' => 'object',
+				'class' => get_class( $original ),
+			), 
+			( $argument ?: array() ));
+		} else {
+			if ( $argument !== NULL ) {
+				$argument = array_merge( array(
+					'argtype' => $typeMap[ gettype($original) ]
+				), 
+				( $argument ?: array() ));
+			}
+		}
+		
 		$this->original = $original;
 		$this->argument = $argument;
 		$this->tokenPath = $tokenPath;
@@ -187,17 +213,6 @@ class Token
 				if ( ! isset( $current_argument['getter'] ) or ! is_callable( $current_argument['getter'] ) ) { throw new \ErrorException( 'Global argument cannot be fetched: ' . $global_arg ); }
 				$currentValue = call_user_func( $current_argument['getter'] );
 				$this->history[] = 'Fetched the global argument: ' . $global_arg;
-			}
-			
-			/* Extrapolate the starting argument if not otherwise provided */
-			if ( ! isset( $current_argument ) ) {
-				if ( is_object( $currentValue ) ) {
-					$objClass = get_class( $currentValue );
-					$current_argument = array(
-						'argtype' => 'object',
-						'class' => $objClass,
-					);
-				}
 			}
 			
 			while( $token_identifier = array_shift( $token_pieces ) ) 
