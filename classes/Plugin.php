@@ -2,10 +2,10 @@
 /**
  * Plugin Class File
  *
- * @vendor: Miller Media
+ * @vendor: Code Farma
  * @package: MWP Rules
  * @author: Kevin Carwile
- * @link: http://millermedia.io
+ * @link: http://www.codefarma.com
  * @since: December 4, 2017
  */
 namespace MWP\Rules;

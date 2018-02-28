@@ -2,10 +2,10 @@
 /**
  * Plugin Name: MWP Rules
  * Plugin URI: 
- * Description: A rules engine for wordpress
+ * Description: An automation rules engine for WordPress
  * Author: Kevin Carwile
- * Author URI: http://millermedia.io
- * Version: 0.9.1
+ * Author URI: http://www.codefarma.com
+ * Version: 0.9.2
  */
  
 if ( ! defined( 'ABSPATH' ) ) {

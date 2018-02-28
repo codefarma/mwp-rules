@@ -1,6 +1,8 @@
 <?php
 return <<<'JSON'
 {
+    "framework_version": "2.0.0",
+    "framework_bundled": true,
     "tables": [
         {
             "name": "rules_actions",
