@@ -21,8 +21,8 @@ use MWP\Framework\Framework;
 use MWP\Framework\Task;
 use MWP\Rules\ECA\Loader;
 use MWP\Rules\ECA\Token;
-use MWP\Rules\Rule;
-use MWP\Rules\ScheduledAction;
+
+use MWP\Rules\Log as RuleLog;
 
 /**
  * Plugin Class
@@ -81,18 +81,6 @@ class Plugin extends \MWP\Framework\Plugin
 	public $selectizeJS = 'assets/js/selectize/js/selectize.min.js';
 	
 	/**
-	 * @MWP\WordPress\Stylesheet
-	 */
-	public $selectizeCSS = 'assets/js/selectize/css/selectize.bootstrap3.css';
-	
-	/**
-	 * Admin Stylesheet
-	 *
-	 * @MWP\WordPress\Stylesheet
-	 */
-	public $adminStyle = 'assets/css/admin_style.css';
-	
-	/**
 	 * @MWP\WordPress\Script( handle="codemirror" )
 	 */
 	public $codeMirror = 'assets/js/codemirror/codemirror.js';
@@ -126,6 +114,16 @@ class Plugin extends \MWP\Framework\Plugin
 	 * @MWP\WordPress\Script( handle="codemirror-php", deps={"codemirror","codemirror-htmlmixed","codemirror-clike"} )
 	 */
 	public $codeMirrorPHP = 'assets/js/codemirror/mode/php/php.js';
+	
+	/**
+	 * @MWP\WordPress\Stylesheet
+	 */
+	public $selectizeCSS = 'assets/js/selectize/css/selectize.bootstrap3.css';
+	
+	/**
+	 * @MWP\WordPress\Stylesheet
+	 */
+	public $adminStyle = 'assets/css/admin_style.css';
 	
 	/**
 	 * @MWP\WordPress\Stylesheet
@@ -202,7 +200,7 @@ class Plugin extends \MWP\Framework\Plugin
 	 */
 	public function describeEvent( $type, $hook_name, $definition=array() )
 	{
-		$this->events[ $type ][ $hook_name ] = new \MWP\Rules\ECA\Loader( 'MWP\Rules\ECA\Event', $definition, array( 
+		$this->events[ $type ][ $hook_name ] = new Loader( 'MWP\Rules\ECA\Event', $definition, array( 
 			'type' => $type,
 			'hook' => $hook_name,
 		));
@@ -217,7 +215,7 @@ class Plugin extends \MWP\Framework\Plugin
 	 */
 	public function registerCondition( $condition_key, $definition )
 	{
-		$this->conditions[ $condition_key ] = new \MWP\Rules\ECA\Loader( 'MWP\Rules\ECA\Condition', $definition, array(
+		$this->conditions[ $condition_key ] = new Loader( 'MWP\Rules\ECA\Condition', $definition, array(
 			'key' => $condition_key,
 		));
 	}
@@ -231,7 +229,7 @@ class Plugin extends \MWP\Framework\Plugin
 	 */
 	public function defineAction( $action_key, $definition )
 	{
-		$this->actions[ $action_key ] = new \MWP\Rules\ECA\Loader( 'MWP\Rules\ECA\Action', $definition, array(
+		$this->actions[ $action_key ] = new Loader( 'MWP\Rules\ECA\Action', $definition, array(
 			'key' => $action_key,
 		));
 	}
@@ -318,114 +316,65 @@ class Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
-	 * @var ActiveRecordController
-	 */
-	public $rulesController;
-	
-	/**
 	 * Get the rules controller
 	 * 
 	 * @return	ActiveRecordController
 	 */
-	public function getRulesController()
+	public function getRulesController( $key='admin' )
 	{
-		if ( isset( $this->rulesController ) ) {
-			return $this->rulesController;
-		}
-		
-		$this->rulesController = new \MWP\Rules\Controllers\RulesController( 'MWP\Rules\Rule' );
-		
-		return $this->rulesController;
+		return Rule::getController( $key );		
 	}
-	
-	/**
-	 * @var ActiveRecordController
-	 */
-	public $conditionsController;
 	
 	/**
 	 * Get the conditions controller
 	 * 
 	 * @return	ActiveRecordController
 	 */
-	public function getConditionsController( $rule=null )
+	public function getConditionsController( $rule=null, $key='admin' )
 	{
-		if ( isset( $this->conditionsController ) ) {
+		if ( $controller = Condition::getController( $key ) ) {
 			if ( $rule ) {
-				$this->conditionsController->setRule( $rule );
+				$controller->setRule( $rule );
 			}
-			return $this->conditionsController;
 		}
 		
-		$this->conditionsController = new \MWP\Rules\Controllers\ConditionsController( 'MWP\Rules\Condition' );
-		
-		return $this->getConditionsController( $rule );
+		return $controller;
 	}
-	
-	/**
-	 * @var ActiveRecordController
-	 */
-	public $actionsController;
 	
 	/**
 	 * Get the actions controller
 	 * 
 	 * @return	ActiveRecordController
 	 */
-	public function getActionsController( $rule=null )
+	public function getActionsController( $rule=null, $key='admin' )
 	{
-		if ( isset( $this->actionsController ) ) {
+		if ( $controller = Action::getController( $key ) ) {
 			if ( $rule ) {
-				$this->actionsController->setRule( $rule );
+				$controller->setRule( $rule );
 			}
-			return $this->actionsController;
 		}
 		
-		$this->actionsController = new \MWP\Rules\Controllers\ActionsController( 'MWP\Rules\Action' );
-		
-		return $this->getActionsController( $rule );
+		return $controller;
 	}
 	
 	/**
-	 * @var ActiveRecordController
+	 * Get the logs controller
+	 * 
+	 * @return	ActiveRecordController
 	 */
-	public $logsController;
+	public function getLogsController( $key='admin' )
+	{
+		return RuleLog::getController( $key );
+	}
 	
 	/**
 	 * Get the actions controller
 	 * 
 	 * @return	ActiveRecordController
 	 */
-	public function getLogsController()
+	public function getScheduleController( $key='admin' )
 	{
-		if ( isset( $this->logsController ) ) {
-			return $this->logsController;
-		}
-		
-		$this->logsController = new \MWP\Rules\Controllers\LogsController( 'MWP\Rules\Log' );
-		
-		return $this->logsController;
-	}
-		
-	/**
-	 * @var ActiveRecordController
-	 */
-	public $scheduleController;
-	
-	/**
-	 * Get the actions controller
-	 * 
-	 * @return	ActiveRecordController
-	 */
-	public function getScheduleController()
-	{
-		if ( isset( $this->scheduleController ) ) {
-			return $this->scheduleController;
-		}
-		
-		$this->scheduleController = new \MWP\Rules\Controllers\ScheduleController( 'MWP\Rules\ScheduledAction' );
-		
-		return $this->scheduleController;
+		return ScheduledAction::getController( $key );
 	}
 	
 	/**
