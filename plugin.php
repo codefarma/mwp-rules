@@ -25,6 +25,7 @@ use MWP\Rules\Condition;
 use MWP\Rules\Rule;
 use MWP\Rules\Log as RuleLog;
 use MWP\Rules\ScheduledAction;
+use MWP\Rules\CustomHook;
 
 use MWP\Rules\Events\System as SystemEvents;
 use MWP\Rules\Events\Content as ContentEvents;
@@ -89,6 +90,7 @@ add_action( 'mwp_framework_init', function()
 		'position' => 76,
 	]);
 	
+	CustomHook::createController('admin')      ->registerAdminPage([ 'type' => 'submenu', 'menu' => __( 'Custom Actions', 'mwp-rules' ), 'parent' => 'mwp-rules' ]);
 	RuleLog::createController('admin')         ->registerAdminPage([ 'type' => 'submenu', 'menu' => __( 'Rules Logs', 'mwp-rules' ), 'parent' => 'mwp-rules' ]);
 	ScheduledAction::createController('admin') ->registerAdminPage([ 'type' => 'submenu', 'menu' => __( 'Scheduled Actions', 'mwp-rules' ), 'parent' => 'mwp-rules' ]);
 	Condition::createController('admin')       ->registerAdminPage([ 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ]);

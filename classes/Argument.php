@@ -29,12 +29,12 @@ class _Argument extends ActiveRecord
     /**
      * @var    string        Table name
      */
-    protected static $table = "rules_arguments";
+    public static $table = "rules_arguments_";
 
     /**
      * @var    array        Table columns
      */
-    protected static $columns = array(
+    public static $columns = array(
         'id',
 		'name',
 		'type',
@@ -51,21 +51,21 @@ class _Argument extends ActiveRecord
     /**
      * @var    string        Table primary key
      */
-    protected static $key = 'id';
+    public static $key = 'id';
 
     /**
      * @var    string        Table column prefix
      */
-    protected static $prefix = 'argument_';
+    public static $prefix = 'argument_';
 
     /**
      * @var bool        Separate table per site?
      */
-    protected static $site_specific = FALSE;
+    public static $site_specific = FALSE;
 
     /**
      * @var string      The class of the managing plugin
      */
-    protected static $plugin_class = 'MWP\Rules\Plugin';
+    public static $plugin_class = 'MWP\Rules\Plugin';
 
 }

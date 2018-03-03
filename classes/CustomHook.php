@@ -29,32 +29,54 @@ class _CustomHook extends ActiveRecord
     /**
      * @var    string        Table name
      */
-    protected static $table = "rules_custom_actions";
+    public static $table = "rules_custom_actions";
 
     /**
      * @var    array        Table columns
      */
-    protected static $columns = array(
+    public static $columns = array(
         'id',
+		'title',
+		'weight',
+		'description',
+		'key',
+		'enable_api',
+		'api_methods',
+		'type',
+		'hook',
     );
 
     /**
      * @var    string        Table primary key
      */
-    protected static $key = 'id';
+    public static $key = 'id';
 
     /**
      * @var    string        Table column prefix
      */
-    protected static $prefix = 'custom_action';
+    public static $prefix = 'custom_action_';
 
     /**
      * @var bool        Separate table per site?
      */
-    protected static $site_specific = FALSE;
+    public static $site_specific = FALSE;
 
     /**
      * @var string      The class of the managing plugin
      */
-    protected static $plugin_class = 'MWP\Rules\Plugin';
+    public static $plugin_class = 'MWP\Rules\Plugin';
+	
+	/**
+	 * Build an editing form
+	 *
+	 * @param   ActiveRecord|NULL           $record     The record to edit, or NULL if creating
+	 * @return  MWP\Framework\Helpers\Form
+	 */
+	public static function getForm( $record=NULL )
+	{
+		$form = parent::getForm( $record );
+
+		return $form;
+	}
+	
 }
