@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use MWP\Framework\Pattern\ActiveRecord;
 
 /**
- * CustomHook Class
+ * CustomAction Class
  */
 class _CustomAction extends ActiveRecord
 {
