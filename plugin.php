@@ -1,10 +1,10 @@
 <?php
 /**
  * Plugin Name: MWP Rules
- * Plugin URI: 
+ * Plugin URI: https://www.codefarma.com/rules
  * Description: An automation rules engine for WordPress
  * Author: Kevin Carwile
- * Author URI: http://www.codefarma.com
+ * Author URI: https://www.codefarma.com
  * Version: 0.9.2
  */
  
@@ -17,6 +17,33 @@ if ( class_exists( 'MWPRulesPlugin' ) ) {
 	return;
 }
 
+use MWP\Framework\Framework;
+use MWP\Rules\Plugin;
+use MWP\Rules\Settings;
+use MWP\Rules\AjaxHandlers;
+use MWP\Rules\Action;
+use MWP\Rules\Condition;
+use MWP\Rules\Rule;
+use MWP\Rules\Log as RuleLog;
+use MWP\Rules\ScheduledAction;
+use MWP\Rules\CustomAction;
+
+use MWP\Rules\Events\System as SystemEvents;
+use MWP\Rules\Events\Content as ContentEvents;
+use MWP\Rules\Events\Users as UserEvents;
+
+use MWP\Rules\Conditions\System as SystemConditions;
+use MWP\Rules\Conditions\Content as ContentConditions;
+
+use MWP\Rules\Actions\System as SystemActions;
+use MWP\Rules\Actions\Content as ContentActions;
+
+use MWP\Rules\Controllers\RulesController;
+use MWP\Rules\Controllers\ConditionsController;
+use MWP\Rules\Controllers\ActionsController;
+use MWP\Rules\Controllers\LogsController;
+use MWP\Rules\Controllers\ScheduleController;
+
 /* Autoloaders */
 include_once 'includes/plugin-bootstrap.php';
 
@@ -27,56 +54,57 @@ include_once 'includes/plugin-bootstrap.php';
  */
 add_action( 'mwp_framework_init', function() 
 {
-	/**
-	 * Get the framework instance
-	 */
-	$framework = MWP\Framework\Framework::instance();
-
-	/* Plugin Core */
-	$plugin	= MWP\Rules\Plugin::instance();
-	
-	/* Plugin Settings */
-	$settings = MWP\Rules\Settings::instance();
-	$plugin->addSettings( $settings );
+	/* Prepare Settings */
+	Plugin::instance()->addSettings( Settings::instance() );
 	
 	/* Attach callbacks to WordPress */
-	$framework
-		->attach( $plugin )
-		->attach( $settings )
-		->attach( MWP\Rules\AjaxHandlers::instance() )
+	Framework::instance()
+	
+		->attach( Plugin::instance() )
+		->attach( Settings::instance() )
+		->attach( AjaxHandlers::instance() )
 		
-		->attach( new MWP\Rules\Events\System )
-		->attach( new MWP\Rules\Events\Content )
-		->attach( new MWP\Rules\Events\Users )
+		->attach( new SystemEvents )
+		->attach( new ContentEvents )
+		->attach( new UserEvents )
 		
-		->attach( new MWP\Rules\Conditions\Content )
-		->attach( new MWP\Rules\Conditions\System )
+		->attach( new SystemConditions )
+		->attach( new ContentConditions )
 		
-		->attach( new MWP\Rules\Actions\Content )
-		->attach( new MWP\Rules\Actions\System )
+		->attach( new SystemActions )
+		->attach( new ContentActions )
 		;
-		
-	$plugin->getRulesController()->registerAdminPage( array( 
+	
+	/* Assign our specialized controller classes */
+	Rule            ::setControllerClass( RulesController::class );
+	Action          ::setControllerClass( ActionsController::class );
+	Condition       ::setControllerClass( ConditionsController::class );
+	RuleLog         ::setControllerClass( LogsController::class );
+	ScheduledAction ::setControllerClass( ScheduleController::class );
+	
+	/* Register our admin pages */
+	Rule            ::createController('admin') ->registerAdminPage([
 		'title' => __( 'Rules', 'mwp-rules' ),
 		'type' => 'menu', 
 		'slug' => 'mwp-rules', 
 		'menu' => __( 'Rules', 'mwp-rules' ), 
-		'icon' => $plugin->fileUrl( 'assets/img/gavel.png' ), 
+		'icon' => Plugin::instance()->fileUrl( 'assets/img/gavel.png' ), 
 		'position' => 76,
-	));
+	]);
+	CustomAction    ::createController('admin') ->registerAdminPage([ 'type' => 'submenu', 'menu' => __( 'Custom Actions', 'mwp-rules' ), 'parent' => 'mwp-rules' ]);
+	RuleLog         ::createController('admin') ->registerAdminPage([ 'type' => 'submenu', 'menu' => __( 'Rules Logs', 'mwp-rules' ), 'parent' => 'mwp-rules' ]);
+	ScheduledAction ::createController('admin') ->registerAdminPage([ 'type' => 'submenu', 'menu' => __( 'Scheduled Actions', 'mwp-rules' ), 'parent' => 'mwp-rules' ]);
+	Condition       ::createController('admin') ->registerAdminPage([ 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ]);
+	Action          ::createController('admin') ->registerAdminPage([ 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ]);
 	
-	$plugin->getLogsController()       ->registerAdminPage( array( 'type' => 'submenu', 'menu' => __( 'Rules Logs', 'mwp-rules' ), 'parent' => 'mwp-rules' ) );
-	$plugin->getScheduleController()   ->registerAdminPage( array( 'type' => 'submenu', 'menu' => __( 'Scheduled Actions', 'mwp-rules' ), 'parent' => 'mwp-rules' ) );
-	$plugin->getConditionsController() ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ) );
-	$plugin->getActionsController()    ->registerAdminPage( array( 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ) );
+	/* Global functions */
+	include_once( 'includes/rules.core.functions.php' );
 	
-	/* Backwards Compat */
-	include_once( 'includes/backwards.functions.php' );
+	/* Backwards compatibility with older WordPress versions */
+	include_once( 'includes/rules.compat.functions.php' );
 	
 	/* Core class map */
 	include_once( 'includes/rules.core.maps.php' );
 	
-	/* Global convenience functions */
-	include_once( 'includes/rules.global.functions.php' );
-	
 });
+
