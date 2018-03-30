@@ -26,7 +26,8 @@ use MWP\Rules\Condition;
 use MWP\Rules\Rule;
 use MWP\Rules\Log as RuleLog;
 use MWP\Rules\ScheduledAction;
-use MWP\Rules\CustomAction;
+use MWP\Rules\Hook;
+use MWP\Rules\Argument;
 
 use MWP\Rules\Events\System as SystemEvents;
 use MWP\Rules\Events\Content as ContentEvents;
@@ -75,27 +76,25 @@ add_action( 'mwp_framework_init', function()
 		->attach( new ContentActions )
 		;
 	
-	/* Assign our specialized controller classes */
+	/* Assign customized controller classes */
 	Rule            ::setControllerClass( RulesController::class );
 	Action          ::setControllerClass( ActionsController::class );
 	Condition       ::setControllerClass( ConditionsController::class );
 	RuleLog         ::setControllerClass( LogsController::class );
 	ScheduledAction ::setControllerClass( ScheduleController::class );
 	
-	/* Register our admin pages */
-	Rule            ::createController('admin') ->registerAdminPage([
-		'title' => __( 'Rules', 'mwp-rules' ),
-		'type' => 'menu', 
-		'slug' => 'mwp-rules', 
-		'menu' => __( 'Rules', 'mwp-rules' ), 
-		'icon' => Plugin::instance()->fileUrl( 'assets/img/gavel.png' ), 
-		'position' => 76,
-	]);
-	CustomAction    ::createController('admin') ->registerAdminPage([ 'type' => 'submenu', 'menu' => __( 'Custom Actions', 'mwp-rules' ), 'parent' => 'mwp-rules' ]);
-	RuleLog         ::createController('admin') ->registerAdminPage([ 'type' => 'submenu', 'menu' => __( 'Rules Logs', 'mwp-rules' ), 'parent' => 'mwp-rules' ]);
-	ScheduledAction ::createController('admin') ->registerAdminPage([ 'type' => 'submenu', 'menu' => __( 'Scheduled Actions', 'mwp-rules' ), 'parent' => 'mwp-rules' ]);
-	Condition       ::createController('admin') ->registerAdminPage([ 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ]);
-	Action          ::createController('admin') ->registerAdminPage([ 'type' => 'submenu', 'parent_slug' => 'mwp-rules' ]);
+	$config = array(
+		'controllers' => Plugin::instance()->getData( 'controllers', 'config' ),
+	);
+	
+	/* Create controllers and admin pages */
+	Rule            ::createController('admin', $config['controllers']['rules']);
+	Condition       ::createController('admin', $config['controllers']['rules_conditions']);
+	Action          ::createController('admin', $config['controllers']['rules_actions']);
+	Hook            ::createController('admin', $config['controllers']['rules_hooks']);
+	Argument        ::createController('admin', $config['controllers']['rules_arguments']);
+	RuleLog         ::createController('admin', $config['controllers']['rules_logs']);
+	ScheduledAction ::createController('admin', $config['controllers']['rules_scheduled_actions']);
 	
 	/* Global functions */
 	include_once( 'includes/rules.core.functions.php' );

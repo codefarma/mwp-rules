@@ -137,14 +137,13 @@ class Rule extends ActiveRecord
 	/**
 	 * Build an editing form
 	 *
-	 * @param	ActiveRecord		$rule					The rule to edit
 	 * @return	MWP\Framework\Helpers\Form
 	 */
-	public static function getForm( $rule=NULL )
+	protected function buildEditForm()
 	{
-		$plugin = \MWP\Rules\Plugin::instance();
-		$rule = $rule ?: new Rule;
-		$form = $plugin->createForm( 'mwp_rules_rule_form', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		$plugin = $this->getPlugin();
+		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		$rule = $this;
 		
 		/* Display details for the event */
 		if ( $event = $rule->event() ) {
@@ -384,8 +383,10 @@ class Rule extends ActiveRecord
 	 * @param	array			$values				Submitted form values
 	 * @return	void
 	 */
-	public function processForm( $values )
+	protected function processEditForm( $values )
 	{
+		$values = $values['rule_settings'];
+		
 		if ( isset( $values['event'] ) ) {
 			$event_parts = explode( '/', $values['event'] );
 			$type = array_shift( $event_parts );
@@ -395,7 +396,7 @@ class Rule extends ActiveRecord
 			$values['event_hook'] = $hook;
 		}
 		
-		parent::processForm( $values );
+		parent::processEditForm( $values );
 	}
 	
 	/**

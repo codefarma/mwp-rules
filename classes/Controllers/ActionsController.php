@@ -53,8 +53,7 @@ class ActionsController extends ActiveRecordController
 		
 		return array_merge_recursive( parent::getDefaultConfig(), array
 		(
-			'tableConfig' => array
-			( 
+			'tableConfig' => array(
 				'sort_by' => 'action_weight',
 				'sort_order' => 'ASC',
 				'bulk_actions' => array(),

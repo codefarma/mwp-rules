@@ -161,6 +161,26 @@ class Plugin extends \MWP\Framework\Plugin
 		/* Allow plugins to register their own ECA's */
 		do_action( 'rules_register_ecas' );
 		
+		// @TODO: Load custom hooks...
+		$custom_hooks = $this->getData( 'custom_hooks', 'cache' );
+		if ( ! isset( $custom_hooks ) ) {
+			$custom_hooks = array( 'events' => array(), 'actions' => array() );
+			foreach( Hook::loadWhere( '1=1' ) as $hook ) {
+				switch( $hook->type ) {
+					case 'custom':
+					case 'action':
+					
+						$custom_hooks['events'][$hook->hook] = array(
+							'type' => 'action',
+							'definition' => $hook->getDefinition(),
+						);
+						break;
+				}
+			}
+			
+			$this->setData( 'custom_hooks', $custom_hooks, 'cache' );
+		}
+		
 		/* Connect all enabled first level rules to their hooks */
 		foreach( Rule::loadWhere( array( 'rule_enabled=1 AND rule_parent_id=0' ), 'rule_priority ASC, rule_weight ASC' ) as $rule ) {
 			$rule->deploy();

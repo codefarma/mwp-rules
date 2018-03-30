@@ -132,14 +132,13 @@ class Action extends GenericOperation
 	/**
 	 * Build an editing form
 	 *
-	 * @param	ActiveRecord					$action					The action to edit
 	 * @return	MWP\Framework\Helpers\Form
 	 */
-	public static function getForm( $action=NULL )
+	protected function buildEditForm()
 	{
-		$plugin = \MWP\Rules\Plugin::instance();
-		$action = $action ?: new static;
-		$form = $plugin->createForm( 'mwp_rules_action_form', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		$plugin = $this->getPlugin();
+		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		$action = $this;
 		
 		/* Display details for the event */
 		if ( $event = $action->event() ) {
@@ -272,10 +271,10 @@ class Action extends GenericOperation
 	 * @param	array			$values				Submitted form values
 	 * @return	void
 	 */
-	public function processForm( $values )
+	protected function processEditForm( $values )
 	{
 		$this->processConfigForm( $values );
-		parent::processForm( $values );
+		parent::processEditForm( $values );
 	}
 
 	/**

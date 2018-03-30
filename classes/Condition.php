@@ -141,14 +141,13 @@ class Condition extends GenericOperation
 	/**
 	 * Build an editing form
 	 *
-	 * @param	ActiveRecord					$condition					The condition to edit
 	 * @return	MWP\Framework\Helpers\Form
 	 */
-	public static function getForm( $condition=NULL )
+	protected function buildEditForm()
 	{
-		$plugin = \MWP\Rules\Plugin::instance();
-		$condition = $condition ?: new static;
-		$form = $plugin->createForm( 'mwp_rules_condition_form', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		$plugin = $this->getPlugin();
+		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		$condition = $this;
 		
 		/* Display details for the event */
 		if ( $event = $condition->event() ) {
@@ -212,10 +211,10 @@ class Condition extends GenericOperation
 	 * @param	array			$values				Submitted form values
 	 * @return	void
 	 */
-	public function processForm( $values )
+	protected function processEditForm( $values )
 	{
 		$this->processConfigForm( $values );
-		parent::processForm( $values );
+		parent::processEditForm( $values );
 	}
 
 	/**
