@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Users Class
  */
-class Users
+class _Users
 {
 	/**
 	 * @var 	\MWP\Framework\Plugin		Provides access to the plugin instance

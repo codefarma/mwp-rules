@@ -19,7 +19,7 @@ use MWP\Rules\ECA\Token;
 /**
  * Event Class
  */
-class Event extends BaseDefinition
+class _Event extends BaseDefinition
 {
 	/**
 	 * @brief	Deferred Action Stack

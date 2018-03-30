@@ -19,7 +19,7 @@ use MWP\Framework\Helpers\ActiveRecordController;
 /**
  * Conditions Class
  */
-class ConditionsController extends ActiveRecordController
+class _ConditionsController extends ActiveRecordController
 {
 	/**
 	 * @var	MWP\Rules\Rule

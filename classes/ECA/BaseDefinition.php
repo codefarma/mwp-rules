@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * BaseDefinition Class
  */
-class BaseDefinition
+class _BaseDefinition
 {
 	/**
 	 * Constructor

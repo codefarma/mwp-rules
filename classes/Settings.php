@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @MWP\WordPress\Options\Field( name="setting2", type="select", title="Setting 2", options={ "opt1":"Option1", "opt2": "Option2" } )
  * @MWP\WordPress\Options\Field( name="setting3", type="select", title="Setting 3", options="optionsCallback" )
  */
-class Settings extends \MWP\Framework\Plugin\Settings
+class _Settings extends \MWP\Framework\Plugin\Settings
 {
 	/**
 	 * Instance Cache - Required for singleton

@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * AjaxHandlers Class
  */
-class AjaxHandlers extends \MWP\Framework\Pattern\Singleton
+class _AjaxHandlers extends \MWP\Framework\Pattern\Singleton
 {
 	/**
 	 * @var	self

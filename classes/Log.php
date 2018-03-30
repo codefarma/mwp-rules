@@ -19,7 +19,7 @@ use \MWP\Framework\Pattern\ActiveRecord;
 /**
  * Log Class
  */
-class Log extends ActiveRecord
+class _Log extends ActiveRecord
 {
 	/**
      * @var    array        Required for all active record classes

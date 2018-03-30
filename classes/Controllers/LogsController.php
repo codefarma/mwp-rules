@@ -19,7 +19,7 @@ use MWP\Framework\Helpers\ActiveRecordController;
 /**
  * Rules Class
  */
-class LogsController extends ActiveRecordController
+class _LogsController extends ActiveRecordController
 {
 	/**
 	 * Default controller configuration

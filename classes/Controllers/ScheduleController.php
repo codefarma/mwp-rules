@@ -19,7 +19,7 @@ use MWP\Framework\Helpers\ActiveRecordController;
 /**
  * Schedule Controller Class
  */
-class ScheduleController extends ActiveRecordController
+class _ScheduleController extends ActiveRecordController
 {
 	/**
 	 * Default controller configuration

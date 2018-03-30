@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Token Class
  */
-class Token
+class _Token
 {
 	/**
 	 * @var	mixed

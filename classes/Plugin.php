@@ -27,7 +27,7 @@ use MWP\Rules\Log as RuleLog;
 /**
  * Plugin Class
  */
-class Plugin extends \MWP\Framework\Plugin
+class _Plugin extends \MWP\Framework\Plugin
 {
 	/**
 	 * Instance Cache - Required

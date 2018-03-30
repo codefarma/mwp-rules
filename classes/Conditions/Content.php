@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * General Class
  */
-class Content
+class _Content
 {
 	/**
 	 * @var 	\MWP\Framework\Plugin		Provides access to the plugin instance

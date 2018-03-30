@@ -19,7 +19,7 @@ use \MWP\Framework\Pattern\ActiveRecord;
 /**
  * ScheduledAction Class
  */
-class ScheduledAction extends ActiveRecord
+class _ScheduledAction extends ActiveRecord
 {
 	/**
      * @var    array        Required for all active record classes

@@ -21,7 +21,7 @@ use MWP\Rules\Action;
 /**
  * Rule Class
  */
-class Rule extends ActiveRecord
+class _Rule extends ActiveRecord
 {
 	/**
      * @var    array        Required for all active record classes

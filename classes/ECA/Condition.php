@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Condition Class
  */
-class Condition extends BaseDefinition
+class _Condition extends BaseDefinition
 {
 
 }

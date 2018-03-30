@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Site Class
  */
-class Site
+class _Site
 {
 	/**
 	 * @var int

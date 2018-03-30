@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Url Class
  */
-class Url
+class _Url
 {
 	/**
 	 * @var	string

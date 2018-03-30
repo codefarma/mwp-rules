@@ -19,7 +19,7 @@ use \MWP\Framework\Pattern\ActiveRecord;
 /**
  * Condition Class
  */
-class Condition extends GenericOperation
+class _Condition extends GenericOperation
 {
 	/**
      * @var    array        Required for all active record classes

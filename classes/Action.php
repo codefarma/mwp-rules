@@ -19,7 +19,7 @@ use \MWP\Framework\Pattern\ActiveRecord;
 /**
  * Action Class
  */
-class Action extends GenericOperation
+class _Action extends GenericOperation
 {
 	/**
      * @var    array        Required for all active record classes

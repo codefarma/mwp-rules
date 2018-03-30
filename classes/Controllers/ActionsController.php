@@ -19,7 +19,7 @@ use MWP\Framework\Helpers\ActiveRecordController;
 /**
  * Actions Class
  */
-class ActionsController extends ActiveRecordController
+class _ActionsController extends ActiveRecordController
 {
 	/**
 	 * @var	MWP\Rules\Rule

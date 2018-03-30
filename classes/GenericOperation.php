@@ -20,7 +20,7 @@ use MWP\Framework\Framework;
 /**
  * GenericOperation Class
  */
-abstract class GenericOperation extends ActiveRecord
+abstract class _GenericOperation extends ActiveRecord
 {
 	/**
 	 * @var string

@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Action Class
  */
-class Action extends BaseDefinition
+class _Action extends BaseDefinition
 {
 
 }

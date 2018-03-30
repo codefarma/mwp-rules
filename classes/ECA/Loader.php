@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Loader Class
  */
-class Loader
+class _Loader
 {
 	/**
 	 * @var	string 
