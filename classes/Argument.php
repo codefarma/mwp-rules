@@ -155,7 +155,6 @@ class _Argument extends ActiveRecord
 	 */
 	protected function processEditForm( $values )
 	{
-	
 		parent::processEditForm( $values );
 	}
 	
@@ -168,6 +167,17 @@ class _Argument extends ActiveRecord
 	{
 		Plugin::instance()->clearCustomHooksCache();
 		parent::save();
+	}
+	
+	/**
+	 * Delete
+	 *
+	 * @return	void
+	 */
+	public function delete()
+	{
+		Plugin::instance()->clearCustomHooksCache();
+		parent::delete();
 	}
 
 }

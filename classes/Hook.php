@@ -266,6 +266,7 @@ class _Hook extends ActiveRecord
 	public function delete()
 	{
 		Argument::deleteWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', 'hook', $this->id() ) );
+		Plugin::instance()->clearCustomHooksCache();
 		parent::delete();
 	}
 }
