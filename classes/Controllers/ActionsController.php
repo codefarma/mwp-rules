@@ -34,6 +34,7 @@ class _ActionsController extends ActiveRecordController
 		$this->rule = $rule;
 	}
 	
+	
 	/**
 	 * Get the associated rule
 	 */

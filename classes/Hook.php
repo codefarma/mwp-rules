@@ -39,7 +39,6 @@ class _Hook extends ActiveRecord
 		'title',
 		'weight',
 		'description',
-		'arguments' => array( 'format' => 'JSON' ),
 		'key',
 		'enable_api',
 		'api_methods',
@@ -104,7 +103,7 @@ class _Hook extends ActiveRecord
 	 */
 	public function getArguments()
 	{
-		return is_array( $this->arguments ) ? $this->arguments : array();
+		return Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', 'hook', $this->id() ), 'argument_weight ASC' );
 	}
 	
 	/**
@@ -121,14 +120,16 @@ class _Hook extends ActiveRecord
 		
 		foreach( $this->getArguments() as $argument ) {
 			$arg_def = array(
-				'argtype' => $argument['argtype'],
-				'class' => $argument['class'],
-				'label' => $argument['title'],
-				'description' => $argument['description'],
+				'argtype' => $argument->type,
+				'class' => $argument->class,
+				'label' => $argument->title,
+				'description' => $argument->description,
 			);
 			
-			$definition['arguments'][ $argument['varname'] ] = $arg_def;
+			$definition['arguments'][ $argument->varname ] = $arg_def;
 		}
+		
+		return $definition;
 	}
 	
 	/**
@@ -138,6 +139,7 @@ class _Hook extends ActiveRecord
 	 */
 	protected function buildEditForm()
 	{
+		$plugin = $this->getPlugin();
 		$form = static::createForm( 'edit' );
 		
 		$form->addTab( 'hook_details', array(
@@ -205,10 +207,10 @@ class _Hook extends ActiveRecord
 				'title' => __( 'Arguments', 'mwp-rules' ),
 			));
 			
-			$argumentsController = Argument::getController('admin');
+			$argumentsController = $plugin->getArgumentsController( $this );
 			$argumentsTable = $argumentsController->createDisplayTable();
 			$argumentsTable->bulkActions = array();
-			$argumentsTable->prepareItems( array( 'argument_parent_type=%s AND argument_parent_id=%d', 'hook', $this->id() ) );
+			$argumentsTable->prepare_items();
 			
 			$form->addHtml( 'arguments_table', $this->getPlugin()->getTemplateContent( 'rules/arguments/table_wrapper', array( 
 				'hook' => $this, 
@@ -235,17 +237,35 @@ class _Hook extends ActiveRecord
 	{
 		$_values = $values['hook_details'];
 		
-		if ( isset( $values['hook_arguments'] ) ) {
-			$_values['arguments'] = $values['hook_arguments']['args'];
-		}
-		
-		if ( isset( $values['specification'] ) ) {
-			if ( $values['specification'] == 'new' ) {
-				$values['hook'] = uniqid( 'rules/action/' );
-				$values['type'] = 'custom';
+		if ( isset( $_values['specification'] ) ) {
+			if ( $_values['specification'] == 'new' ) {
+				$_values['hook'] = uniqid( 'rules/action/' );
+				$_values['type'] = 'custom';
 			}
 		}
 		
 		parent::processEditForm( $_values );
+	}
+	
+	/**
+	 * Save
+	 *
+	 * @return	void
+	 */
+	public function save()
+	{
+		Plugin::instance()->clearCustomHooksCache();
+		parent::save();
+	}
+	
+	/**
+	 * Delete
+	 *
+	 * @return	void
+	 */
+	public function delete()
+	{
+		Argument::deleteWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', 'hook', $this->id() ) );
+		parent::delete();
 	}
 }

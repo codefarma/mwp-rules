@@ -29,19 +29,18 @@ class _Argument extends ActiveRecord
     /**
      * @var    string        Table name
      */
-    public static $table = "rules_arguments_";
+    public static $table = "rules_arguments";
 
     /**
      * @var    array        Table columns
      */
     public static $columns = array(
         'id',
-		'name',
+		'title',
 		'type',
 		'class',
 		'required',
 		'weight',
-		'custom_class',
 		'description',
 		'varname',
 		'parent_id',
@@ -69,6 +68,26 @@ class _Argument extends ActiveRecord
     public static $plugin_class = 'MWP\Rules\Plugin';
 	
 	/**
+	 * @var	string
+	 */
+	public static $lang_singular = 'Argument';
+	
+	/**
+	 * @var	string
+	 */
+	public static $lang_create = 'Add';
+
+	/**
+	 * @var	string
+	 */
+	public static $lang_plural = 'Arguments';
+	
+	/**
+	 * @var	string
+	 */
+	public static $sequence_col = 'weight';
+	
+	/**
 	 * Build an editing form
 	 *
 	 * @return	MWP\Framework\Helpers\Form
@@ -77,7 +96,7 @@ class _Argument extends ActiveRecord
 	{
 		$form = static::createForm( 'edit' );
 		
-		$form->addField( 'argtype', 'choice', array(
+		$form->addField( 'type', 'choice', array(
 			'label' => __( 'Argument Type', 'mwp-rules' ),
 			'choices' => array(
 				'String' => 'string',
@@ -89,6 +108,7 @@ class _Argument extends ActiveRecord
 				'Mixed Type' => 'mixed',
 				'Null' => 'null',
 			),
+			'data' => $this->type,
 			'required' => true,
 		));
 		
@@ -96,16 +116,19 @@ class _Argument extends ActiveRecord
 			'label' => __( 'Object Class', 'mwp-rules' ),
 			'description' => __( '(optional) If this argument is an object, or is a value that represents an object, enter the class name of the object that it represents.', 'mwp-rules' ),
 			'attr' => array( 'placeholder' => 'WP_User' ),
+			'data' => $this->class,
 			'required' => false,
 		));
 		
 		$form->addField( 'title', 'text', array(
 			'label' => __( 'Title', 'mwp-rules' ),
+			'data' => $this->title,
 			'required' => true,
 		));
 		
 		$form->addField( 'description', 'text', array(
 			'label' => __( 'Description', 'mwp-rules' ),
+			'data' => $this->description,
 			'required' => false,
 		));
 		
@@ -113,7 +136,12 @@ class _Argument extends ActiveRecord
 			'label' => __( 'Variable Name', 'mwp-rules' ),
 			'description' => __( 'Enter a name to be used as the php code variable for this argument. Only alphanumerics and underscore are allowed. It must also start with a letter.', 'mwp-rules' ),
 			'attr' => array( 'placeholder' => 'var_name' ),
+			'data' => $this->varname,
 			'required' => true,
+		));
+		
+		$form->addField( 'save', 'submit', array(
+			'label' => __( 'Save', 'mwp-rules' ),
 		));
 
 		return $form;
@@ -129,6 +157,17 @@ class _Argument extends ActiveRecord
 	{
 	
 		parent::processEditForm( $values );
+	}
+	
+	/**
+	 * Save
+	 *
+	 * @return	void
+	 */
+	public function save()
+	{
+		Plugin::instance()->clearCustomHooksCache();
+		parent::save();
 	}
 
 }

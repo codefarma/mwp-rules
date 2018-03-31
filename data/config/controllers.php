@@ -61,26 +61,30 @@ return [
 			'menu' => __( 'Custom Hooks', 'mwp-rules' ), 
 			'parent' => 'mwp-rules',
 		],
+		'tableConfig' => [
+			'columns' => [
+				'hook_type' => __( 'Type', 'mwp-rules' ),
+				'hook_hook' => __( 'Hook', 'mwp-rules' ),
+				'hook_title' => __( 'Title', 'mwp-rules' ),
+				'hook_description' => __( 'Description', 'mwp-rules' ),
+			],
+		],
 	],
 	
 	/* Arguments Controller */
 	'rules_arguments' => [
-	
-		/* Admin Page */
 		'adminPage' => [ 
 			'type' => 'submenu', 
 			'parent_slug' => 'mwp-rules' 
 		],
-	
-		/* Table Configuration */
 		'tableConfig' => [
 			'columns' => [
-				'title' => __( 'Title', 'mwp-rules' ),
-				'varname' => __( 'Variable Name', 'mwp-rules' ),
-				'argtype' => __( 'Type', 'mwp-rules' ),
+				'argument_title' => __( 'Title', 'mwp-rules' ),
+				'argument_varname' => __( 'Variable Name', 'mwp-rules' ),
+				'argument_type' => __( 'Type', 'mwp-rules' ),
 			],
 			'handlers' => [
-				'varname' => function( $row ) {
+				'argument_varname' => function( $row ) {
 					return '<code>' . '$' . $row['argument_varname'] . '</code>';
 				},
 			],

@@ -7,7 +7,8 @@
  * Author URI: https://www.codefarma.com
  * Version: 0.9.2
  */
- 
+namespace MWP\Rules;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
@@ -18,32 +19,7 @@ if ( class_exists( 'MWPRulesPlugin' ) ) {
 }
 
 use MWP\Framework\Framework;
-use MWP\Rules\Plugin;
-use MWP\Rules\Settings;
-use MWP\Rules\AjaxHandlers;
-use MWP\Rules\Action;
-use MWP\Rules\Condition;
-use MWP\Rules\Rule;
 use MWP\Rules\Log as RuleLog;
-use MWP\Rules\ScheduledAction;
-use MWP\Rules\Hook;
-use MWP\Rules\Argument;
-
-use MWP\Rules\Events\System as SystemEvents;
-use MWP\Rules\Events\Content as ContentEvents;
-use MWP\Rules\Events\Users as UserEvents;
-
-use MWP\Rules\Conditions\System as SystemConditions;
-use MWP\Rules\Conditions\Content as ContentConditions;
-
-use MWP\Rules\Actions\System as SystemActions;
-use MWP\Rules\Actions\Content as ContentActions;
-
-use MWP\Rules\Controllers\RulesController;
-use MWP\Rules\Controllers\ConditionsController;
-use MWP\Rules\Controllers\ActionsController;
-use MWP\Rules\Controllers\LogsController;
-use MWP\Rules\Controllers\ScheduleController;
 
 /* Autoloaders */
 include_once 'includes/plugin-bootstrap.php';
@@ -65,23 +41,24 @@ add_action( 'mwp_framework_init', function()
 		->attach( Settings::instance() )
 		->attach( AjaxHandlers::instance() )
 		
-		->attach( new SystemEvents )
-		->attach( new ContentEvents )
-		->attach( new UserEvents )
+		->attach( new Events\System )
+		->attach( new Events\Content )
+		->attach( new Events\Users )
 		
-		->attach( new SystemConditions )
-		->attach( new ContentConditions )
+		->attach( new Conditions\System )
+		->attach( new Conditions\Content )
 		
-		->attach( new SystemActions )
-		->attach( new ContentActions )
+		->attach( new Actions\System )
+		->attach( new Actions\Content )
 		;
 	
 	/* Assign customized controller classes */
-	Rule            ::setControllerClass( RulesController::class );
-	Action          ::setControllerClass( ActionsController::class );
-	Condition       ::setControllerClass( ConditionsController::class );
-	RuleLog         ::setControllerClass( LogsController::class );
-	ScheduledAction ::setControllerClass( ScheduleController::class );
+	Rule            ::setControllerClass( Controllers\RulesController::class );
+	Action          ::setControllerClass( Controllers\ActionsController::class );
+	Condition       ::setControllerClass( Controllers\ConditionsController::class );
+	RuleLog         ::setControllerClass( Controllers\LogsController::class );
+	ScheduledAction ::setControllerClass( Controllers\ScheduleController::class );
+	Argument        ::setControllerClass( Controllers\ArgumentsController::class );
 	
 	$config = array(
 		'controllers' => Plugin::instance()->getData( 'controllers', 'config' ),
