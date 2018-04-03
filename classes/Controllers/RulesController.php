@@ -21,6 +21,7 @@ use MWP\Framework\Helpers\ActiveRecordController;
  */
 class _RulesController extends ActiveRecordController
 {
+	
 	/**
 	 * Default controller configuration
 	 *
@@ -30,11 +31,12 @@ class _RulesController extends ActiveRecordController
 	{
 		$plugin = $this->getPlugin();
 		
-		return array_merge_recursive( parent::getDefaultConfig(), array
+		return array_replace_recursive( parent::getDefaultConfig(), array
 		(
-			'tableConfig' => array
-			( 
-				'where' => array( 'rule_parent_id=0' ),
+			'tableConfig' => array(
+				'tableTemplate' => 'rules/table',
+				'actionsColumn' => 'rule_enabled',
+				'default_where' => array( 'rule_parent_id=0' ),
 				'columns' => array(
 					'rule_title'      => __( 'Rule Summary', 'mwp-rules' ),
 					'rule_event_hook' => __( 'Evaluated When', 'mwp-rules' ),
@@ -157,21 +159,6 @@ class _RulesController extends ActiveRecordController
 				'attr' => array( 'class' => 'btn btn-primary' ),
 			)
 		);
-	}
-	
-	/**
-	 * Get the active record display table
-	 *
-	 * @param	array			$override_options			Default override options
-	 * @return	MWP\Framework\Helpers\ActiveRecordTable
-	 */
-	public function createDisplayTable( $override_options=array() )
-	{
-		$table = parent::createDisplayTable( $override_options );
-		$table->tableTemplate = 'rules/table';
-		$table->actionsColumn = 'rule_enabled';
-		
-		return $table;
 	}
 	
 	/**

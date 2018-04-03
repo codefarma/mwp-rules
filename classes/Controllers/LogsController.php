@@ -30,11 +30,11 @@ class _LogsController extends ActiveRecordController
 	{
 		$plugin = $this->getPlugin();
 		
-		return array_merge_recursive( parent::getDefaultConfig(), array
+		return array_replace_recursive( parent::getDefaultConfig(), array
 		(
 			'tableConfig' => array
 			( 
-				'where' => array( 'error>0 OR ( op_id=0 AND rule_parent=0 )' ),
+				'default_where' => array( 'error>0 OR ( op_id=0 AND rule_parent=0 )' ),
 				'sort_by' => 'time',
 				'sort_order' => 'DESC',
 				'bulk_actions' => array(),

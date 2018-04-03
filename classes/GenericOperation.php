@@ -39,7 +39,7 @@ abstract class _GenericOperation extends ActiveRecord
 		$rulesPlugin = \MWP\Rules\Plugin::instance();
 		$definition = $operation->definition();
 		$optype = $operation::$optype;
-		$opkey = $operation->key;
+		$opkey = $operation->getFormKey();
 		$request = Framework::instance()->getRequest();
 		$operation_label = __( $optype == 'condition' ? 'Condition to apply' : 'Action to take', 'mwp-rules' );
 		
@@ -307,6 +307,7 @@ abstract class _GenericOperation extends ActiveRecord
 			$event_arg_index = array();
 			$i               = 0;
 			$event           = $this->event();
+			$opkey           = $this->getFormKey();
 			
 			/* Name and index all the event arguments */
 			if ( isset( $event->arguments ) and count( $event->arguments ) ) {
@@ -324,7 +325,7 @@ abstract class _GenericOperation extends ActiveRecord
 					foreach ( $definition->arguments as $arg_name => $arg )
 					{
 						$argument_missing 	= FALSE;
-						$argNameKey 		= $this->key . '_' . $arg_name;
+						$argNameKey 		= $opkey . '_' . $arg_name;
 						$token              = NULL;
 						
 						/* Check which source the user has configured for the argument data */
@@ -807,6 +808,11 @@ abstract class _GenericOperation extends ActiveRecord
 			$event = $this->rule() ? $this->rule()->event() : NULL;
 			$rulesPlugin->rulesLog( $event, $this->rule(), $this, FALSE, 'Operation aborted. (Missing Definition)', 1 );		
 		}
+	}
+	
+	public function getFormKey()
+	{
+		return preg_replace('/[^\da-z]/i', '-', $this->key );
 	}
 
 }

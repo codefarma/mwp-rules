@@ -111,7 +111,7 @@ class _Hook extends ActiveRecord
 	 *
 	 * @return	array
 	 */
-	public function getDefinition()
+	public function getEventDefinition()
 	{
 		$definition = array(
 			'title' => $this->title,
@@ -121,13 +121,48 @@ class _Hook extends ActiveRecord
 		foreach( $this->getArguments() as $argument ) {
 			$arg_def = array(
 				'argtype' => $argument->type,
-				'class' => $argument->class,
 				'label' => $argument->title,
 				'description' => $argument->description,
+				'class' => $argument->class,
+				'nullable' => ! $argument->required,
 			);
 			
 			$definition['arguments'][ $argument->varname ] = $arg_def;
 		}
+		
+		$definition['hook_data'] = $this->_data;
+		
+		return $definition;
+	}
+	
+	/**
+	 * Get the action definition
+	 *
+	 * @return	array
+	 */
+	public function getActionDefinition()
+	{
+		$definition = array(
+			'title' => $this->title,
+			'description' => $this->description,
+		);
+		
+		foreach( $this->getArguments() as $argument ) {
+			$arg_def = array(
+				'label' => $argument->title,
+				'argtypes' => array( 
+					$argument->type => array(
+						'description' => $argument->description,
+						'classes' => $argument->class ? array( $argument->class ) : NULL,
+					),
+				),
+				'required' => (bool) $argument->required,
+			);
+			
+			$definition['arguments'][ $argument->varname ] = $arg_def;
+		}
+		
+		$definition['hook_data'] = $this->_data;
 		
 		return $definition;
 	}
@@ -218,6 +253,13 @@ class _Hook extends ActiveRecord
 				'controller' => $argumentsController,
 			)),
 			'hook_arguments' );
+		} else {
+			$hook = $this;
+			$form->onComplete( function() use ( $hook, $plugin ) {
+				$controller = $plugin->getHooksController();
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $hook->id(), '_tab' => 'hook_arguments' ) ) );
+				exit;
+			});			
 		}
 		
 		$form->addField( 'save', 'submit', array(

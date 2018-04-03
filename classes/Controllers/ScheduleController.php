@@ -30,7 +30,7 @@ class _ScheduleController extends ActiveRecordController
 	{
 		$plugin = $this->getPlugin();
 		
-		return array_merge_recursive( parent::getDefaultConfig(), array(
+		return array_replace_recursive( parent::getDefaultConfig(), array(
 			'tableConfig' => array( 
 				'constructor' => array(
 					'singular' => 'action',

@@ -140,6 +140,13 @@ class _Argument extends ActiveRecord
 			'required' => true,
 		));
 		
+		$form->addField( 'required', 'checkbox', array(
+			'label' => __( 'Required', 'mwp-rules' ),
+			'description' => __( 'Choose whether this field is required or not.', 'mwp-rules' ),
+			'value' => 1,
+			'data' => (bool) $this->required,
+		));
+		
 		$form->addField( 'save', 'submit', array(
 			'label' => __( 'Save', 'mwp-rules' ),
 		));

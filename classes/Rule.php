@@ -48,7 +48,7 @@ class _Rule extends ActiveRecord
 		'priority',
 		'base_compare',
 		'debug',
-		'ruleset_id',
+		'feature_id',
 		'enable_recursion',
 		'recursion_limit',
 		'imported_time',

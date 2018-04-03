@@ -9,7 +9,7 @@ $plugin = MWP\Rules\Plugin::instance();
 return [	
 
 	/* Rules */
-	'rules' => [
+	'rules_rules' => [
 		'adminPage' => [
 			'title' => __( 'Rules', 'mwp-rules' ),
 			'type' => 'menu', 
@@ -33,6 +33,23 @@ return [
 		'adminPage' => [ 
 			'type' => 'submenu', 
 			'parent_slug' => 'mwp-rules',
+		],
+	],
+	
+	'rules_apps' => [
+		'adminPage' => [
+			'type' => 'submenu',
+			'parent' => 'mwp-rules',
+			'menu' => __( 'Apps', 'mwp-rules' ),
+		],
+	],
+	
+	/* Rulesets */
+	'rules_features' => [
+		'adminPage' => [
+			'type' => 'submenu',
+			'parent' => 'mwp-rules',
+			'menu' => __( 'Features', 'mwp-rules' ),
 		],
 	],
 
@@ -82,10 +99,14 @@ return [
 				'argument_title' => __( 'Title', 'mwp-rules' ),
 				'argument_varname' => __( 'Variable Name', 'mwp-rules' ),
 				'argument_type' => __( 'Type', 'mwp-rules' ),
+				'argument_required' => __( 'Required', 'mwp-rules' ),
 			],
 			'handlers' => [
 				'argument_varname' => function( $row ) {
 					return '<code>' . '$' . $row['argument_varname'] . '</code>';
+				},
+				'argument_required' => function( $row ) {
+					return $row['argument_required'] ? 'Yes' : 'No';
 				},
 			],
 		],

@@ -12,6 +12,6 @@ return <<<'JSON'
     "vendor": "Code Farma",
     "namespace": "MWP\\Rules",
     "version": "0.9.2",
-    "tables": "rules_actions,rules_arguments,rules_conditions,rules_hooks,rules_custom_logs,rules_data,rules_logs,rules_rules,rules_rulesets,rules_scheduled_actions"
+    "tables": "rules_rules,rules_conditions,rules_actions,rules_arguments,rules_hooks,rules_logs,rules_features,rules_scheduled_actions"
 }
 JSON;

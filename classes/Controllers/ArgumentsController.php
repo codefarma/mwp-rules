@@ -99,6 +99,8 @@ class _ArgumentsController extends ActiveRecordController
 	{
 		return array(
 			'hook' => 'MWP\Rules\Hook',
+			'feature' => 'MWP\Rules\Feature',
+			'app' => 'MWP\Rules\App',
 		);
 	}
 	

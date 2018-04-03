@@ -20,6 +20,7 @@ if ( class_exists( 'MWPRulesPlugin' ) ) {
 
 use MWP\Framework\Framework;
 use MWP\Rules\Log as RuleLog;
+use MWP\WordPress\AdminPage;
 
 /* Autoloaders */
 include_once 'includes/plugin-bootstrap.php';
@@ -52,6 +53,11 @@ add_action( 'mwp_framework_init', function()
 		->attach( new Actions\Content )
 		;
 	
+	/* Load config */	
+	$config = array(
+		'controllers' => Plugin::instance()->getData( 'controllers', 'config' ),
+	);
+	
 	/* Assign customized controller classes */
 	Rule            ::setControllerClass( Controllers\RulesController::class );
 	Action          ::setControllerClass( Controllers\ActionsController::class );
@@ -60,12 +66,10 @@ add_action( 'mwp_framework_init', function()
 	ScheduledAction ::setControllerClass( Controllers\ScheduleController::class );
 	Argument        ::setControllerClass( Controllers\ArgumentsController::class );
 	
-	$config = array(
-		'controllers' => Plugin::instance()->getData( 'controllers', 'config' ),
-	);
-	
 	/* Create controllers and admin pages */
-	Rule            ::createController('admin', $config['controllers']['rules']);
+	Rule            ::createController('admin', $config['controllers']['rules_rules']);
+	App             ::createController('admin', $config['controllers']['rules_apps']);
+	Feature         ::createController('admin', $config['controllers']['rules_features']);
 	Condition       ::createController('admin', $config['controllers']['rules_conditions']);
 	Action          ::createController('admin', $config['controllers']['rules_actions']);
 	Hook            ::createController('admin', $config['controllers']['rules_hooks']);

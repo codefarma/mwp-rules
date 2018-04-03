@@ -161,13 +161,83 @@ class _Plugin extends \MWP\Framework\Plugin
 		/* Allow plugins to register their own ECA's */
 		do_action( 'rules_register_ecas' );
 		
-		// Load custom hooks...
+		/* Load custom defined hooks... */
 		$custom_hooks = $this->getCustomHooks();
+		
+		/* Register custom events */
+		if ( isset( $custom_hooks['events'] ) ) {
+			$action_triggered_txt = __( '(Custom Action)', 'mwp-rules' );
+			foreach( $custom_hooks['events'] as $type => $events ) {
+				foreach( $events as $hook => $info ) {
+					if ( isset( $info['definition'] ) ) {
+						$definition = $info['definition'];
+						if ( $definition['hook_data']['hook_type'] == 'custom' ) {
+							$definition['title'] = $action_triggered_txt . ' ' . $definition['title'];
+						}
+						$this->describeEvent( $type, $hook, $definition );
+					}
+				}
+			}
+		}
+		
+		/* Register custom actions */
+		if ( isset( $custom_hooks['actions'] ) ) {
+			$custom_action_txt = __( '(Custom Action)', 'mwp-rules' );
+			foreach( $custom_hooks['actions'] as $hook => $info ) {
+				if ( isset( $info['definition'] ) ) {
+					$definition = $info['definition'];
+					$definition['title'] = $custom_action_txt . ' ' . $definition['title'];
+					$definition['callback'] = function() use ( $hook ) {
+						call_user_func_array( 'do_action', array_merge( array( $hook ), func_get_args() ) );
+					};
+					$this->defineAction( $hook, $definition );
+				}
+			}
+		}
 		
 		/* Connect all enabled first level rules to their hooks */
 		foreach( Rule::loadWhere( array( 'rule_enabled=1 AND rule_parent_id=0' ), 'rule_priority ASC, rule_weight ASC' ) as $rule ) {
 			$rule->deploy();
 		}
+	}
+	
+	/**
+	 * Get custom hooks cache
+	 *
+	 * @return array
+	 */
+	public function getCustomHooks()
+	{
+		$custom_hooks = $this->getCache( 'custom_hooks', TRUE );
+		
+		if ( ! is_array( $custom_hooks ) ) {
+			$custom_hooks = array( 'events' => array(), 'actions' => array() );
+			foreach( Hook::loadWhere( '1=1' ) as $hook ) {
+				switch( $hook->type ) {
+					case 'custom':
+						$custom_hooks['actions'][$hook->hook] = array(
+							'definition' => $hook->getActionDefinition(),
+						);
+						
+						// Intentionally move on and add custom action as an event also...
+						
+					case 'action':
+						$custom_hooks['events']['action'][$hook->hook] = array(
+							'definition' => $hook->getEventDefinition(),
+						);
+						break;
+					case 'filter':
+						$custom_hooks['events']['filter'][$hook->hook] = array(
+							'definition' => $hook->getEventDefinition(),
+						);
+						break;
+				}
+			}
+			
+			$this->setCache( 'custom_hooks', $custom_hooks, TRUE );
+		}
+		
+		return $custom_hooks;		
 	}
 	
 	/**
@@ -200,35 +270,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function clearCustomHooksCache()
 	{
-		$this->clearData( 'custom_hooks', 'cache' );
-	}
-	
-	/**
-	 * Get custom hooks cache
-	 *
-	 * @return array
-	 */
-	public function getCustomHooks()
-	{
-		$custom_hooks = $this->getData( 'custom_hooks', 'cache' );
-		if ( ! isset( $custom_hooks ) ) {
-			$custom_hooks = array( 'events' => array(), 'actions' => array() );
-			foreach( Hook::loadWhere( '1=1' ) as $hook ) {
-				switch( $hook->type ) {
-					case 'custom':
-					case 'action':
-						$custom_hooks['events'][$hook->hook] = array(
-							'type' => 'action',
-							'definition' => $hook->getDefinition(),
-						);
-						break;
-				}
-			}
-			
-			$this->setData( 'custom_hooks', $custom_hooks, 'cache' );
-		}
-		
-		return $custom_hooks;		
+		$this->clearCache( 'custom_hooks', TRUE );
 	}
 	
 	/**
@@ -364,6 +406,16 @@ class _Plugin extends \MWP\Framework\Plugin
 	public function getRulesController( $key='admin' )
 	{
 		return Rule::getController( $key );		
+	}
+	
+	/**
+	 * Get the rules controller
+	 * 
+	 * @return	ActiveRecordController
+	 */
+	public function getHooksController( $key='admin' )
+	{
+		return Hook::getController( $key );		
 	}
 	
 	/**
