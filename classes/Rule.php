@@ -90,6 +90,41 @@ class _Rule extends ActiveRecord
 	public static $parent_col = 'parent_id';
 	
 	/**
+	 * Get the associated feature
+	 *
+	 * @return	MWP\Rules\Feature|NULL
+	 */
+	public function getFeature()
+	{
+		$rule = $this;
+		while( $rule->parent() ) {
+			$rule = $rule->parent();
+		}
+		
+		if ( $rule->feature_id ) {
+			try {
+				return Feature::load( $rule->feature_id );
+			} catch( \OutOfRangeException $e ) { }
+		}
+		
+		return NULL;
+	}
+	
+	/**
+	 * Get the associated app
+	 *
+	 * @return	MWP\Rules\App|NULL
+	 */
+	public function getApp()
+	{
+		if ( $feature = $this->getFeature() ) {
+			return $feature->getApp();
+		}
+		
+		return NULL;
+	}
+	
+	/**
 	 * Get controller actions
 	 *
 	 * @return	array
@@ -145,14 +180,46 @@ class _Rule extends ActiveRecord
 		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		$rule = $this;
 		
-		/* Display details for the event */
-		if ( $event = $rule->event() ) {
-			$form->addHtml( 'event_details', $event->getDisplayDetails( $rule->parent() ) );
+		/* Display details for the app/feature/parent */
+		$form->addHtml( 'rule_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
+			'rule' => $this, 
+			'feature' => $this->getFeature(), 
+			'app' => $this->getApp(), 
+		]));
+		
+		if ( $rule->title ) {
+			$form->addHtml( 'rule_title', $plugin->getTemplateContent( 'rules/overview/title', [
+				'icon' => '<img style="background-color: #333; padding:3px; border-radius: 3px" src="' . $plugin->fileUrl('assets/img/gavel.png') . '">',
+				'label' => 'Rule',
+				'title' => $rule->title,
+			]));
 		}
 		
 		$form->addTab( 'rule_settings', array( 
 			'title' => __( 'Settings', 'mwp-rules' ) 
 		));
+		
+		if ( $this->id() and ! $this->parent() ) {
+			$feature_choices = [
+				'Unassigned' => 0,
+			];
+			
+			foreach( App::loadWhere('1') as $app ) {
+				$app_features = [];
+				foreach( $app->getFeatures() as $feature ) {
+					$app_features[ $feature->title ] = $feature->id();
+				}
+				$feature_choices[ $app->title ] = $app_features;
+			}
+			
+			$form->addField( 'feature_id', 'choice', array(
+				'label' => __( 'Associated Feature', 'mwp-rules' ),
+				'choices' => $feature_choices,
+				'required' => true,
+				'data' => $this->feature_id,
+			), 
+			'rule_settings' );
+		}
 		
 		/**
 		 * Rule title
@@ -359,18 +426,28 @@ class _Rule extends ActiveRecord
 			$form->addHtml( 'rule_debug_logs', $logsTable->getDisplay(), 'rule_debug_console' );			
 		}
 		
+		$submit_text = $this->id() ? 'Save Rule' : 'Create Rule';
 		$form->addField( 'submit', 'submit', array( 
-			'label' => __( 'Save Rule', 'mwp-rules' ), 
+			'label' => __( $submit_text, 'mwp-rules' ), 
 			'attr' => array( 'class' => 'btn btn-primary' ),
 			'row_attr' => array( 'class' => 'text-center' ),
 		));
 		
 		/* If the rule is a sub-rule, redirect to the parent rules tab after saving */
-		if ( $rule->parent_id ) {
-			$form->onComplete( function() use ( $rule, $plugin ) {
+		if ( $parent = $rule->parent() ) {
+			$form->onComplete( function() use ( $parent, $plugin ) {
 				$controller = $plugin->getRulesController();
-				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->parent_id, '_tab' => 'rule_subrules' ) ) );
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $parent->id(), '_tab' => 'rule_subrules' ) ) );
 				exit;
+			});
+		}
+		else {
+			$form->onComplete( function() use ( $rule, $plugin ) {
+				if ( $feature = $rule->getFeature() ) {
+					$controller = $plugin->getFeaturesController( $feature->getApp() );
+					wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $feature->id(), '_tab' => 'feature_rules' ) ) );
+					exit;
+				}
 			});
 		}
 		
@@ -826,12 +903,31 @@ class _Rule extends ActiveRecord
 	 */
 	public function url( $params=array() )
 	{
-		return \MWP\Rules\Plugin::instance()->getRulesController()->getUrl( array( 'id' => $this->id, 'do' => 'edit' ) + $params );
+		return $this->getPlugin()->getRulesController()->getUrl( array( 'id' => $this->id(), 'do' => 'edit' ) + $params );
+	}
+	
+	/**
+	 * Save
+	 *
+	 * @return	void
+	 */
+	public function save()
+	{
+		$changed = $this->_getChanged();
+		if ( array_key_exists( 'rule_feature_id', $changed ) ) {
+			foreach( $this->children() as $subrule ) {
+				$subrule->feature_id = $this->feature_id;
+				$subrule->save();
+			}
+		}
+		
+		return parent::save();
 	}
 	
 	/**
 	 * Delete
 	 *
+	 * @return	void
 	 */
 	public function delete()
 	{
@@ -847,7 +943,7 @@ class _Rule extends ActiveRecord
 			$condition->delete();
 		}
 		
-		parent::delete();
+		return parent::delete();
 	}
 
 }

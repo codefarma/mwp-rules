@@ -15,12 +15,48 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use MWP\Framework\Helpers\ActiveRecordController;
+use MWP\Rules;
 
 /**
  * Rules Class
  */
 class _RulesController extends ActiveRecordController
 {
+	
+	/**
+	 * @var	MWP\Rules\Feature
+	 */
+	protected $feature;
+	
+	/**
+	 * Set the associated rule
+	 */
+	public function setFeature( $feature )
+	{
+		$this->feature = $feature;
+	}
+	
+	/**
+	 * Get the associated rule
+	 */
+	public function getFeature()
+	{
+		return $this->feature;
+	}
+	
+	/**
+	 * Get the associated app id
+	 *
+	 * @return	int
+	 */
+	public function getFeatureId()
+	{
+		if ( $feature = $this->getFeature() ) {
+			return $feature->id();
+		}
+		
+		return 0;
+	}
 	
 	/**
 	 * Default controller configuration
@@ -36,7 +72,7 @@ class _RulesController extends ActiveRecordController
 			'tableConfig' => array(
 				'tableTemplate' => 'rules/table',
 				'actionsColumn' => 'rule_enabled',
-				'default_where' => array( 'rule_parent_id=0' ),
+				'default_where' => array( 'rule_parent_id=0 AND rule_feature_id=%d', $this->getFeatureId() ),
 				'columns' => array(
 					'rule_title'      => __( 'Rule Summary', 'mwp-rules' ),
 					'rule_event_hook' => __( 'Evaluated When', 'mwp-rules' ),
@@ -146,6 +182,40 @@ class _RulesController extends ActiveRecordController
 	}
 	
 	/**
+	 * Get the controller url
+	 *
+	 * @param	array			$args			Optional query args
+	 */
+	public function getUrl( $args=array() )
+	{
+		if ( $this->getFeatureId() ) {
+			$args = array_merge( array( 'feature_id' => $this->getFeatureId(), $args ) );
+		}
+		
+		return parent::getUrl( $args );
+	}
+
+	/**
+	 * Constructor
+	 *
+	 * @param	string		$recordClass			The active record class
+	 * @param	array		$options				Optional configuration options
+	 * @return	void
+	 */
+	public function __construct( $recordClass, $options=array() )
+	{
+		parent::__construct( $recordClass, $options );
+		
+		/* Auto set the feature */
+		if ( isset( $_REQUEST['feature_id'] ) ) {
+			try {
+				$feature = Rules\Feature::load( $_REQUEST['feature_id'] );
+				$this->setFeature( $feature );
+			} catch( \OutOfRangeException $e ) { }
+		}
+	}
+	
+	/**
 	 * Get action buttons
 	 *
 	 * @return	array
@@ -171,13 +241,15 @@ class _RulesController extends ActiveRecordController
 	{
 		$class = $this->recordClass;
 		$record = new $class;
+		$record->feature_id = $this->getFeatureId();
 		
 		if ( isset( $_REQUEST['parent_id'] ) ) {
 			try {
-				$rule = $class::load( $_REQUEST['parent_id'] );
-				$record->parent_id = $rule->id;
-				$record->event_type = $rule->event_type;
-				$record->event_hook = $rule->event_hook;
+				$parent = $class::load( $_REQUEST['parent_id'] );
+				$record->parent_id = $parent->id();
+				$record->feature_id = $parent->feature_id;
+				$record->event_type = $parent->event_type;
+				$record->event_hook = $parent->event_hook;
 			} 
 			catch( \OutOfRangeException $e ) {}
 		}

@@ -403,19 +403,45 @@ class _Plugin extends \MWP\Framework\Plugin
 	 * 
 	 * @return	ActiveRecordController
 	 */
-	public function getRulesController( $key='admin' )
+	public function getRulesController( $feature=null, $key='admin' )
 	{
-		return Rule::getController( $key );		
+		$controller = Rule::getController( $key );
+		$controller->setFeature( $feature );
+		
+		return $controller;
 	}
 	
 	/**
-	 * Get the rules controller
+	 * Get the hooks controller
 	 * 
 	 * @return	ActiveRecordController
 	 */
 	public function getHooksController( $key='admin' )
 	{
 		return Hook::getController( $key );		
+	}
+	
+	/**
+	 * Get the apps controller
+	 * 
+	 * @return	ActiveRecordController
+	 */
+	public function getAppsController( $key='admin' )
+	{
+		return App::getController( $key );		
+	}
+	
+	/**
+	 * Get the features controller
+	 * 
+	 * @return	ActiveRecordController
+	 */
+	public function getFeaturesController( $app=null, $key='admin' )
+	{
+		$controller = Feature::getController( $key );
+		$controller->setApp( $app );
+		
+		return $controller;
 	}
 	
 	/**

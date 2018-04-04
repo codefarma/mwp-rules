@@ -35,9 +35,52 @@
 	margin: 0 0 8px -24px;
 }
 
-.mwp-rules-form .event-overview .subtle {
+.mwp-rules-form .alert .subtle {
 	opacity: 0.75;
 	-moz-opacity: 0.75;
+}
+
+.mwp-rules-form .alert.overview {
+	padding-left: 40px;
+}
+
+.mwp-rules-form .alert.overview .glyphicon {
+	position: absolute;
+	left: -25px;
+}
+
+.mwp-rules-form .alert .app-title {
+	font-size: 1.6em;
+	margin-bottom: 15px;
+	position: relative;
+	vertical-align: middle;
+}
+
+.mwp-rules-form .alert .feature-title {
+	font-size: 1.4em;
+	margin-bottom: 8px;
+	position: relative;
+	vertical-align: middle;
+}
+
+.mwp-rules-form .overview-title {
+	margin: 0 0 15px 5px;
+}
+
+.mwp-rules-form .alert .app-title .glyphicon {
+	font-size: 0.9em;
+}
+
+.mwp-rules-form .alert .feature-title .glyphicon {
+	
+}
+
+.mwp-rules-form ul.rule-group {
+	margin-left: 10px;
+}
+
+.mwp-rules-form ul.rule-group.parent_0 {
+	margin-left: 0px;
 }
 
 .mwp-rules-form .event-overview p {

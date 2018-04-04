@@ -148,7 +148,7 @@ class _Argument extends ActiveRecord
 		));
 		
 		$form->addField( 'save', 'submit', array(
-			'label' => __( 'Save', 'mwp-rules' ),
+			'label' => __( 'Save Argument', 'mwp-rules' ),
 		));
 
 		return $form;

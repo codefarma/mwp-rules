@@ -59,6 +59,7 @@ add_action( 'mwp_framework_init', function()
 	);
 	
 	/* Assign customized controller classes */
+	Feature         ::setControllerClass( Controllers\FeaturesController::class );
 	Rule            ::setControllerClass( Controllers\RulesController::class );
 	Action          ::setControllerClass( Controllers\ActionsController::class );
 	Condition       ::setControllerClass( Controllers\ConditionsController::class );
