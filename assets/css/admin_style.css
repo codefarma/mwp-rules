@@ -51,16 +51,18 @@
 
 .mwp-rules-form .alert .app-title {
 	font-size: 1.6em;
-	margin-bottom: 15px;
 	position: relative;
 	vertical-align: middle;
 }
 
 .mwp-rules-form .alert .feature-title {
 	font-size: 1.4em;
-	margin-bottom: 8px;
 	position: relative;
 	vertical-align: middle;
+}
+
+.mwp-rules-form .app-title + .feature-title {
+	margin-top: 15px;
 }
 
 .mwp-rules-form .overview-title {

@@ -798,6 +798,64 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
+	 * Provide available rules config preset options
+	 *
+	 * @MWP\WordPress\Filter( for="rules_config_preset_options" )
+	 * 
+	 * @param	array			$options				Preset options
+	 * @return	array
+	 */
+	public function getRulesConfigPresetOptions( $options )
+	{
+		$options = array_merge( $options, array(
+			'text' => array(
+				'label' => 'Text Field',
+			),
+			'textarea' => array(
+				'label' => 'Text Area',
+			),
+			'datetime' => array(
+				'label' => 'Date and Time Input',
+			),
+			'user' => array(
+				'label' => 'User Select',
+			),
+			'users' => array(
+				'label' => 'Multiple Users Select',
+			),
+			'post' => array(
+				'label' => 'Single Post',
+			),
+			'posts' => array(
+				'label' => 'Multiple Posts',
+			),
+			'comment' => array(
+				'label' => 'Single Comment',
+			),
+			'comments' => array(
+				'label' => 'Multiple Comments',
+			),
+			'term' => array(
+				'label' => 'Single Taxonomy Term',
+			),
+			'terms' => array(
+				'label' => 'Multiple Taxonomy Terms',
+			),
+			'array' => array(
+				'label' => 'Indexed Array',
+			),
+			'key_array' => array(
+				'label' => 'Associative Array',
+			),
+			'meta_values' => array(
+				'label' => 'Meta Values',
+			),
+		));
+		
+		return $options;
+	}
+	
+	/**
 	 * Configuration Form Presets
 	 *
 	 * @param	string	$key			The key for the configuration preset to retrieve

@@ -45,6 +45,8 @@ class _Argument extends ActiveRecord
 		'varname',
 		'parent_id',
 		'parent_type',
+		'widget',
+		'data' => array( 'format' => 'JSON' ),
     );
 
     /**
@@ -174,10 +176,16 @@ class _Argument extends ActiveRecord
 			]));
 		}
 		
-		$form->addField( 'title', 'text', array(
-			'label' => __( 'Title', 'mwp-rules' ),
-			'data' => $this->title,
-			'required' => true,
+		$form->addTab( 'argument_details', array(
+			'title' => __( 'Argument Details', 'mwp-rules' ),
+		));
+		
+		$form->addTab( 'advanced_settings', array(
+			'title' => __( 'Advanced Settings', 'mwp-rules' ),
+		));
+		
+		$form->addTab( 'manual_widget', array(
+			'title' => __( 'Input Widget', 'mwp-rules' ),
 		));
 		
 		$form->addField( 'type', 'choice', array(
@@ -194,37 +202,112 @@ class _Argument extends ActiveRecord
 			),
 			'data' => $this->type,
 			'required' => true,
-		));
+		),
+		'argument_details' );
+		
+		$form->addField( 'title', 'text', array(
+			'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
+			'attr' => array( 'data-role' => 'arg-title' ),
+			'label' => __( 'Title', 'mwp-rules' ),
+			'data' => $this->title,
+			'required' => true,
+		),
+		'argument_details' );
 		
 		$form->addField( 'varname', 'text', array(
+			'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
 			'label' => __( 'Machine Name', 'mwp-rules' ),
 			'description' => __( 'Enter an identifier to be used for this argument. It may only contain alphanumeric characters or underscores. It must also start with a letter.', 'mwp-rules' ),
-			'attr' => array( 'placeholder' => 'var_name' ),
+			'attr' => array( 
+				'placeholder' => 'var_name', 
+				'data-fixed' => isset( $this->varname ) ? "true" : "false",
+				'pattern' => "^([A-Za-z])+([A-Za-z0-9_]+)?$",
+				'data-bind' => "init: function() { 
+					var varname = jQuery(this);
+					var title = varname.closest('form').find('[data-role=\"arg-title\"]');
+					title.on('keyup change blur', function() {
+						if ( ! varname.val() ) {
+							varname.data('fixed',false);
+						}
+						if ( ! varname.data('fixed') ) {
+							varname.val( title.val().replace(/^[0-9]+/,'').replace(/ /g,'_').replace(/[^A-Za-z0-9_]/g,'').toLowerCase() );
+						}
+					});
+					varname.on('keypress', function (event) {
+						switch (event.keyCode) {
+							case 8:  // Backspace
+								break;
+							case 9:  // Tab
+							case 13: // Enter
+							case 37: // Left
+							case 38: // Up
+							case 39: // Right
+							case 40: // Down
+								return;
+							default:
+								var regex = new RegExp(\"[a-zA-Z0-9_]\");
+								var key = event.key;
+								if (!regex.test(key)) {
+									event.preventDefault();
+									return false;
+								}
+								break;
+						}
+						varname.data('fixed', true);
+					});
+				}
+			"),
 			'data' => $this->varname,
+			'constraints' => array( function( $data, $context ) {
+				if ( ! preg_match( "/^([A-Za-z])+([A-Za-z0-9_]+)?$/", $data ) ) {
+					$context->addViolation( __('The machine name must be only alphanumerics or underscores, and must start with a letter.','mwp-rules') ); 
+				}
+			}),
 			'required' => true,
-		));
+		),
+		'argument_details' );
 		
 		$form->addField( 'description', 'text', array(
 			'label' => __( 'Description', 'mwp-rules' ),
 			'data' => $this->description,
 			'required' => false,
-		));
-		
-		$form->addField( 'class', 'text', array(
-			'label' => __( 'Object Class', 'mwp-rules' ),
-			'description' => __( 'If this argument is an object, or is a scalar value that maps to an object, enter the class name of that object here.', 'mwp-rules' ),
-			'attr' => array( 'placeholder' => 'WP_User' ),
-			'data' => $this->class,
-			'required' => false,
-		));
+		),
+		'argument_details' );
 		
 		$form->addField( 'required', 'checkbox', array(
 			'row_prefix' => '<hr>',
 			'label' => __( 'Required', 'mwp-rules' ),
-			'description' => __( 'Choose whether this argument is required or not.', 'mwp-rules' ),
+			'description' => __( 'Choose if this argument is required to have a value.', 'mwp-rules' ),
 			'value' => 1,
 			'data' => (bool) $this->required,
-		));
+		),
+		'argument_details' );
+		
+		$form->addField( 'class', 'text', array(
+			'label' => __( 'Object Class', 'mwp-rules' ),
+			'description' => __( 'If this argument is an object, or is a scalar value that can be used to load an object, enter the class name of that object here.', 'mwp-rules' ),
+			'attr' => array( 'placeholder' => 'WP_User' ),
+			'data' => $this->class,
+			'required' => false,
+		),
+		'advanced_settings' );
+		
+		$widget_choices = [
+			'None' => '',
+		];
+		
+		foreach( apply_filters( 'rules_config_preset_options', array() ) as $key => $preset ) {
+			$widget_choices[$preset['label']] = $key;
+		}
+		
+		$form->addField( 'widget', 'choice', array(
+			'label' => __( 'Widget Type', 'mwp-rules' ),
+			'choices' => $widget_choices,
+			'data' => $this->widget,
+			'expanded' => false,
+			'required' => true,
+		),
+		'manual_widget' );
 		
 		$argument = $this;
 		$form->onComplete( function() use ( $argument ) {
@@ -249,7 +332,10 @@ class _Argument extends ActiveRecord
 	 */
 	protected function processEditForm( $values )
 	{
-		parent::processEditForm( $values );
+		$_values = array_merge( $values['argument_details'], $values['advanced_settings'], $values['manual_widget'] );
+		$_values['varname'] = strtolower( $_values['varname'] );
+		
+		parent::processEditForm( $_values );
 	}
 	
 	/**
