@@ -23,7 +23,7 @@ use MWP\Rules;
 
 <h1 class="overview-title">
 	<?php if ( isset( $icon ) ) { echo $icon; } ?>
-	<?php if ( isset( $label ) ) { echo $label . ": "; } ?>
+	<?php if ( isset( $label ) ) { echo "<span class=\"text-info\" style=\"opacity:0.8\">" . $label . ":</span> "; } ?>
 	<?php echo esc_html( $title ) ?>
 </h1>
 <hr>

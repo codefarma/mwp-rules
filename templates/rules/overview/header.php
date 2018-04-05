@@ -10,7 +10,10 @@
  *
  * @param	Plugin		$this		The plugin instance which is loading this template
  *
- * @param	MWP\Rules\Rule		$rule		The rule to display an overview for
+ * @param	MWP\Rules\Rule		$rule		(optional) The rule to use in the overview
+ * @param   MWP\Rules\Argument  $argument   (optional) An argument to use in the overview
+ * @param   MWP\Rules\Feature   $feature    (optional) The feature to use in the overview
+ * @param   MWP\Rules\App       $app        (optional) The app to use in the overview
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,9 +22,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use MWP\Rules;
 
+if ( isset( $argument ) ) {
+	if ( $arg_parent = $argument->getParent() ) {
+		if ( $arg_parent instanceof Rules\Feature ) {
+			$feature = $arg_parent;
+			$app = $feature->getApp();
+		}
+		else if ( $arg_parent instanceof Rules\Hook ) {
+			$hook = $arg_parent;
+		}
+	}
+}
+
 ?>
 
-<?php if ( isset( $app ) or isset( $feature ) ) : ?>
+<?php if ( isset( $app ) or isset( $feature ) or isset( $hook ) ) : ?>
 	<div class="alert alert-warning overview">
 
 	<?php if ( isset( $app ) ) { ?>
@@ -30,9 +45,18 @@ use MWP\Rules;
 		</div>
 	<?php } ?>
 
-	<?php if ( isset( $feature ) ) { ?>
+	<?php if ( isset( $feature ) ) { 
+		$tab = isset( $rule ) ? 'feature_rules' : ( isset( $argument ) ? 'arguments' : null );
+	?>
 		<div class="feature-title">
-			<span class="subtle"><i class="glyphicon glyphicon-lamp"></i> Feature:</span> <a href="<?php echo $feature->url( isset( $rule ) ? [ '_tab' => 'feature_rules' ] : [] ) ?>"><?php echo esc_html( $feature->title ) ?></a>
+			<span class="subtle"><i class="glyphicon glyphicon-lamp"></i> Feature:</span> <a href="<?php echo $feature->url( isset( $tab ) ? [ '_tab' => $tab ] : [] ) ?>"><?php echo esc_html( $feature->title ) ?></a>
+		</div>
+	<?php } ?>
+
+	<?php if ( isset( $hook ) ) { ?>
+		<div class="feature-title">
+			<span class="subtle"><i class="glyphicon glyphicon-flash"></i> <?php echo $hook->getTypeTitle() ?>:</span> <a href="<?php echo $hook->url([ '_tab' => 'arguments' ]) ?>"><?php echo esc_html( $hook->title ) ?></a> 
+			<code><?php echo esc_html( $hook->hook ) ?></code>
 		</div>
 	<?php } ?>
 

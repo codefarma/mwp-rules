@@ -176,7 +176,9 @@ class _LogsController extends ActiveRecordController
 			}
 		}
 		
-		echo $this->getPlugin()->getTemplateContent( 'rules/logs/view_wrapper', array( 'title' => $record->viewTitle(), 'plugin' => $this->getPlugin(), 'controller' => $this, 'log' => $record ) );		
+		$output = $this->getPlugin()->getTemplateContent( 'rules/logs/view_wrapper', array( 'title' => $record->_getViewTitle(), 'plugin' => $this->getPlugin(), 'controller' => $this, 'log' => $record ) );
+		
+		echo $this->wrap( $record->_getViewTitle(), $output, 'view' );
 	}
 
 }

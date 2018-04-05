@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use MWP\Framework\Helpers\ActiveRecordController;
+use MWP\Framework\Pattern\ActiveRecord;
 use MWP\Rules;
 
 /**
@@ -74,49 +75,16 @@ class _ArgumentsController extends ActiveRecordController
 	}
 	
 	/**
-	 * Get the parent class
-	 *
-	 * @return	string|NULL
-	 */
-	public function getParentClass()
-	{
-		$parent_type = $this->getParentType();
-		$parent_class_map = $this->getParentClassMap();
-		
-		if ( isset( $parent_class_map[ $parent_type ] ) ) {
-			return $parent_class_map[ $parent_type ];
-		}
-		
-		return NULL;
-	}
-	
-	/**
-	 * Get the map of parent types
-	 *
-	 * @return	array
-	 */
-	public function getParentClassMap()
-	{
-		return array(
-			'hook' => 'MWP\Rules\Hook',
-			'feature' => 'MWP\Rules\Feature',
-			'app' => 'MWP\Rules\App',
-		);
-	}
-	
-	/**
 	 * Set the parent
 	 *
 	 * @param   ActiveRecord       $parent          The parent to set
 	 * @return  void
 	 */
-	public function setParent( $parent )
+	public function setParent( ActiveRecord $parent )
 	{
-		foreach( $this->getParentClassMap() as $type => $class ) {
-			if ( $parent instanceof $class ) {
-				$this->setParentType( $type );
-				$this->setParentId( $parent->id() );
-			}
+		if ( $type = Rules\Argument::getParentType( $parent ) ) {
+			$this->setParentType( $type );
+			$this->setParentId( $parent->id() );
 		}
 	}
 	
@@ -127,7 +95,7 @@ class _ArgumentsController extends ActiveRecordController
 	 */
 	public function getParent()
 	{
-		if ( $class = $this->getParentClass() and $parent_id = $this->getParentId() ) {
+		if ( $class = Rules\Argument::getParentClass( $this->getParentType() ) and $parent_id = $this->getParentId() ) {
 			try {
 				$parent = $class::load( $parent_id );
 				return $parent;

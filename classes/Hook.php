@@ -97,13 +97,46 @@ class _Hook extends ActiveRecord
 	public static $lang_delete = 'Delete';
 	
 	/**
+	 * Get the 'edit record' page title
+	 * 
+	 * @return	string
+	 */
+	public function _getEditTitle()
+	{
+		$singular = $this->type == 'custom' ? 'Custom Action' : ucfirst( $this->type );
+		return __( static::$lang_edit . ' ' . $singular );
+	}
+	
+	/**
+	 * Get the 'view record' page title
+	 * 
+	 * @return	string
+	 */
+	public function _getViewTitle()
+	{
+		$singular = $this->type == 'custom' ? 'Custom Action' : ucfirst( $this->type );
+		return __( static::$lang_view . ' ' . $singular );
+	}
+	
+	/**
+	 * Get the 'delete record' page title
+	 * 
+	 * @return	string
+	 */
+	public function _getDeleteTitle()
+	{
+		$singular = $this->type == 'custom' ? 'Custom Action' : ucfirst( $this->type );
+		return __( static::$lang_delete . ' ' . $singular );
+	}
+	
+	/**
 	 * Get the hook arguments
 	 *
 	 * @return	array
 	 */
 	public function getArguments()
 	{
-		return Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', 'hook', $this->id() ), 'argument_weight ASC' );
+		return Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', Argument::getParentType( $this ), $this->id() ), 'argument_weight ASC' );
 	}
 	
 	/**
@@ -168,6 +201,16 @@ class _Hook extends ActiveRecord
 	}
 	
 	/**
+	 * Get the title of the hook type for display
+	 *
+	 * @return	string
+	 */
+	public function getTypeTitle()
+	{
+		return $this->type == 'custom' ? __( 'Custom Action', 'mwp-rules' ) : ucfirst( $this->type );
+	}
+	
+	/**
 	 * Build an editing form
 	 *
 	 * @return	MWP\Framework\Helpers\Form
@@ -175,7 +218,16 @@ class _Hook extends ActiveRecord
 	protected function buildEditForm()
 	{
 		$plugin = $this->getPlugin();
-		$form = static::createForm( 'edit' );
+		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		$has_hook_config = false;
+		
+		if ( $this->title ) {
+			$form->addHtml( 'hook_title', $plugin->getTemplateContent( 'rules/overview/title', [
+				'icon' => '<i class="glyphicon glyphicon-flash"></i>',
+				'label' => $this->getTypeTitle(),
+				'title' => $this->title,
+			]));
+		}
 		
 		$form->addTab( 'hook_details', array(
 			'title' => __( 'Hook Details', 'mwp-rules' ),
@@ -201,6 +253,7 @@ class _Hook extends ActiveRecord
 		}
 		
 		if ( $this->type != 'custom' ) {
+			$has_hook_config = true;
 			$form->addField( 'hook', 'text', array(
 				'row_attr' => array( 'id' => 'hook_hook' ),
 				'label' => __( 'Hook' ),
@@ -225,7 +278,7 @@ class _Hook extends ActiveRecord
 		}
 		
 		$form->addField( 'title', 'text', array(
-			'row_prefix' => '<hr>',
+			'row_prefix' => $has_hook_config ? '<hr>' : '',
 			'label' => __( 'Title', 'mwp-rules' ),
 			'data' => $this->title,
 			'required' => true,
@@ -238,7 +291,7 @@ class _Hook extends ActiveRecord
 		), 'hook_details' );
 		
 		if ( $this->id() ) {
-			$form->addTab( 'hook_arguments', array(
+			$form->addTab( 'arguments', array(
 				'title' => __( 'Arguments', 'mwp-rules' ),
 			));
 			
@@ -252,12 +305,12 @@ class _Hook extends ActiveRecord
 				'table' => $argumentsTable, 
 				'controller' => $argumentsController,
 			)),
-			'hook_arguments' );
+			'arguments' );
 		} else {
 			$hook = $this;
 			$form->onComplete( function() use ( $hook, $plugin ) {
 				$controller = $plugin->getHooksController();
-				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $hook->id(), '_tab' => 'hook_arguments' ) ) );
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $hook->id(), '_tab' => 'arguments' ) ) );
 				exit;
 			});			
 		}
@@ -287,6 +340,17 @@ class _Hook extends ActiveRecord
 		}
 		
 		parent::processEditForm( $_values );
+	}
+	
+	/**
+	 * Get the app url
+	 *
+	 * @param	array			$params			Url params
+	 * @return	string
+	 */
+	public function url( $params=array() )
+	{
+		return $this->getPlugin()->getHooksController()->getUrl( array( 'id' => $this->id(), 'do' => 'edit' ) + $params );
 	}
 	
 	/**

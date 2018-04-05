@@ -99,6 +99,16 @@ class _Feature extends ActiveRecord
 	}
 	
 	/**
+	 * Get the hook arguments
+	 *
+	 * @return	array
+	 */
+	public function getArguments()
+	{
+		return Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', Argument::getParentType( $this ), $this->id() ), 'argument_weight ASC' );
+	}
+	
+	/**
 	 * Build an editing form
 	 *
 	 * @return	MWP\Framework\Helpers\Form
@@ -106,7 +116,7 @@ class _Feature extends ActiveRecord
 	protected function buildEditForm()
 	{
 		$plugin = $this->getPlugin();
-		$form = static::createForm( 'edit' );
+		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		
 		/* Display details for the app/feature */
 		$form->addHtml( 'feature_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
@@ -162,6 +172,28 @@ class _Feature extends ActiveRecord
 		), 'feature_details' );
 		
 		if ( $this->id() ) {
+			
+			$form->addTab( 'arguments', array(
+				'title' => __( 'Config Variables', 'mwp-rules' ),
+			));
+			
+			$argumentsController = $plugin->getArgumentsController( $this );
+			$argumentsTable = $argumentsController->createDisplayTable();
+			$argumentsTable->bulkActions = array();
+			$argumentsTable->prepare_items();
+			
+			$form->addHtml( 'arguments_table', $this->getPlugin()->getTemplateContent( 'rules/arguments/table_wrapper', array( 
+				'actions' => array_replace_recursive( $argumentsController->getActions(), array( 
+					'new' => array( 
+						'title' => __( 'Add New Param', 'mwp-rules' ),
+					), 
+				)),
+				'feature' => $this, 
+				'table' => $argumentsTable, 
+				'controller' => $argumentsController,
+			)),
+			'arguments' );
+			
 			$form->addTab( 'feature_rules', array(
 				'title' => __( 'Feature Rules', 'mwp-rules' ),
 			));

@@ -88,13 +88,97 @@ class _Argument extends ActiveRecord
 	public static $sequence_col = 'weight';
 	
 	/**
+	 * Get map of named parent classes
+	 *
+	 * @return	array
+	 */
+	public static function parentClassMap()
+	{
+		return array(
+			'hook' => Hook::class,
+			'feature' => Feature::class,
+		);		
+	}
+	
+	/**
+	 * Get the parent class
+	 *
+	 * @param   string        $type          The parent type to get the class of
+	 * @return	string|NULL
+	 */
+	public static function getParentClass( $type )
+	{
+		$parent_class_map = static::parentClassMap();
+		
+		if ( isset( $parent_class_map[ $type ] ) ) {
+			return $parent_class_map[ $type ];
+		}
+		
+		return NULL;
+	}
+	
+	/**
+	 * Get the type for a parent
+	 *
+	 * @param   ActiveRecord        $record          The parent record to translate into a type identifier
+	 * @return	string|NULL
+	 */
+	public static function getParentType( ActiveRecord $record )
+	{
+		foreach( static::parentClassMap() as $type => $class ) {
+			if ( $record instanceof $class ) {
+				return $type;
+			}
+		}
+		
+		return NULL;
+	}	
+	
+	/**
+	 * Get the parent record
+	 *
+	 * @return	ActiveRecord|NULL
+	 */
+	public function getParent()
+	{
+		if ( $class = static::getParentClass( $this->parent_type ) and $this->parent_id ) {
+			try {
+				$parent = $class::load( $this->parent_id );
+				return $parent;
+			} catch( \OutOfRangeException $e ) { }
+		}
+		
+		return NULL;
+	}
+	
+	/**
 	 * Build an editing form
 	 *
 	 * @return	MWP\Framework\Helpers\Form
 	 */
 	protected function buildEditForm()
 	{
-		$form = static::createForm( 'edit' );
+		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		$plugin = $this->getPlugin();
+		
+		/* Display details for the app/feature/parent */
+		$form->addHtml( 'argument_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
+			'argument' => $this, 
+		]));
+		
+		if ( $this->title ) {
+			$form->addHtml( 'hook_title', $plugin->getTemplateContent( 'rules/overview/title', [
+				'icon' => '<i class="glyphicon glyphicon-"></i>',
+				'label' => 'Argument',
+				'title' => $this->title,
+			]));
+		}
+		
+		$form->addField( 'title', 'text', array(
+			'label' => __( 'Title', 'mwp-rules' ),
+			'data' => $this->title,
+			'required' => true,
+		));
 		
 		$form->addField( 'type', 'choice', array(
 			'label' => __( 'Argument Type', 'mwp-rules' ),
@@ -112,17 +196,11 @@ class _Argument extends ActiveRecord
 			'required' => true,
 		));
 		
-		$form->addField( 'class', 'text', array(
-			'label' => __( 'Object Class', 'mwp-rules' ),
-			'description' => __( '(optional) If this argument is an object, or is a value that represents an object, enter the class name of the object that it represents.', 'mwp-rules' ),
-			'attr' => array( 'placeholder' => 'WP_User' ),
-			'data' => $this->class,
-			'required' => false,
-		));
-		
-		$form->addField( 'title', 'text', array(
-			'label' => __( 'Title', 'mwp-rules' ),
-			'data' => $this->title,
+		$form->addField( 'varname', 'text', array(
+			'label' => __( 'Machine Name', 'mwp-rules' ),
+			'description' => __( 'Enter an identifier to be used for this argument. It may only contain alphanumeric characters or underscores. It must also start with a letter.', 'mwp-rules' ),
+			'attr' => array( 'placeholder' => 'var_name' ),
+			'data' => $this->varname,
 			'required' => true,
 		));
 		
@@ -132,20 +210,29 @@ class _Argument extends ActiveRecord
 			'required' => false,
 		));
 		
-		$form->addField( 'varname', 'text', array(
-			'label' => __( 'Variable Name', 'mwp-rules' ),
-			'description' => __( 'Enter a name to be used as the php code variable for this argument. Only alphanumerics and underscore are allowed. It must also start with a letter.', 'mwp-rules' ),
-			'attr' => array( 'placeholder' => 'var_name' ),
-			'data' => $this->varname,
-			'required' => true,
+		$form->addField( 'class', 'text', array(
+			'label' => __( 'Object Class', 'mwp-rules' ),
+			'description' => __( 'If this argument is an object, or is a scalar value that maps to an object, enter the class name of that object here.', 'mwp-rules' ),
+			'attr' => array( 'placeholder' => 'WP_User' ),
+			'data' => $this->class,
+			'required' => false,
 		));
 		
 		$form->addField( 'required', 'checkbox', array(
+			'row_prefix' => '<hr>',
 			'label' => __( 'Required', 'mwp-rules' ),
-			'description' => __( 'Choose whether this field is required or not.', 'mwp-rules' ),
+			'description' => __( 'Choose whether this argument is required or not.', 'mwp-rules' ),
 			'value' => 1,
 			'data' => (bool) $this->required,
 		));
+		
+		$argument = $this;
+		$form->onComplete( function() use ( $argument ) {
+			if ( $parent = $argument->getParent() ) {
+				wp_redirect( $parent->url( array( 'do' => 'edit', 'id' => $parent->id(), '_tab' => 'arguments' ) ) );
+				exit;
+			}
+		});
 		
 		$form->addField( 'save', 'submit', array(
 			'label' => __( 'Save Argument', 'mwp-rules' ),

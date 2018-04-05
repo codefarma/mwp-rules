@@ -403,7 +403,15 @@ class _Rule extends ActiveRecord
 		unset( $rulesTable->columns['rule_event_hook'] );
 		$rulesTable->prepare_items( array( 'rule_parent_id=%d', $rule->id ) );
 		
-		$form->addHtml( 'subrules_table', $plugin->getTemplateContent( 'rules/subrules/table_wrapper', array( 
+		$form->addHtml( 'subrules_table', $plugin->getTemplateContent( 'rules/subrules/table_wrapper', array(
+			'actions' => array_replace_recursive( $rulesController->getActions(), array( 
+				'new' => array( 
+					'title' => __( 'Add New Subrule', 'mwp-rules' ),
+					'params' => array( 
+						'parent_id' => $rule->id() 
+					),
+				), 
+			)),
 			'rule' => $rule, 
 			'table' => $rulesTable, 
 			'controller' => $rulesController 

@@ -88,7 +88,7 @@ class _App extends ActiveRecord
 	protected function buildEditForm()
 	{
 		$plugin = $this->getPlugin();
-		$form = static::createForm( 'edit' );
+		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		
 		if ( $this->title ) {
 			$form->addHtml( 'app_title', $plugin->getTemplateContent( 'rules/overview/title', [

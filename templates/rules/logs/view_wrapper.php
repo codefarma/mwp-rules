@@ -20,11 +20,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
-<div class="wrap">
-
-	<h1><?php echo $title ?></h1>
-	
-	<div>
-		<?php echo $log->getView() ?>
-	</div>
+<div>
+	<?php echo $log->getView() ?>
 </div>

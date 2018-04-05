@@ -19,10 +19,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-$actions = $controller->getActions();
-$actions['new']['params']['parent_id'] = $rule->id;
-$actions['new']['title'] = __( 'Add New Subrule', 'mwp-rules' );
-
 ?>
 
 <div class="subrule-actions">
