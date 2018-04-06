@@ -134,7 +134,7 @@ class _Argument extends ActiveRecord
 		}
 		
 		return NULL;
-	}	
+	}
 	
 	/**
 	 * Get the parent record
@@ -154,6 +154,60 @@ class _Argument extends ActiveRecord
 	}
 	
 	/**
+	 * Get the singular name of this type of argument`
+	 *
+	 * @return	string
+	 */
+	public function getSingularName()
+	{
+		if ( $this->getParent() instanceof Feature ) {
+			return 'Setting';
+		}
+		
+		return static::$lang_singular;
+	}
+	
+	/**
+	 * Get the 'create record' page title
+	 * 
+	 * @return	string
+	 */
+	public static function _getCreateTitle()
+	{
+		return __( static::$lang_create . ' ' . static::$lang_singular );
+	}
+	
+	/**
+	 * Get the 'view record' page title
+	 * 
+	 * @return	string
+	 */
+	public function _getViewTitle()
+	{
+		return __( static::$lang_view . ' ' . $this->getSingularName() );
+	}
+	
+	/**
+	 * Get the 'edit record' page title
+	 * 
+	 * @return	string
+	 */
+	public function _getEditTitle()
+	{
+		return __( static::$lang_edit . ' ' . $this->getSingularName() );
+	}
+	
+	/**
+	 * Get the 'delete record' page title
+	 * 
+	 * @return	string
+	 */
+	public function _getDeleteTitle()
+	{
+		return __( static::$lang_delete . ' ' . $this->getSingularName() );
+	}
+
+	/**
 	 * Build an editing form
 	 *
 	 * @return	MWP\Framework\Helpers\Form
@@ -171,13 +225,13 @@ class _Argument extends ActiveRecord
 		if ( $this->title ) {
 			$form->addHtml( 'hook_title', $plugin->getTemplateContent( 'rules/overview/title', [
 				'icon' => '<i class="glyphicon glyphicon-"></i>',
-				'label' => 'Argument',
+				'label' => $this->getSingularName(),
 				'title' => $this->title,
 			]));
 		}
 		
 		$form->addTab( 'argument_details', array(
-			'title' => __( 'Argument Details', 'mwp-rules' ),
+			'title' => __( $this->getSingularName() . ' Details', 'mwp-rules' ),
 		));
 		
 		$form->addField( 'type', 'choice', array(
@@ -209,7 +263,7 @@ class _Argument extends ActiveRecord
 		$form->addField( 'varname', 'text', array(
 			'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
 			'label' => __( 'Machine Name', 'mwp-rules' ),
-			'description' => __( 'Enter an identifier to be used for this argument. It may only contain alphanumeric characters or underscores. It must also start with a letter.', 'mwp-rules' ),
+			'description' => __( 'Enter an identifier to be used for this ' . strtolower( $this->getSingularName() ) . '. It may only contain alphanumeric characters or underscores. It must also start with a letter.', 'mwp-rules' ),
 			'attr' => array( 
 				'placeholder' => 'var_name', 
 				'data-fixed' => isset( $this->varname ) ? "true" : "false",
@@ -303,13 +357,13 @@ class _Argument extends ActiveRecord
 			'toggles' => $widget_toggles,
 			'data' => $this->widget,
 			'expanded' => false,
-			'description' => __( 'An input widget will allow the user to manually configure the value of the argument provided to rule configurations.', 'mwp-rules' ),
+			'description' => __( 'An input widget allows users to manually configure the value of the argument provided in rule configurations.', 'mwp-rules' ),
 			'required' => true,
 		));
 		
 		$data = $this->data;
 		
-		$form->addHtml( 'widget_config_start', "<div style=\"min-height: 200px\"><div id=\"widget_config_all\">" );
+		$form->addHtml( 'widget_config_start', "<div style=\"min-height: 200px\"><div id=\"widget_config_all\"><hr>" );
 		
 			foreach( $config_preset_options as $key => $preset ) {
 				$form->addField( 'widget_' . $key . '_config', 'fieldgroup', [ 'row_attr' => array( 'id' => 'widget_' . $key . '_config' ) ] );
@@ -331,7 +385,7 @@ class _Argument extends ActiveRecord
 		$form->addField( 'widget_use_advanced', 'checkbox', array(
 			'row_attr' => array( 'id' => 'widget_advanced_options' ),
 			'label' => __( 'Custom Options', 'mwp-rules' ),
-			'description' => __( 'For advanced users, you can provide additional options to the widget using custom PHP code.', 'mwp-rules' ),
+			'description' => __( 'For advanced users, you can provide additional options to configure the input widget using custom PHP code.', 'mwp-rules' ),
 			'value' => 1,
 			'data' => isset( $data['advanced_options']['widget_use_advanced'] ) ? (bool) $data['advanced_options']['widget_use_advanced'] : false,
 			'toggles' => array( 1 => array( 'show' => array( '#widget_options_phpcode' ) ) ),
@@ -343,7 +397,7 @@ class _Argument extends ActiveRecord
 			'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
 			'data' => isset( $data['advanced_options'][ 'widget_options_phpcode' ] ) ? $data['advanced_options'][ 'widget_options_phpcode' ] : "// <?php \n\nreturn array();\n",
 			'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 
-				'return_args' => array( '<code>array</code>: An associative array of options to provide to the widget' ),
+				'return_args' => array( '<code>array</code>: An associative array of configuration options to pass to the widget' ),
 				'variables' => array( 
 					'<code>$options</code> (array) - The default configured options for the widget',
 					'<code>$argument</code> (object) (MWP\Rules\Argument) - The argument which is using the widget',
@@ -376,6 +430,13 @@ class _Argument extends ActiveRecord
 	protected function processEditForm( $values )
 	{
 		$widget_type = $values['widget_config']['widget'];
+		$widget_config = $values['widget_config']['widget_' . $widget_type . '_config'];
+		$config_preset_options = apply_filters( 'rules_config_preset_options', array() );
+		
+		if ( isset( $config_preset_options[ $widget_type ]['config']['saveValues'] ) and is_callable( $config_preset_options[ $widget_type ]['config']['saveValues'] ) ) {
+			$saveValues = $config_preset_options[ $widget_type ]['config']['saveValues'];
+			$saveValues( 'widget_' . $widget_type . '_config', $widget_config, $this );
+		}
 		
 		$_values = $values['argument_details'];
 		$_values['widget'] = $widget_type;
@@ -383,11 +444,110 @@ class _Argument extends ActiveRecord
 		$_values['data'] = array(
 			'advanced_options' => $values['advanced_options'],
 			'widget_config' => array(
-				$widget_type => $values['widget_config']['widget_' . $widget_type . '_config'],
+				$widget_type => $widget_config,
 			),
 		);
 		
 		parent::processEditForm( $_values );
+	}
+	
+	/**
+	 * Build the form to set a default value for this argument
+	 * 
+	 * @return	MWP\Framework\Helpers\Form
+	 */
+	public function buildSetDefaultForm()
+	{
+		$form = static::createForm( 'set_default', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		$plugin = $this->getPlugin();
+		
+		/* Display details for the app/feature/parent */
+		$form->addHtml( 'argument_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
+			'argument' => $this, 
+		]));
+		
+		if ( $this->title ) {
+			$form->addHtml( 'hook_title', $plugin->getTemplateContent( 'rules/overview/title', [
+				'icon' => '<i class="glyphicon glyphicon-"></i>',
+				'label' => $this->getSingularName(),
+				'title' => $this->title,
+			]));
+		}
+		
+		$this->addConfigToForm( $form );
+		
+		$form->addField( 'save', 'submit', array(
+			'label' => __( 'Save Default Value', 'mwp-rules' ),
+		), '');
+
+		return $form;
+	}
+	
+	/**
+	 * Add a configuration widget for this argument to a form
+	 * 
+	 * @param	MWP\Framework\Helpers\Form			$form				The form to add to
+	 * @return	void
+	 */
+	public function addConfigToForm( $form )
+	{
+		$plugin = $this->getPlugin();
+		$data = $this->data;
+		$widget_type = $this->widget;
+		$config_preset_options = apply_filters( 'rules_config_preset_options', array() );		
+		$widget_config = isset( $data['widget_config'][ $widget_type ] ) ? $data['widget_config'][ $widget_type ] : [];
+		$config_options = [];
+		
+		/* Use the getOptions callback to get configured options for this widget */
+		if ( isset( $config_preset_options[ $widget_type ]['config']['getConfig'] ) and is_callable( $config_preset_options[ $widget_type ]['config']['getConfig'] ) ) {
+			$getConfig = $config_preset_options[ $widget_type ]['config']['getConfig'];
+			$_options = $getConfig( 'widget_' . $widget_type . '_config', $widget_config, $this );
+			if ( is_array( $_options ) ) {
+				$config_options = array_replace_recursive( $config_options, $_options );
+			}
+		}
+		
+		/* Use the advanced php code feature to provide additional options for this widget */
+		if ( isset( $data['advanced_options']['widget_use_advanced'] ) and $data['advanced_options']['widget_use_advanced'] ) {
+			if ( isset( $data['advanced_options']['widget_options_phpcode'] ) and $phpcode = $data['advanced_options']['widget_options_phpcode'] ) {
+				$variables = array(
+					'options' => $config_options,
+					'argument' => $this,
+				); 
+				
+				$evaluate = function( $phpcode ) use ( $variables ) {
+					extract( $variables );								
+					return @eval( $phpcode );
+				};
+				
+				$_options = $evaluate( $phpcode );
+				if ( is_array( $_options ) ) {
+					$config_options = array_replace_recursive( $config_options, $_options );
+				}
+			}
+		}
+		
+		$preset = $plugin->configPreset( $widget_type, $this->varname . '_default_value', $config_options );
+		
+		/**
+		 * Build the input form
+		 */
+		if ( isset( $preset['form'] ) and is_callable( $preset['form'] ) ) {
+			call_user_func( $preset['form'], $form, [], $this );
+		}		
+	}
+	
+	/**
+	 * Process submitted form values 
+	 *
+	 * @param	array			$values				Submitted form values
+	 * @return	void
+	 */
+	public function processSetDefaultForm( $values )
+	{
+		print "<pre>";
+		print_r( $values );
+		exit;
 	}
 	
 	/**

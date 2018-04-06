@@ -169,8 +169,58 @@ class _ArgumentsController extends ActiveRecordController
 			echo $this->getPlugin()->getTemplateContent( 'component/error', array( 'message' => __( 'The argument requires a parent type and id to be assigned to.', 'mwp-rules' ) ) );
 		}
 		
+		if ( $this->getParent() instanceof Rules\Feature ) {
+			Rules\Argument::$lang_singular = 'Setting';
+			Rules\Argument::$lang_plural = 'Settings';
+		}
+		
 		parent::do_new( $record );
 	}
+	
+	/**
+	 * Create a new active record
+	 * 
+	 * @param	ActiveRecord			$record				The active record id
+	 * @return	void
+	 */
+	public function do_set_default( $record=NULL )
+	{
+		$controller = $this;
+		$class = $this->recordClass;
+		
+		if ( ! $record ) {
+			try
+			{
+				$record = $class::load( $_REQUEST['id'] );
+			}
+			catch( \OutOfRangeException $e ) { 
+ 				echo $this->getPlugin()->getTemplateContent( 'component/error', array( 'message' => __( 'The record could not be loaded. Class: ' . $this->recordClass . ' ' . ', ID: ' . ( (int) $_REQUEST['id'] ), 'mwp-framework' ) ) );
+				return;
+			}
+		}
+		
+		$form = $record->getForm( 'SetDefault' );
+		$save_error = NULL;
+		
+		if ( $form->isValidSubmission() ) 
+		{
+			$record->processForm( $form->getValues(), 'SetDefault' );			
+			$result = $record->save();
+			
+			if ( ! is_wp_error( $result ) ) {
+				$form->processComplete( function() use ( $controller ) {
+					wp_redirect( $controller->getUrl() );
+					exit;
+				});	
+			} else {
+				$save_error = $result;
+			}
+		}
+
+		$output = $this->getPlugin()->getTemplateContent( 'views/management/records/edit', array( 'form' => $form, 'plugin' => $this->getPlugin(), 'controller' => $this, 'record' => $record, 'error' => $save_error ) );
+		
+		echo $this->wrap( __( 'Set Default Value', 'mwp-rules' ), $output, 'edit' );
+	}	
 	
 	/**
 	 * Index Page

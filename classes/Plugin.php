@@ -811,18 +811,18 @@ class _Plugin extends \MWP\Framework\Plugin
 			'text' => array(
 				'label' => 'Text Field',
 				'config' => array(
-					'form' => function( $name, $form, $values ) {
+					'form' => function( $name, $form, $values, $argument ) {
 						$form->addField( $name . '_placeholder', 'text', array(
 							'label' => __( 'Placeholder', 'mwp-rules' ),
 							'data' => isset( $values[ $name . '_placeholder' ] ) ? $values[ $name . '_placeholder' ] : '',
 						));
 					},
-					'saveValues' => function( $name, $values ) {
+					'saveValues' => function( $name, $values, $argument ) {
 						
 					},
-					'getConfig' => function( $name, $values ) {
+					'getConfig' => function( $name, $values, $argument ) {
 						return array(
-							'placeholder' => isset( $values[ $name . '_placeholder' ] ) ? $values[ $name . '_placeholder' ] : '',
+							'attr' => array( 'placeholder' => isset( $values[ $name . '_placeholder' ] ) ? $values[ $name . '_placeholder' ] : '' ),
 						);
 					},
 				),

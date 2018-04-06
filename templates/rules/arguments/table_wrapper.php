@@ -19,10 +19,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
+$actions = array_replace_recursive( $controller->getActions(), isset( $actions ) ? $actions : array() );
 ?>
 
 <div class="arguments-actions">
-	<?php echo $controller->getActionsHtml(); ?>
+	<?php echo $controller->getActionsHtml( $actions ); ?>
 </div>
 
 <div class="arguments-table" <?php echo $table->getViewModelAttr() ?>>

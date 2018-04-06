@@ -174,7 +174,7 @@ class _Feature extends ActiveRecord
 		if ( $this->id() ) {
 			
 			$form->addTab( 'arguments', array(
-				'title' => __( 'Config Variables', 'mwp-rules' ),
+				'title' => __( 'Feature Settings', 'mwp-rules' ),
 			));
 			
 			$argumentsController = $plugin->getArgumentsController( $this );
@@ -185,7 +185,7 @@ class _Feature extends ActiveRecord
 			$form->addHtml( 'arguments_table', $this->getPlugin()->getTemplateContent( 'rules/arguments/table_wrapper', array( 
 				'actions' => array_replace_recursive( $argumentsController->getActions(), array( 
 					'new' => array( 
-						'title' => __( 'Add New Param', 'mwp-rules' ),
+						'title' => __( 'Add Parameter', 'mwp-rules' ),
 					), 
 				)),
 				'feature' => $this, 
