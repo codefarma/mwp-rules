@@ -180,14 +180,6 @@ class _Argument extends ActiveRecord
 			'title' => __( 'Argument Details', 'mwp-rules' ),
 		));
 		
-		$form->addTab( 'advanced_settings', array(
-			'title' => __( 'Advanced Settings', 'mwp-rules' ),
-		));
-		
-		$form->addTab( 'manual_widget', array(
-			'title' => __( 'Input Widget', 'mwp-rules' ),
-		));
-		
 		$form->addField( 'type', 'choice', array(
 			'label' => __( 'Argument Type', 'mwp-rules' ),
 			'choices' => array(
@@ -274,6 +266,15 @@ class _Argument extends ActiveRecord
 		),
 		'argument_details' );
 		
+		$form->addField( 'class', 'text', array(
+			'label' => __( 'Object Class', 'mwp-rules' ),
+			'description' => __( 'If this argument is an object, or is a scalar value that can be used to load an object, enter the class name of that object here.', 'mwp-rules' ),
+			'attr' => array( 'placeholder' => 'WP_User' ),
+			'data' => $this->class,
+			'required' => false,
+		),
+		'argument_details' );
+		
 		$form->addField( 'required', 'checkbox', array(
 			'row_prefix' => '<hr>',
 			'label' => __( 'Required', 'mwp-rules' ),
@@ -283,31 +284,73 @@ class _Argument extends ActiveRecord
 		),
 		'argument_details' );
 		
-		$form->addField( 'class', 'text', array(
-			'label' => __( 'Object Class', 'mwp-rules' ),
-			'description' => __( 'If this argument is an object, or is a scalar value that can be used to load an object, enter the class name of that object here.', 'mwp-rules' ),
-			'attr' => array( 'placeholder' => 'WP_User' ),
-			'data' => $this->class,
-			'required' => false,
-		),
-		'advanced_settings' );
+		$form->addTab( 'widget_config', array(
+			'title' => __( 'Input Widget', 'mwp-rules' ),
+		));
 		
-		$widget_choices = [
-			'None' => '',
-		];
+		$widget_choices = [	'None' => '' ];
+		$widget_toggles = [ '' => array( 'hide' => array( '#widget_config_all', '[id$="advanced_options_tab"]' ) ) ];
+		$config_preset_options = apply_filters( 'rules_config_preset_options', array() );
 		
-		foreach( apply_filters( 'rules_config_preset_options', array() ) as $key => $preset ) {
+		foreach( $config_preset_options as $key => $preset ) {
 			$widget_choices[$preset['label']] = $key;
+			$widget_toggles[ $key ]['show'][] = '#widget_' . $key . '_config';
 		}
 		
 		$form->addField( 'widget', 'choice', array(
 			'label' => __( 'Widget Type', 'mwp-rules' ),
 			'choices' => $widget_choices,
+			'toggles' => $widget_toggles,
 			'data' => $this->widget,
 			'expanded' => false,
+			'description' => __( 'An input widget will allow the user to manually configure the value of the argument provided to rule configurations.', 'mwp-rules' ),
 			'required' => true,
-		),
-		'manual_widget' );
+		));
+		
+		$data = $this->data;
+		
+		$form->addHtml( 'widget_config_start', "<div style=\"min-height: 200px\"><div id=\"widget_config_all\">" );
+		
+			foreach( $config_preset_options as $key => $preset ) {
+				$form->addField( 'widget_' . $key . '_config', 'fieldgroup', [ 'row_attr' => array( 'id' => 'widget_' . $key . '_config' ) ] );
+				$form->setCurrentContainer( 'widget_' . $key . '_config' );
+				if ( isset( $preset['config']['form'] ) and is_callable( $preset['config']['form'] ) ) {
+					call_user_func( $preset['config']['form'], 'widget_' . $key . '_config', $form, isset( $data['widget_config'][ $key ] ) ? $data['widget_config'][ $key ] : [], $this );
+				} else {
+					$form->addHtml( 'widget_' . $key . '_no_config', '<div class="col-lg-2 col-md-3 col-sm-4"></div><div class="col-lg-6 col-md-7 col-sm-8 alert alert-info">' . __( 'This widget does not have any special configuration options.', 'mwp-rules' ) . "</div>" );
+				}
+				$form->endLastContainer();
+			}
+			
+		$form->addHtml( 'widget_config_end', "</div></div>" );
+		
+		$form->addTab( 'advanced_options', array(
+			'title' => __( 'Advanced Config', 'mwp-rules' ),
+		));
+		
+		$form->addField( 'widget_use_advanced', 'checkbox', array(
+			'row_attr' => array( 'id' => 'widget_advanced_options' ),
+			'label' => __( 'Custom Options', 'mwp-rules' ),
+			'description' => __( 'For advanced users, you can provide additional options to the widget using custom PHP code.', 'mwp-rules' ),
+			'value' => 1,
+			'data' => isset( $data['advanced_options']['widget_use_advanced'] ) ? (bool) $data['advanced_options']['widget_use_advanced'] : false,
+			'toggles' => array( 1 => array( 'show' => array( '#widget_options_phpcode' ) ) ),
+		));
+		
+		$form->addField( 'widget_options_phpcode', 'textarea', array(
+			'row_attr' => array(  'id' => 'widget_options_phpcode', 'data-view-model' => 'mwp-rules' ),
+			'label' => __( 'Custom PHP Code', 'mwp-rules' ),
+			'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
+			'data' => isset( $data['advanced_options'][ 'widget_options_phpcode' ] ) ? $data['advanced_options'][ 'widget_options_phpcode' ] : "// <?php \n\nreturn array();\n",
+			'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 
+				'return_args' => array( '<code>array</code>: An associative array of options to provide to the widget' ),
+				'variables' => array( 
+					'<code>$options</code> (array) - The default configured options for the widget',
+					'<code>$argument</code> (object) (MWP\Rules\Argument) - The argument which is using the widget',
+				),
+			)),
+			'required' => false,
+		));
 		
 		$argument = $this;
 		$form->onComplete( function() use ( $argument ) {
@@ -319,7 +362,7 @@ class _Argument extends ActiveRecord
 		
 		$form->addField( 'save', 'submit', array(
 			'label' => __( 'Save Argument', 'mwp-rules' ),
-		));
+		), '');
 
 		return $form;
 	}
@@ -332,8 +375,17 @@ class _Argument extends ActiveRecord
 	 */
 	protected function processEditForm( $values )
 	{
-		$_values = array_merge( $values['argument_details'], $values['advanced_settings'], $values['manual_widget'] );
+		$widget_type = $values['widget_config']['widget'];
+		
+		$_values = $values['argument_details'];
+		$_values['widget'] = $widget_type;
 		$_values['varname'] = strtolower( $_values['varname'] );
+		$_values['data'] = array(
+			'advanced_options' => $values['advanced_options'],
+			'widget_config' => array(
+				$widget_type => $values['widget_config']['widget_' . $widget_type . '_config'],
+			),
+		);
 		
 		parent::processEditForm( $_values );
 	}

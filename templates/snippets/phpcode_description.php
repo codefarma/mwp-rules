@@ -20,16 +20,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <?php if ( isset( $return_args ) and ! empty( $return_args ) ) : ?>
 	<p class="text-success">
-		Your php code needs to return a value to use as an argument. The operation expects you to return one of the following argument types:
+		Your php code needs to return one of the following argument types:
 	</p>
 	<ul>
-		<?php foreach ( $return_args as $arg_type ) : ?>
-		<li><?php echo $arg_type ?></li>
+		<?php foreach ( $return_args as $arg_description ) : ?>
+		<li><?php echo $arg_description ?></li>
+		<?php endforeach ?>
+	</ul>
+<?php endif ?>
+
+<?php if ( isset( $variables ) and ! empty( $variables ) ) : ?>
+	<hr>
+	<p class="text-success">
+		The following variables are available to your php code:
+	</p>
+	<ul>
+		<?php foreach ( $variables as $var_description ) : ?>
+		<li><?php echo $var_description ?></li>
 		<?php endforeach ?>
 	</ul>
 <?php endif ?>
 
 <?php if ( isset( $event ) and ! empty( $event ) ) : ?>
+	<hr>
 	<p class="text-success">
 		The following variables are available to your php code:
 	</p>

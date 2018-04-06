@@ -91,6 +91,7 @@
 				if ( typeof CodeMirror !== 'undefined' ) {
 					var options = ko.unwrap( valueAccessor() );
 					var editor = CodeMirror.fromTextArea( element, options );
+					$(element).data('codemirror', editor).attr('data-role', 'codemirror');
 				}
 			}
 		},
@@ -124,6 +125,31 @@
 				}
 			}
 		}
+	});
+	
+	function refresh_codemirrors( scope ) {
+		scope.find('[data-role="codemirror"]').each(function() {
+			var element = $(this);
+			var codemirror = element.data('codemirror');
+			if ( codemirror ) {
+				if ( $(codemirror.getWrapperElement()).is(':visible') ) {
+					codemirror.refresh();
+				}
+			}
+		});		
+	}
+	
+	/* Refresh codemirror widgets when tabs are switched */
+	$(document).on('shown.bs.tab', function(e) {
+		var tab = $(e.target);
+		var tab_content = $(tab.attr('href'));
+		refresh_codemirrors( tab_content );
+	});
+	
+	/* Refresh codemirror widgets when toggles are shown */
+	mwp.on( 'forms.toggle.shown', function( selector ) {
+		var selections = $(selector);
+		refresh_codemirrors( selections );
 	});
 	
 })( jQuery );

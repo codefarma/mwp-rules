@@ -232,7 +232,7 @@ class _Action extends GenericOperation
 				'row_attr' => array( 'id' => 'schedule_customcode' ),
 				'label' => __( 'Scheduled Date', 'mwp-rules' ),
 				'data' => $action->schedule_customcode ?: "// <?php\n\nreturn;",
-				'description' => $plugin->getTemplateContent( 'rules/phpcode_description', array( 
+				'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 
 					'operation' => $action, 
 					'event' => $action->event(), 
 					'return_args' => array( 

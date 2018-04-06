@@ -193,7 +193,7 @@ class _Content
 							'description' => "<p class='alert alert-info'>" . 
 								__( 'The created post is available via the <code>$created_post</code> variable in your php code. It is a WP_Post object.<br><strong>Note:</strong> You may optionally return a value from this PHP code to be used as the log message for this action during debugging.', 'mwp-rules' ) . 
 								"</p>" .
-								$plugin->getTemplateContent( 'rules/phpcode_description', array( 'operation' => $operation, 'return_args' => NULL, 'event' => $operation->event() ) ),
+								$plugin->getTemplateContent( 'snippets/phpcode_description', array( 'operation' => $operation, 'return_args' => NULL, 'event' => $operation->event() ) ),
 							'required' => false,
 						));
 					},
@@ -786,7 +786,7 @@ class _Content
 							'description' => "<p class='alert alert-info'>" . 
 								__( 'The created comment is available via the <code>$created_comment</code> variable in your php code. It is a WP_Comment object.<br><strong>Note:</strong> You may optionally return a value from this PHP code to be used as the log message for this action during debugging.', 'mwp-rules' ) . 
 								"</p>" .
-								$plugin->getTemplateContent( 'rules/phpcode_description', array( 'operation' => $operation, 'return_args' => NULL, 'event' => $operation->event() ) ),
+								$plugin->getTemplateContent( 'snippets/phpcode_description', array( 'operation' => $operation, 'return_args' => NULL, 'event' => $operation->event() ) ),
 							'required' => false,
 						));
 					},

@@ -810,6 +810,22 @@ class _Plugin extends \MWP\Framework\Plugin
 		$options = array_merge( $options, array(
 			'text' => array(
 				'label' => 'Text Field',
+				'config' => array(
+					'form' => function( $name, $form, $values ) {
+						$form->addField( $name . '_placeholder', 'text', array(
+							'label' => __( 'Placeholder', 'mwp-rules' ),
+							'data' => isset( $values[ $name . '_placeholder' ] ) ? $values[ $name . '_placeholder' ] : '',
+						));
+					},
+					'saveValues' => function( $name, $values ) {
+						
+					},
+					'getConfig' => function( $name, $values ) {
+						return array(
+							'placeholder' => isset( $values[ $name . '_placeholder' ] ) ? $values[ $name . '_placeholder' ] : '',
+						);
+					},
+				),
 			),
 			'textarea' => array(
 				'label' => 'Text Area',
@@ -910,7 +926,7 @@ class _Plugin extends \MWP\Framework\Plugin
 					'form' => function( $form, $values ) use ( $field_name, $options ) {
 						$values[ $field_name ] = isset( $values[ $field_name ] ) ? $values[ $field_name ] : time();
 						$form->addField( $field_name, 'datetime', array_replace_recursive( array(
-							'label' => ucwords( str_replace( '_', ' ', $field_name ) ),
+							'label' => __( 'Date/Time', 'mwp-rules' ),
 							'view_timezone' => get_option( 'timezone_string' ) ?: 'UTC',
 							'input' => 'timestamp',
 							'data' => $values[ $field_name ],

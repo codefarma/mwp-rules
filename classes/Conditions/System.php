@@ -596,7 +596,7 @@ class _System
 							'label' => __( 'PHP Code', 'mwp-rules' ),
 							'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
 							'data' => isset( $saved_values['rules_custom_phpcode'] ) ? $saved_values['rules_custom_phpcode'] : "// <?php\n\nreturn;",
-							'description' => $plugin->getTemplateContent( 'rules/phpcode_description', array( 'operation' => $operation, 'event' => $operation->event() ) ),
+							'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 'operation' => $operation, 'event' => $operation->event() ) ),
 						));
 					}
 				),

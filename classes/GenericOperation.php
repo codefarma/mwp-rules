@@ -207,14 +207,14 @@ abstract class _GenericOperation extends ActiveRecord
 							foreach( $arg[ 'argtypes' ] as $_type => $_type_def ) {
 								if ( is_array( $_type_def ) ) {
 									if ( isset ( $_type_def[ 'description' ] ) ) {
-										$_arg_list[] = "<strong>{$_type}</strong>" . ( isset( $_type_def[ 'classes' ] ) ? ' (' . implode( ',', (array) $_type_def[ 'classes' ] ) . ')' : '' ) . ": {$_type_def[ 'description' ]}";
+										$_arg_list[] = "<code>{$_type}</code>" . ( isset( $_type_def[ 'classes' ] ) ? ' (' . implode( ',', (array) $_type_def[ 'classes' ] ) . ')' : '' ) . ": {$_type_def[ 'description' ]}";
 									}
 									else {
-										$_arg_list[] = "<strong>{$_type}</strong>" . ( isset( $_type_def[ 'classes' ] ) ? ' (' . implode( ',', (array) $_type_def[ 'classes' ] ) . ')' : '' );
+										$_arg_list[] = "<code>{$_type}</code>" . ( isset( $_type_def[ 'classes' ] ) ? ' (' . implode( ',', (array) $_type_def[ 'classes' ] ) . ')' : '' );
 									}
 								}
 								else {
-									$_arg_list[] = "<strong>{$_type_def}</strong>";
+									$_arg_list[] = "<code>{$_type_def}</code>";
 								}
 							}
 						}
@@ -224,7 +224,7 @@ abstract class _GenericOperation extends ActiveRecord
 							'label' => __( 'Custom PHP Code', 'mwp-rules' ),
 							'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
 							'data' => isset( $operation->data[ $argNameKey . '_phpcode' ] ) ? $operation->data[ $argNameKey . '_phpcode' ] : "// <?php \n\nreturn;",
-							'description' => $rulesPlugin->getTemplateContent( 'rules/phpcode_description', array( 'operation' => $operation, 'return_args' => $_arg_list, 'event' => $operation->event() ) ),
+							'description' => $rulesPlugin->getTemplateContent( 'snippets/phpcode_description', array( 'operation' => $operation, 'return_args' => $_arg_list, 'event' => $operation->event() ) ),
 							'required' => false,
 						));
 					}
