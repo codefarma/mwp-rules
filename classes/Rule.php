@@ -911,7 +911,7 @@ class _Rule extends ActiveRecord
 	 */
 	public function url( $params=array() )
 	{
-		return $this->getPlugin()->getRulesController()->getUrl( array( 'id' => $this->id(), 'do' => 'edit' ) + $params );
+		return $this->getPlugin()->getRulesController()->getUrl( array_replace_recursive( array( 'id' => $this->id(), 'do' => 'edit' ), $params ) );
 	}
 	
 	/**

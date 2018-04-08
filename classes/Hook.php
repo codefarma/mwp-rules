@@ -350,7 +350,7 @@ class _Hook extends ActiveRecord
 	 */
 	public function url( $params=array() )
 	{
-		return $this->getPlugin()->getHooksController()->getUrl( array( 'id' => $this->id(), 'do' => 'edit' ) + $params );
+		return $this->getPlugin()->getHooksController()->getUrl( array_replace_recursive( array( 'id' => $this->id(), 'do' => 'edit' ), $params ) );
 	}
 	
 	/**

@@ -817,9 +817,6 @@ class _Plugin extends \MWP\Framework\Plugin
 							'data' => isset( $values[ $name . '_placeholder' ] ) ? $values[ $name . '_placeholder' ] : '',
 						));
 					},
-					'saveValues' => function( $name, $values, $argument ) {
-						
-					},
 					'getConfig' => function( $name, $values, $argument ) {
 						return array(
 							'attr' => array( 'placeholder' => isset( $values[ $name . '_placeholder' ] ) ? $values[ $name . '_placeholder' ] : '' ),

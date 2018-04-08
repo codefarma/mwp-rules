@@ -148,7 +148,7 @@ class _App extends ActiveRecord
 		}
 		
 		$submit_text = $this->id() ? 'Save App' : 'Create App';
-		$form->addField( 'save', 'submit', [ 'label' => __( $submit_text, 'mwp-rules' ), 'row_prefix' => '<hr>', 'row_attr' => [ 'class' => 'text-center' ] ] );
+		$form->addField( 'save', 'submit', [ 'label' => __( $submit_text, 'mwp-rules' ), 'row_prefix' => '<hr>', 'row_attr' => [ 'class' => 'text-center' ] ], '' );
 		
 		return $form;
 	}
@@ -184,7 +184,7 @@ class _App extends ActiveRecord
 	 */
 	public function url( $params=array() )
 	{
-		return $this->getPlugin()->getAppsController()->getUrl( array( 'id' => $this->id(), 'do' => 'edit' ) + $params );
+		return $this->getPlugin()->getAppsController()->getUrl( array_replace_recursive( array( 'id' => $this->id(), 'do' => 'edit' ), $params ) );
 	}
 	
 	

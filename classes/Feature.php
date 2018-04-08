@@ -231,7 +231,7 @@ class _Feature extends ActiveRecord
 		}
 		
 		$submit_text = $this->id() ? 'Save Feature' : 'Create Feature';
-		$form->addField( 'save', 'submit', [ 'label' => __( $submit_text, 'mwp-rules' ), 'row_prefix' => '<hr>', 'row_attr' => [ 'class' => 'text-center' ] ] );
+		$form->addField( 'save', 'submit', [ 'label' => __( $submit_text, 'mwp-rules' ), 'row_prefix' => '<hr>', 'row_attr' => [ 'class' => 'text-center' ] ], '' );
 		
 		return $form;
 	}

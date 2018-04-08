@@ -4,7 +4,9 @@ if ( ! defined('ABSPATH') ) {
 	die( 'Access denied.' );
 }
 
-$plugin = MWP\Rules\Plugin::instance();
+use MWP\Rules;
+
+$plugin = Rules\Plugin::instance();
 
 return [	
 
@@ -112,6 +114,8 @@ return [
 				'argument_varname' => __( 'Variable Name', 'mwp-rules' ),
 				'argument_type' => __( 'Type', 'mwp-rules' ),
 				'argument_required' => __( 'Required', 'mwp-rules' ),
+				'argument_widget' => __( 'Widget', 'mwp-rules' ),
+				'default_value' => __( 'Default Value', 'mwp-rules' ),
 			],
 			'handlers' => [
 				'argument_varname' => function( $row ) {
@@ -120,6 +124,27 @@ return [
 				'argument_required' => function( $row ) {
 					return $row['argument_required'] ? 'Yes' : 'No';
 				},
+				'argument_widget' => function( $row ) {
+					$argument = Rules\Argument::load( $row['argument_id'] );
+					return '<a href="' . $argument->url([ '_tab' => 'widget_config' ]) . '">' . $argument->widget . '</a>';
+				},
+				'default_value' => function( $row ) {
+					$argument = Rules\Argument::load( $row['argument_id'] );
+					$default_values = $argument->getValues( 'default' );
+					
+					if ( ! $argument->usesDefault() ) {
+						return '--';
+					}
+					
+					if ( count( $default_values ) == 1 ) {
+						$value = array_shift( $default_values );
+						if ( ! is_array( $value ) or is_object( $value ) ) {
+							return '<a href="' . $argument->url([ 'do' => 'set_default' ]) . '">' . ( $value ? esc_html( (string) $value ) : '--' ) . '</a>';
+						}
+					}
+					
+					return '<a href="' . $argument->url([ 'do' => 'set_default' ]) . '">Complex Data</a>';
+				}
 			],
 		],
 		

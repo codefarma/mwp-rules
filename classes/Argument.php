@@ -208,6 +208,41 @@ class _Argument extends ActiveRecord
 	}
 
 	/**
+	 * Get controller actions
+	 *
+	 * @return	array
+	 */
+	public function getControllerActions()
+	{
+		$data = $this->data;
+		$actions = parent::getControllerActions();
+		unset( $actions['view'] );
+		
+		$argument_actions = array(
+			'edit' => '',
+			'set_default' => array(
+				'title' => '',
+				'icon' => 'glyphicon glyphicon-cog',
+				'attr' => array( 
+					'title' => __( 'Set Default Value', 'mwp-rules' ),
+					'class' => 'btn btn-xs btn-default',
+				),
+				'params' => array(
+					'do' => 'set_default',
+					'id' => $this->id(),
+				),
+			),
+			'delete' => ''
+		);
+		
+		if ( ! $this->widget or ! $this->usesDefault() ) {
+			unset( $argument_actions['set_default'] );
+		}
+		
+		return array_replace_recursive( $argument_actions, $actions );
+	}
+	
+	/**
 	 * Build an editing form
 	 *
 	 * @return	MWP\Framework\Helpers\Form
@@ -382,9 +417,29 @@ class _Argument extends ActiveRecord
 			'title' => __( 'Advanced Config', 'mwp-rules' ),
 		));
 		
+		$default_value_description = $this->getParent() instanceof Feature ? 
+			__( 'If enabled, you can customize the default value of this setting. The default value will be used until a user customizes it.', 'mwp-rules' ) : 
+			__( 'If enabled, you can customize the default value displayed in the widget when manually configuring it in rule operations.', 'mwp-rules' );
+		
+		$form->addField( 'widget_use_default', 'checkbox', array(
+			'label' => __( 'Use Default Value', 'mwp-rules' ),
+			'description' => $default_value_description,
+			'value' => 1,
+			'data' => isset( $data['advanced_options']['widget_use_default'] ) ? (bool) $data['advanced_options']['widget_use_default'] : true,
+		));
+		
+		if ( $this->getParent() instanceof Feature ) {		
+			$form->addField( 'widget_allow_custom_value', 'checkbox', array(
+				'label' => __( 'User Customizable', 'mwp-rules' ),
+				'description' => __( 'Allow users to customize the value of this setting.', 'mwp-rules' ),
+				'value' => 1,
+				'data' => isset( $data['advanced_options']['widget_allow_custom_value'] ) ? (bool) $data['advanced_options']['widget_allow_custom_value'] : true,
+			));
+		}
+		
 		$form->addField( 'widget_use_advanced', 'checkbox', array(
-			'row_attr' => array( 'id' => 'widget_advanced_options' ),
-			'label' => __( 'Custom Options', 'mwp-rules' ),
+			'row_prefix' => '<hr>',
+			'label' => __( 'Custom Widget Config', 'mwp-rules' ),
 			'description' => __( 'For advanced users, you can provide additional options to configure the input widget using custom PHP code.', 'mwp-rules' ),
 			'value' => 1,
 			'data' => isset( $data['advanced_options']['widget_use_advanced'] ) ? (bool) $data['advanced_options']['widget_use_advanced'] : false,
@@ -393,7 +448,7 @@ class _Argument extends ActiveRecord
 		
 		$form->addField( 'widget_options_phpcode', 'textarea', array(
 			'row_attr' => array(  'id' => 'widget_options_phpcode', 'data-view-model' => 'mwp-rules' ),
-			'label' => __( 'Custom PHP Code', 'mwp-rules' ),
+			'label' => __( 'PHP Code', 'mwp-rules' ),
 			'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
 			'data' => isset( $data['advanced_options'][ 'widget_options_phpcode' ] ) ? $data['advanced_options'][ 'widget_options_phpcode' ] : "// <?php \n\nreturn array();\n",
 			'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 
@@ -429,6 +484,7 @@ class _Argument extends ActiveRecord
 	 */
 	protected function processEditForm( $values )
 	{
+		$data = $this->data;
 		$widget_type = $values['widget_config']['widget'];
 		$widget_config = $values['widget_config']['widget_' . $widget_type . '_config'];
 		$config_preset_options = apply_filters( 'rules_config_preset_options', array() );
@@ -438,15 +494,15 @@ class _Argument extends ActiveRecord
 			$saveValues( 'widget_' . $widget_type . '_config', $widget_config, $this );
 		}
 		
+		$data['advanced_options'] = $values['advanced_options'];
+		$data['widget_config'] = array(
+			$widget_type => $widget_config,
+		);
+		
 		$_values = $values['argument_details'];
 		$_values['widget'] = $widget_type;
 		$_values['varname'] = strtolower( $_values['varname'] );
-		$_values['data'] = array(
-			'advanced_options' => $values['advanced_options'],
-			'widget_config' => array(
-				$widget_type => $widget_config,
-			),
-		);
+		$_values['data'] = $data;
 		
 		parent::processEditForm( $_values );
 	}
@@ -460,6 +516,7 @@ class _Argument extends ActiveRecord
 	{
 		$form = static::createForm( 'set_default', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		$plugin = $this->getPlugin();
+		$data = $this->data;
 		
 		/* Display details for the app/feature/parent */
 		$form->addHtml( 'argument_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
@@ -474,7 +531,15 @@ class _Argument extends ActiveRecord
 			]));
 		}
 		
-		$this->addConfigToForm( $form );
+		$this->addFormWidget( $form, $this->getValues( 'default' ) ?: array() );
+		
+		$argument = $this;
+		$form->onComplete( function() use ( $argument ) {
+			if ( $parent = $argument->getParent() ) {
+				wp_redirect( $parent->url( array( 'do' => 'edit', 'id' => $parent->id(), '_tab' => 'arguments' ) ) );
+				exit;
+			}
+		});
 		
 		$form->addField( 'save', 'submit', array(
 			'label' => __( 'Save Default Value', 'mwp-rules' ),
@@ -484,14 +549,49 @@ class _Argument extends ActiveRecord
 	}
 	
 	/**
+	 * Process submitted form values 
+	 *
+	 * @param	array			$values				Submitted form values
+	 * @return	void
+	 */
+	public function processSetDefaultForm( $values )
+	{
+		$data = $this->data;
+		$widget_values = $this->getWidgetFormValues( $values );
+		$this->persistValues( 'default', $widget_values );
+	}
+	
+	/**
 	 * Add a configuration widget for this argument to a form
 	 * 
 	 * @param	MWP\Framework\Helpers\Form			$form				The form to add to
+	 * @param	array								$values				Existing form values for widget
 	 * @return	void
 	 */
-	public function addConfigToForm( $form )
+	public function addFormWidget( $form, $values )
 	{
 		$plugin = $this->getPlugin();
+		$config_options = $this->getWidgetConfig();
+		$preset = $plugin->configPreset( $this->widget, $this->varname . '_value', $config_options );
+		
+		/**
+		 * Build the input form
+		 */
+		if ( isset( $preset['form'] ) and is_callable( $preset['form'] ) ) {
+			$form->addField( $this->varname . '_widget', 'fieldgroup' );
+			$form->setCurrentContainer( $this->varname . '_widget' );
+			call_user_func( $preset['form'], $form, $values, $this );
+			$form->endLastContainer();
+		}
+	}
+	
+	/**
+	 * Get the options used to configure the input widget
+	 *
+	 * @return	array
+	 */
+	public function getWidgetConfig()
+	{
 		$data = $this->data;
 		$widget_type = $this->widget;
 		$config_preset_options = apply_filters( 'rules_config_preset_options', array() );		
@@ -526,28 +626,88 @@ class _Argument extends ActiveRecord
 				}
 			}
 		}
-		
-		$preset = $plugin->configPreset( $widget_type, $this->varname . '_default_value', $config_options );
-		
-		/**
-		 * Build the input form
-		 */
-		if ( isset( $preset['form'] ) and is_callable( $preset['form'] ) ) {
-			call_user_func( $preset['form'], $form, [], $this );
-		}		
+
+		return $config_options;
 	}
 	
 	/**
-	 * Process submitted form values 
+	 * Get the values to save created by the widget
 	 *
-	 * @param	array			$values				Submitted form values
+	 * @param	array			$values				Values from the submitted form
+	 * @return	array								Processed values to save
+	 */
+	public function getWidgetFormValues( $values )
+	{
+		$plugin = $this->getPlugin();
+		$config_options = $this->getWidgetConfig();
+		$preset = $plugin->configPreset( $this->widget, $this->varname . '_value', $config_options );
+		$widget_values = isset( $values[ $this->varname . '_widget' ] ) ? $values[ $this->varname . '_widget' ] : [];
+		
+		if ( isset( $preset['saveValues'] ) and is_callable( $preset['saveValues'] ) ) {
+			$saveValues = $preset['saveValues'];
+			$saveValues( $widget_values, $this );
+		}
+		
+		return $widget_values;
+	}
+	
+	/**
+	 * Get persisted widget values by key
+	 *
+	 * @param	string			$key			Key to retrieve values from
+	 * @return	array|NULL
+	 */
+	public function getValues( $key )
+	{
+		$data = $this->data;
+		if ( $key === 'default' and ! $this->usesDefault() ) {
+			return NULL;
+		}
+		
+		if ( isset( $data['values'][ $key ][ $this->varname ] ) ) {
+			return $data['values'][ $key ][ $this->varname ];
+		}
+		
+		return NULL;
+	}
+
+	
+	/**
+	 * Check if the argument uses a default value
+	 * 
+	 * @return	bool
+	 */
+	public function usesDefault()
+	{
+		$data = $this->data;
+		return ( isset( $data['advanced_options']['widget_use_default'] ) and $data['advanced_options']['widget_use_default'] );
+	}
+	
+	/**
+	 * Persist widget values to a key
+	 *
+	 * @param	string			$key			Key to persist values to
+	 * @param	array			$values			The values to persist
 	 * @return	void
 	 */
-	public function processSetDefaultForm( $values )
+	public function persistValues( $key, $values )
 	{
-		print "<pre>";
-		print_r( $values );
-		exit;
+		$data = $this->data;
+		$data['values'][ $key ] = array(
+			$this->varname => $values,
+		);
+		$this->data = $data;
+	}
+	
+	/**
+	 * Get the app url
+	 *
+	 * @param	array			$params			Url params
+	 * @return	string
+	 */
+	public function url( $params=array() )
+	{
+		return $this->getPlugin()->getArgumentsController( $this->getParent() )->getUrl( array_replace_recursive( array( 'id' => $this->id(), 'do' => 'edit' ), $params ) );
 	}
 	
 	/**
