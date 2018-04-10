@@ -278,41 +278,6 @@ class _Action extends GenericOperation
 	}
 
 	/**
-	 * Get the attached event
-	 *
-	 * @return	MWP\Rules\ECA\Event|NULL
-	 */
-	public function event()
-	{
-		if ( $rule = $this->rule() ) {
-			return $rule->event();
-		}
-		
-		return NULL;
-	}
-	
-	/**
-	 * Get the attached event
-	 *
-	 * @return	Rule|False
-	 */
-	public function rule()
-	{
-		if ( isset ( $this->rule ) ) {
-			return $this->rule;
-		}
-		
-		try	{
-			$this->rule = Rule::load( $this->rule_id );
-		}
-		catch ( \OutOfRangeException $e ) {
-			$this->rule = FALSE;
-		}
-		
-		return $this->rule;
-	}
-	
-	/**
 	 * Get the condition definition
 	 * 
 	 * @return	array|NULL

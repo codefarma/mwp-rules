@@ -6,7 +6,7 @@
  *
  * @package:  MWP Rules
  * @author:   Kevin Carwile
- * @since:    {build_version}
+ * @since:    0.9.2
  */
 namespace MWP\Rules;
 
@@ -268,6 +268,31 @@ class _Feature extends ActiveRecord
 	{
 		return Rule::countWhere( array( 'rule_feature_id=%d', $this->id() ) );
 	}
+	
+	protected $argmap;
+	
+	/**
+	 * Get an argument by varname
+	 *
+	 * @return	Argument|NULL
+	 */
+	public function getArgument( $varname )
+	{
+		$varname = strtolower( $varname );
+		
+		if ( ! isset( $this->argmap ) ) {
+			foreach( $this->getArguments() as $argument ) {
+				$this->argmap[ strtolower( $argument->varname ) ] = $argument;
+			}
+		}
+		
+		if ( isset( $this->argmap[ $varname ] ) ) {
+			return $this->argmap[ $varname ];
+		}
+		
+		return NULL;
+	}
+	
 	
 	/**
 	 * Get the app url

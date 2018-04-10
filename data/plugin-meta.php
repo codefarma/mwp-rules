@@ -7,7 +7,7 @@ return <<<'JSON'
     "description": "An automation rules engine for WordPress",
     "author": "Kevin Carwile",
     "author_url": "https:\/\/www.codefarma.com",
-    "url": "https:\/\/www.codefarma.com/rules",
+    "url": "https:\/\/www.codefarma.com\/rules",
     "slug": "mwp-rules",
     "vendor": "Code Farma",
     "namespace": "MWP\\Rules",

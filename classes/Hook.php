@@ -6,7 +6,7 @@
  *
  * @package:  MWP Rules
  * @author:   Kevin Carwile
- * @since:    {build_version}
+ * @since:    0.9.2
  */
 namespace MWP\Rules;
 
@@ -152,15 +152,7 @@ class _Hook extends ActiveRecord
 		);
 		
 		foreach( $this->getArguments() as $argument ) {
-			$arg_def = array(
-				'argtype' => $argument->type,
-				'label' => $argument->title,
-				'description' => $argument->description,
-				'class' => $argument->class,
-				'nullable' => ! $argument->required,
-			);
-			
-			$definition['arguments'][ $argument->varname ] = $arg_def;
+			$definition['arguments'][ $argument->varname ] = $argument->getProvidesDefinition();
 		}
 		
 		$definition['hook_data'] = $this->_data;
@@ -181,18 +173,7 @@ class _Hook extends ActiveRecord
 		);
 		
 		foreach( $this->getArguments() as $argument ) {
-			$arg_def = array(
-				'label' => $argument->title,
-				'argtypes' => array( 
-					$argument->type => array(
-						'description' => $argument->description,
-						'classes' => $argument->class ? array( $argument->class ) : NULL,
-					),
-				),
-				'required' => (bool) $argument->required,
-			);
-			
-			$definition['arguments'][ $argument->varname ] = $arg_def;
+			$definition['arguments'][ $argument->varname ] = $argument->getReceivesDefinition();
 		}
 		
 		$definition['hook_data'] = $this->_data;

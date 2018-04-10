@@ -119,9 +119,9 @@ class _Content
 			if ( $values['comment_author_type'] == 'existing' ) {
 				return call_user_func( $baseArgGetter, $values, $arg_map, $operation );
 			} else {
-				$name = $event->replaceTokens( $values['comment_author_name'], $arg_map );
-				$email = $event->replaceTokens( $values['comment_author_email'], $arg_map );
-				$url = $event->replaceTokens( $values['comment_author_url'], $arg_map );
+				$name = $operation->replaceTokens( $values['comment_author_name'], $arg_map );
+				$email = $operation->replaceTokens( $values['comment_author_email'], $arg_map );
+				$url = $operation->replaceTokens( $values['comment_author_url'], $arg_map );
 				
 				return array( 
 					'name' => $name, 

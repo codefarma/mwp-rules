@@ -530,7 +530,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		
 		$this->globalArguments = apply_filters( 'rules_global_arguments', array() );
 		
-		return $this->globalArguments;
+		return $this->getGlobalArguments( $arg_name );
 	}
 	
 	/**
@@ -798,16 +798,22 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
+	 * @var	array
+	 */
+	protected $config_preset_options;
+	
+	/**
 	 * Provide available rules config preset options
 	 *
-	 * @MWP\WordPress\Filter( for="rules_config_preset_options" )
-	 * 
-	 * @param	array			$options				Preset options
 	 * @return	array
 	 */
-	public function getRulesConfigPresetOptions( $options )
+	public function getRulesConfigPresetOptions()
 	{
-		$options = array_merge( $options, array(
+		if ( isset( $this->config_preset_options ) ) {
+			return $this->config_preset_options;
+		}
+		
+		$this->config_preset_options = apply_filters( 'rules_config_preset_options', array(
 			'text' => array(
 				'label' => 'Text Field',
 				'config' => array(
@@ -865,7 +871,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			),
 		));
 		
-		return $options;
+		return $this->config_preset_options;
 	}
 	
 	/**
@@ -958,7 +964,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$user_string = $operation->event()->replaceTokens( $values[$field_name], $arg_map );
+						$user_string = $operation->replaceTokens( $values[$field_name], $arg_map );
 						$pieces = explode( ':', $user_string );
 						$field = trim( array_shift( $pieces ) );
 						$attribute = trim( implode( ':', $pieces ) );
@@ -983,7 +989,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$user_strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$user_strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
 						$users = array();
 						foreach( $user_strings as $user_string ) {
 							$pieces = explode( ':', $user_string );
@@ -1013,7 +1019,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$pieces = explode( ':', $operation->event()->replaceTokens( $values[$field_name], $arg_map ) );
+						$pieces = explode( ':', $operation->replaceTokens( $values[$field_name], $arg_map ) );
 						$field = trim( array_shift( $pieces ) );
 						$attribute = trim( implode( ':', $pieces ) );
 						if ( in_array( $field, array( 'id' ) ) ) {
@@ -1037,7 +1043,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$post_strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$post_strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
 						$posts = array();
 						foreach( $post_strings as $post_string ) {
 							$pieces = explode( ':', $post_string );
@@ -1067,7 +1073,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$pieces = explode( ':', $operation->event()->replaceTokens( $values[$field_name], $arg_map ) );
+						$pieces = explode( ':', $operation->replaceTokens( $values[$field_name], $arg_map ) );
 						$field = trim( array_shift( $pieces ) );
 						$attribute = trim( implode( ':', $pieces ) );
 						if ( in_array( $field, array( 'id' ) ) ) {
@@ -1091,7 +1097,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$comment_strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$comment_strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
 						$comments = array();
 						foreach( $comment_strings as $comment_string ) {
 							$pieces = explode( ':', $comment_string );
@@ -1122,7 +1128,7 @@ class _Plugin extends \MWP\Framework\Plugin
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
 						$values = array();
-						$strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
 						foreach( $strings as $value ) {
 							$values[] = $value;
 						}
@@ -1147,7 +1153,7 @@ class _Plugin extends \MWP\Framework\Plugin
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
 						$values = array();
-						$strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
 						foreach( $strings as $string ) {
 							if ( strpos( $string, ':' ) !== false ) {
 								$pieces = explode( ':', $string );
@@ -1179,7 +1185,7 @@ class _Plugin extends \MWP\Framework\Plugin
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
 						$meta_values = array();
-						$meta_strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$meta_strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
 						foreach( $meta_strings as $meta_string ) {
 							if ( strpos( $meta_string, ':' ) !== false ) {
 								$pieces = explode( ':', $meta_string );
@@ -1210,7 +1216,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$pieces = explode( ':', $operation->event()->replaceTokens( $values[$field_name], $arg_map ) );
+						$pieces = explode( ':', $operation->replaceTokens( $values[$field_name], $arg_map ) );
 						$field = trim( array_shift( $pieces ) );
 						$attribute = trim( implode( ':', $pieces ) );
 						if ( in_array( $field, array( 'id', 'slug', 'name' ) ) ) {
@@ -1240,7 +1246,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$term_strings = explode( "\n", $operation->event()->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$term_strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
 						$terms = array();
 						foreach( $term_strings as $term_string ) {
 							$pieces = explode( ':', $term_string );

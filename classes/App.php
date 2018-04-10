@@ -6,7 +6,7 @@
  *
  * @package:  MWP Rules
  * @author:   Kevin Carwile
- * @since:    {build_version}
+ * @since:    0.9.2
  */
 namespace MWP\Rules;
 

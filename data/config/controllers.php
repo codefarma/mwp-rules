@@ -130,13 +130,14 @@ return [
 				},
 				'default_value' => function( $row ) {
 					$argument = Rules\Argument::load( $row['argument_id'] );
-					$default_values = $argument->getValues( 'default' );
+					$default_values = $argument->getSavedValues( 'default' );
 					
 					if ( ! $argument->usesDefault() ) {
 						return '--';
 					}
 					
-					if ( count( $default_values ) == 1 ) {
+					if ( ! is_array( $default_values ) or count( $default_values ) == 1 ) {
+						$default_values = (array) $default_values;
 						$value = array_shift( $default_values );
 						if ( ! is_array( $value ) or is_object( $value ) ) {
 							return '<a href="' . $argument->url([ 'do' => 'set_default' ]) . '">' . ( $value ? esc_html( (string) $value ) : '--' ) . '</a>';

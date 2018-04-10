@@ -201,6 +201,33 @@ class _Event extends BaseDefinition
 	}
 	
 	/**
+	 * Get event arguments
+	 *
+	 * @return	array
+	 */
+	public function getArguments()
+	{
+		return $this->arguments ?: array();
+	}
+	
+	/**
+	 * Get a specific argument definition for the event if it exists
+	 * 
+	 * @param	string				$arg_key 				The argument key
+	 * @return	array|NULL
+	 */
+	public function getArgument( $arg_key )
+	{
+		$arguments = $this->getArguments();
+		
+		if ( isset( $arguments[ $arg_key ] ) ) {
+			return $arguments[ $arg_key ];
+		}
+		
+		return NULL;
+	}
+	
+	/**
 	 * Get derivatives
 	 *
 	 * @param	array|NULL		$target_argument		The argument which is needed (or leave empty to return all derivatives)
@@ -229,15 +256,15 @@ class _Event extends BaseDefinition
 					// Building token values
 					if ( isset ( $arg_map ) ) {
 						switch( $group ) {
-							case 'event': $tokens[ $arg_name ] = new Token( $arg_map[ $arg_name ] ); break;
-							case 'global': $tokens[ 'global:' . $arg_name ] = new Token( NULL, 'global:' . $arg_name, $argument ); break;
+							case 'event': $tokens[ 'event:' . $arg_name ] = Token::create( $arg_map[ $arg_name ] ); break;
+							case 'global': $tokens[ 'global:' . $arg_name ] = Token::create( NULL, 'global:' . $arg_name, $argument ); break;
 						}
 					}
 					
 					// Building token description
 					else {
 						switch( $group ) {
-							case 'event': $tokens[ $arg_name ] = '(' . $argument['argtype'] . ') ' . "The value of the '" . $arg_name . "' argument"; break;
+							case 'event': $tokens[ 'event:' . $arg_name ] = '(' . $argument['argtype'] . ') ' . "The value of the '" . $arg_name . "' argument"; break;
 							case 'global': $tokens[ 'global:' . $arg_name ] = isset( $argument['label'] ) ? '(' . $argument['argtype'] . ') ' . ucfirst( strtolower( $argument['label'] ) ) : "The global '" . $arg_name . "' value"; break;
 						}
 					}
@@ -249,11 +276,11 @@ class _Event extends BaseDefinition
 					if ( $arg_map !== NULL ) {
 						switch( $group ) {
 							case 'event':
-								$tokens[ $arg_name . ':' . $tokenized_key ] = new Token( $arg_map[ $arg_name ], $tokenized_key, $argument );
+								$tokens[ 'event:' . $arg_name . ':' . $tokenized_key ] = Token::create( $arg_map[ $arg_name ], $tokenized_key, $argument );
 								break;
 							case 'global':
 								if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) {	continue; }
-								$tokens[ 'global:' . $arg_name . ':' . $tokenized_key ] = new Token( NULL, 'global:' . $tokenized_key );
+								$tokens[ 'global:' . $arg_name . ':' . $tokenized_key ] = Token::create( NULL, 'global:' . $tokenized_key );
 								break;
 						}
 					}
@@ -262,7 +289,7 @@ class _Event extends BaseDefinition
 					else {
 						switch ( $group ) {
 							case 'event':
-								$tokens[ $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
+								$tokens[ 'event:' . $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
 								break;
 							case 'global':
 								if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) { continue; }
@@ -275,23 +302,6 @@ class _Event extends BaseDefinition
 		}
 
 		return $tokens;
-	}
-
-	/**
-	 * Replace Tokens
-	 * 
-	 * @param 	string		$string				The string with possible tokens to replace
-	 * @param	array		$arg_map			The argument map of starting values to use with tokens
-	 * @return	string							The string with tokens replaced
-	 */
-	public function replaceTokens( $string, $arg_map )
-	{
-		$tokens = $this->getTokens( $arg_map );
-		if ( empty( $tokens ) or ! is_array( $tokens ) ) {
-			return $string;
-		}
-		
-		return strtr( (string) $string, $tokens );
 	}
 
 	/**

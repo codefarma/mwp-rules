@@ -93,244 +93,244 @@ class MWPRulesPluginTest extends WP_UnitTestCase
 		
 		/* User Mappings */
 		
-		$token = new Token( $user_id, '*', array( 'argtype' => 'int', 'class' => 'WP_User' ) );		
+		$token = Token::create( $user_id, '*', array( 'argtype' => 'int', 'class' => 'WP_User' ) );		
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_User );
 		$this->assertTrue( $token->getTokenValue()->ID == $user_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 
-		$token = new Token( $user, 'id' );
+		$token = Token::create( $user, 'id' );
 		$this->assertTrue( $token->getTokenValue() == $user_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'int' );
 		
-		$token = new Token( $user, 'login' );
+		$token = Token::create( $user, 'login' );
 		$this->assertEquals( $token->getTokenValue(), 'unit_testing' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'first_name' );
+		$token = Token::create( $user, 'first_name' );
 		$this->assertEquals( $token->getTokenValue(), 'Unit' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_name' );
+		$token = Token::create( $user, 'last_name' );
 		$this->assertEquals( $token->getTokenValue(), 'Testy' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'nicename' );
+		$token = Token::create( $user, 'nicename' );
 		$this->assertEquals( $token->getTokenValue(), 'unit-testing' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'email' );
+		$token = Token::create( $user, 'email' );
 		$this->assertEquals( $token->getTokenValue(), 'test@test.domain.com' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'website_url' );
+		$token = Token::create( $user, 'website_url' );
 		$this->assertEquals( $token->getTokenValue(), 'http://test.domain.com' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 
-		$token = new Token( $user, 'website_url:*' );
+		$token = Token::create( $user, 'website_url:*' );
 		$this->assertTrue( $token->getTokenValue() instanceof \MWP\Rules\WP\Url );
 		$this->assertEquals( (string) $token->getTokenValue(), 'http://test.domain.com' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $user, 'posts_url:*' );
+		$token = Token::create( $user, 'posts_url:*' );
 		$this->assertTrue( $token->getTokenValue() instanceof \MWP\Rules\WP\Url );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $user, 'registered' );
+		$token = Token::create( $user, 'registered' );
 		$this->assertTrue( $token->getTokenValue() instanceof \DateTime );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 	
-		$token = new Token( $user, 'capabilities' );
+		$token = Token::create( $user, 'capabilities' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 		
-		$token = new Token( $user, 'roles' );
+		$token = Token::create( $user, 'roles' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertTrue( in_array( 'editor', $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 		
-		$token = new Token( $user, 'meta' );
+		$token = Token::create( $user, 'meta' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 		
 		/* Post Mappings */
 		
-		$token = new Token( $user, 'last_post' );
+		$token = Token::create( $user, 'last_post' );
 		$last_post = $token->getTokenValue();
 		$this->assertTrue( $last_post instanceof \WP_Post );
 		$this->assertTrue( $last_post->ID == $post_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 	
-		$token = new Token( $user, 'last_post:id' );
+		$token = Token::create( $user, 'last_post:id' );
 		$this->assertTrue( $token->getTokenValue() == $last_post->ID );
 		$this->assertEquals( $token->getArgument()['argtype'], 'int' );
 		
-		$token = new Token( $user, 'last_post:author' );
+		$token = Token::create( $user, 'last_post:author' );
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_User );
 		$this->assertTrue( $token->getTokenValue()->ID == $user->ID );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $user, 'last_post:slug' );
+		$token = Token::create( $user, 'last_post:slug' );
 		$this->assertTrue( $token->getTokenValue() != '' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 
-		$token = new Token( $user, 'last_post:url:*' );
+		$token = Token::create( $user, 'last_post:url:*' );
 		$this->assertTrue( $token->getTokenValue() instanceof \MWP\Rules\WP\Url );
 		$this->assertEquals( (string) $token->getTokenValue(), get_permalink( $last_post ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $user, 'last_post:type' );
+		$token = Token::create( $user, 'last_post:type' );
 		$this->assertEquals( $token->getTokenValue(), 'post' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 
-		$token = new Token( $user, 'last_post:title' );
+		$token = Token::create( $user, 'last_post:title' );
 		$this->assertEquals( $token->getTokenValue(), 'I am mighty test. Heed my words.' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_post:created' );
+		$token = Token::create( $user, 'last_post:created' );
 		$this->assertTrue( $token->getTokenValue() instanceof \DateTime );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $user, 'last_post:modified' );
+		$token = Token::create( $user, 'last_post:modified' );
 		$this->assertTrue( $token->getTokenValue() instanceof \DateTime );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $user, 'last_post:content' );
+		$token = Token::create( $user, 'last_post:content' );
 		$this->assertTrue( strstr( $token->getTokenValue(), 'Live long and prosper' ) !== FALSE );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_post:excerpt' );
+		$token = Token::create( $user, 'last_post:excerpt' );
 		$this->assertTrue( strstr( $token->getTokenValue(), 'Be well' ) !== FALSE );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_post:status' );
+		$token = Token::create( $user, 'last_post:status' );
 		$this->assertEquals( $token->getTokenValue(), 'publish' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_post:comment_status' );
+		$token = Token::create( $user, 'last_post:comment_status' );
 		$this->assertEquals( $token->getTokenValue(), 'open' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_post:ping_status' );
+		$token = Token::create( $user, 'last_post:ping_status' );
 		$this->assertEquals( $token->getTokenValue(), 'open' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_post:password' );
+		$token = Token::create( $user, 'last_post:password' );
 		$this->assertEquals( $token->getTokenValue(), 'password' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 
-		$token = new Token( $child_post_id, 'parent', array( 'class' => 'WP_Post' ) );
+		$token = Token::create( $child_post_id, 'parent', array( 'class' => 'WP_Post' ) );
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_Post );
 		$this->assertEquals( $token->getTokenValue()->ID, $post_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $user, 'last_post:meta' );
+		$token = Token::create( $user, 'last_post:meta' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getTokenValue()['test'], 'pass' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 		
-		$token = new Token( $user, 'last_post:meta[test]' );
+		$token = Token::create( $user, 'last_post:meta[test]' );
 		$this->assertTrue( is_string( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getTokenValue(), 'pass' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'mixed' );
 
-		$token = new Token( $user, 'last_post:comments' );
+		$token = Token::create( $user, 'last_post:comments' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertTrue( count( $token->getTokenValue() ) == 1 );
 		$this->assertTrue( $token->getTokenValue()[0] instanceof \WP_Comment );
 		$this->assertTrue( $token->getTokenValue()[0]->comment_ID == $comment_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 		
-		$token = new Token( $user, 'last_post:comments[0]' );
+		$token = Token::create( $user, 'last_post:comments[0]' );
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_Comment );
 		$this->assertTrue( $token->getTokenValue()->comment_ID == $comment_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $user, 'last_post:comments:post' );
+		$token = Token::create( $user, 'last_post:comments:post' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 
-		$token = new Token( $user, 'last_post:comments[0]:post' );
+		$token = Token::create( $user, 'last_post:comments[0]:post' );
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_Post );
 		$this->assertEquals( $token->getTokenValue()->ID, $post_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $user, 'last_post:taxonomies' );
+		$token = Token::create( $user, 'last_post:taxonomies' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertTrue( $token->getTokenValue()[0] instanceof \WP_Taxonomy );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 		
-		$token = new Token( $user, 'last_post:terms' );
+		$token = Token::create( $user, 'last_post:terms' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertTrue( $token->getTokenValue()[0] instanceof \WP_Term );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 		
 		/* Post Type Mappings */
 		
-		$token = new Token( $user, 'last_post:type:*' );
+		$token = Token::create( $user, 'last_post:type:*' );
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_Post_Type );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $user, 'last_post:type:name' );
+		$token = Token::create( $user, 'last_post:type:name' );
 		$this->assertEquals( $token->getTokenValue(), 'post' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_post:type:label' );
+		$token = Token::create( $user, 'last_post:type:label' );
 		$this->assertTrue( $token->getTokenValue() != '' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_post:type:labels' );
+		$token = Token::create( $user, 'last_post:type:labels' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) and count( $token->getTokenValue() ) > 0 );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 		
-		$token = new Token( $user, 'last_post:type:labels[name]' );
+		$token = Token::create( $user, 'last_post:type:labels[name]' );
 		$this->assertEquals( $token->getTokenValue(), 'Posts' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_post:type:description' );
+		$token = Token::create( $user, 'last_post:type:description' );
 		$token->getTokenValue();
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_post:type:public' );
+		$token = Token::create( $user, 'last_post:type:public' );
 		$this->assertTrue( is_bool( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'bool' );
 		
-		$token = new Token( $user, 'last_post:type:hierarchical' );
+		$token = Token::create( $user, 'last_post:type:hierarchical' );
 		$this->assertTrue( is_bool( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'bool' );
 		
-		$token = new Token( $user, 'last_post:type:menu_icon' );
+		$token = Token::create( $user, 'last_post:type:menu_icon' );
 		$token->getTokenValue();
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_post:type:capabilities' );
+		$token = Token::create( $user, 'last_post:type:capabilities' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 		
 		/* Comment Mappings */
 		
-		$token = new Token( $user, 'last_post:comments[0]:id' );
+		$token = Token::create( $user, 'last_post:comments[0]:id' );
 		$this->assertTrue( $token->getTokenValue() == $comment_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'int' );
 		
-		$token = new Token( $user, 'last_post:comments[0]:post' );
+		$token = Token::create( $user, 'last_post:comments[0]:post' );
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_Post );
 		$this->assertTrue( $token->getTokenValue()->ID == $post_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 
-		$token = new Token( $user, 'last_post:comments[0]:type' );
+		$token = Token::create( $user, 'last_post:comments[0]:type' );
 		$this->assertEquals( $token->getTokenValue(), 'comment' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $user, 'last_post:comments[0]:author' );
+		$token = Token::create( $user, 'last_post:comments[0]:author' );
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_User );
 		$this->assertTrue( $token->getTokenValue()->ID == $user->ID );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $user, 'last_post:comments[0]:created' );
+		$token = Token::create( $user, 'last_post:comments[0]:created' );
 		$this->assertTrue( $token->getTokenValue() instanceof \DateTime );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $user, 'last_post:comments[0]:content' );
+		$token = Token::create( $user, 'last_post:comments[0]:content' );
 		$this->assertTrue( strstr( $token->getTokenValue(), 'Very nice!' ) !== FALSE );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
@@ -349,69 +349,69 @@ class MWPRulesPluginTest extends WP_UnitTestCase
 		$comment = get_comment( $comment_id );
 		$child_comment = get_comment( $child_comment_id );
 		
-		$token = new Token( $child_comment, 'url:*' );
+		$token = Token::create( $child_comment, 'url:*' );
 		$this->assertTrue( $token->getTokenValue() instanceof \MWP\Rules\WP\Url );		
 		$this->assertEquals( (string) $token->getTokenValue(), get_comment_link( $child_comment ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $child_comment, 'parent' );
+		$token = Token::create( $child_comment, 'parent' );
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_Comment );
 		$this->assertEquals( $token->getTokenValue()->comment_ID, $comment_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $comment, 'children' );
+		$token = Token::create( $comment, 'children' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertTrue( $token->getTokenValue()[0] instanceof \WP_Comment );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 		
-		$token = new Token( $comment, 'children[0]' );
+		$token = Token::create( $comment, 'children[0]' );
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_Comment );
 		$this->assertTrue( $token->getTokenValue()->comment_ID == $child_comment_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $comment, 'meta' );
+		$token = Token::create( $comment, 'meta' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getTokenValue()['test_key'], 'pass_check' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 		
-		$token = new Token( $comment, 'meta[test_key]' );
+		$token = Token::create( $comment, 'meta[test_key]' );
 		$this->assertTrue( is_string( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getTokenValue(), 'pass_check' );
 		$this->assertEquals( $token->getArgument()['argtype'], 'mixed' );
 		
 		/* Taxonomy Mappings */
 		
-		$token = new Token( $user, 'last_post:taxonomies[category]' );
+		$token = Token::create( $user, 'last_post:taxonomies[category]' );
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_Taxonomy );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
 		$taxonomy = $token->getTokenValue();
 		
-		$token = new Token( $taxonomy, 'name' );
+		$token = Token::create( $taxonomy, 'name' );
 		$this->assertEquals( $token->getTokenValue(), $taxonomy->name );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 
-		$token = new Token( $taxonomy, 'label' );
+		$token = Token::create( $taxonomy, 'label' );
 		$this->assertEquals( $token->getTokenValue(), $taxonomy->label );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 
-		$token = new Token( $taxonomy, 'labels' );
+		$token = Token::create( $taxonomy, 'labels' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 
-		$token = new Token( $taxonomy, 'description' );
+		$token = Token::create( $taxonomy, 'description' );
 		$this->assertEquals( $token->getTokenValue(), $taxonomy->description );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 
-		$token = new Token( $taxonomy, 'public' );
+		$token = Token::create( $taxonomy, 'public' );
 		$this->assertTrue( is_bool( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'bool' );
 
-		$token = new Token( $taxonomy, 'capabilities' );
+		$token = Token::create( $taxonomy, 'capabilities' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 
-		$token = new Token( $taxonomy, 'terms' );
+		$token = Token::create( $taxonomy, 'terms' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertTrue( $token->getTokenValue()[0] instanceof \WP_Term );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
@@ -426,46 +426,46 @@ class MWPRulesPluginTest extends WP_UnitTestCase
 		
 		$new_term = get_term( $inserted['term_id'] );
 		
-		$token = new Token( $term, 'id' );
+		$token = Token::create( $term, 'id' );
 		$this->assertEquals( $token->getTokenValue(), $term->term_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'int' );
 		
-		$token = new Token( $term, 'name' );
+		$token = Token::create( $term, 'name' );
 		$this->assertEquals( $token->getTokenValue(), $term->name );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $term, 'description' );
+		$token = Token::create( $term, 'description' );
 		$this->assertTrue( is_string( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $term, 'slug' );
+		$token = Token::create( $term, 'slug' );
 		$this->assertEquals( $token->getTokenValue(), $term->slug );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $term, 'url:*' );
+		$token = Token::create( $term, 'url:*' );
 		$this->assertTrue( $token->getTokenValue() instanceof \MWP\Rules\WP\Url );		
 		$this->assertEquals( (string) $token->getTokenValue(), get_term_link( $term ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $term, 'taxonomy' );
+		$token = Token::create( $term, 'taxonomy' );
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_Taxonomy );
 		$this->assertEquals( $token->getTokenValue()->name, $taxonomy->name );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $new_term, 'parent' );
+		$token = Token::create( $new_term, 'parent' );
 		$this->assertTrue( $token->getTokenValue() instanceof \WP_Term );
 		$this->assertEquals( $token->getTokenValue()->term_id, $term->term_id );
 		$this->assertEquals( $token->getArgument()['argtype'], 'object' );
 		
-		$token = new Token( $term, 'count' );
+		$token = Token::create( $term, 'count' );
 		$this->assertTrue( is_numeric( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'int' );
 		
-		$token = new Token( $term, 'filter' );
+		$token = Token::create( $term, 'filter' );
 		$this->assertEquals( $token->getTokenValue(), $term->filter );
 		$this->assertEquals( $token->getArgument()['argtype'], 'string' );
 		
-		$token = new Token( $term, 'meta' );
+		$token = Token::create( $term, 'meta' );
 		$this->assertTrue( is_array( $token->getTokenValue() ) );
 		$this->assertEquals( $token->getArgument()['argtype'], 'array' );
 		

@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use MWP\Framework\Pattern\ActiveRecord;
 use MWP\Framework\Framework;
+use MWP\Rules\ECA\Token;
 
 /**
  * GenericOperation Class
@@ -340,38 +341,13 @@ abstract class _GenericOperation extends ActiveRecord
 								 * Determine which argument index to use and if the argument
 								 * needs class conversion or not
 								 */
-								$tokenized_key = $this->data[ $argNameKey . '_eventArg' ];
-								$token_pieces = explode( ':', $tokenized_key );
-								$event_arg_name = array_shift( $token_pieces );
-								
+								$tokenized_key = $this->data[ $argNameKey . '_eventArg' ];								
 								$_operation_arg	= NULL;
-								$event_arg = NULL;
-								$event_arg_type = NULL;
 								
-								/**
-								 * Get argument from global arguments
-								 */
-								if ( $event_arg_name == 'global' ) {
-									if ( $global_argument = $rulesPlugin->getGlobalArguments( $token_pieces[0] ) ) {
-										$token = new \MWP\Rules\ECA\Token( NULL, $tokenized_key, $global_argument );
-										$event_arg = $token->getTokenValue();
-										$event_arg_def = $token->getArgument();
-										$event_arg_type = isset( $event_arg_def['argtype'] ) ? $event_arg_def['argtype'] : null;
-									}
-								}
-								
-								/**
-								 * Get argument from event arguments
-								 */
-								else {
-									if ( isset( $event_arg_index[ $event_arg_name ] ) ) {
-										$_i = $event_arg_index[ $event_arg_name ];
-										$token = new \MWP\Rules\ECA\Token( $args[ $_i ], implode( ':', $token_pieces ), $event->arguments[ $event_arg_name ] );
-										$event_arg = $token->getTokenValue();
-										$event_arg_def = $token->getArgument();
-										$event_arg_type = isset( $event_arg_def['argtype'] ) ? $event_arg_def['argtype'] : null;
-									}
-								}
+								$token = Token::createFromResources( $tokenized_key, $this->getResources( $arg_map ) );
+								$event_arg = $token->getTokenValue();
+								$event_arg_def = $token->getArgument();
+								$event_arg_type = isset( $event_arg_def['argtype'] ) ? $event_arg_def['argtype'] : NULL;
 								
 								/**
 								 * Check if argument is present in the event
@@ -520,11 +496,9 @@ abstract class _GenericOperation extends ActiveRecord
 							/**
 							 * Get the default value from manual configuration setting
 							 */
-							if ( isset ( $arg[ 'configuration' ][ 'getArg' ] ) and is_callable( $arg[ 'configuration' ][ 'getArg' ] ) )
-							{
+							if ( isset ( $arg[ 'configuration' ][ 'getArg' ] ) and is_callable( $arg[ 'configuration' ][ 'getArg' ] ) ) {
 								$argVal = call_user_func_array( $arg[ 'configuration' ][ 'getArg' ], array( $this->data, $this ) );
-								if ( isset( $argVal ) )
-								{
+								if ( isset( $argVal ) ) {
 									$argument_missing = FALSE;
 									$operation_args[] = $argVal;
 								}
@@ -563,8 +537,7 @@ abstract class _GenericOperation extends ActiveRecord
 											$php_arg_type = $type_map[ gettype( $argVal ) ];
 											
 											/* Simple definitions with no processing callbacks */
-											if ( in_array( $php_arg_type, $arg[ 'argtypes' ] ) or in_array( 'mixed', $arg[ 'argtypes' ] ) )
-											{
+											if ( in_array( $php_arg_type, $arg[ 'argtypes' ] ) or in_array( 'mixed', $arg[ 'argtypes' ] ) ) {
 												$operation_args[] = $argVal;
 												$argument_missing = FALSE;
 											}
@@ -572,24 +545,20 @@ abstract class _GenericOperation extends ActiveRecord
 											/* Complex definitions, check for processing callbacks */
 											else if ( isset( $arg[ 'argtypes' ][ $php_arg_type ] ) )
 											{
-												if ( isset ( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ] ) )
-												{
+												if ( isset ( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ] ) ) {
 													$operation_args[] = call_user_func_array( $arg[ 'argtypes' ][ $php_arg_type ][ 'converter' ], array( $argVal, $this->data ) );
 												}
-												else
-												{
+												else {
 													$operation_args[] = $argVal;
 												}
 												$argument_missing = FALSE;
 											}
 											else if ( isset( $arg[ 'argtypes' ][ 'mixed' ] ) )
 											{
-												if ( isset ( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) )
-												{
+												if ( isset ( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) ) {
 													$operation_args[] = call_user_func_array( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ], array( $argVal, $this->data ) );
 												}
-												else
-												{
+												else {
 													$operation_args[] = $argVal;
 												}
 												$argument_missing = FALSE;
@@ -629,7 +598,7 @@ abstract class _GenericOperation extends ActiveRecord
 					 */
 					foreach ( $operation_args as &$_operation_arg ) {
 						if ( in_array( gettype( $_operation_arg ), array( 'string' ) ) ) {
-							$_operation_arg = $event->replaceTokens( $_operation_arg, $arg_map );
+							$_operation_arg = $this->replaceTokens( $_operation_arg, $arg_map );
 						}
 					}
 					
@@ -744,7 +713,7 @@ abstract class _GenericOperation extends ActiveRecord
 									$parentThread  = $rule->event()->parentThread;
 								}
 								
-								$unique_key = $this->schedule_key ? $event->replaceTokens( $this->schedule_key, $tokens ) : NULL;
+								$unique_key = $this->schedule_key ? $this->replaceTokens( $this->schedule_key, $tokens ) : NULL;
 								$result = $rulesPlugin->scheduleAction( $this, $future_time, $operation_args, $arg_map, $thread, $parentThread, $unique_key );
 							}
 							
@@ -810,6 +779,104 @@ abstract class _GenericOperation extends ActiveRecord
 		}
 	}
 	
+	/**
+	 * Replace Tokens
+	 * 
+	 * @param 	string		$string				The string with possible tokens to replace
+	 * @param	array		$arg_map			The argument map of starting values to use with tokens
+	 * @return	string							The string with tokens replaced
+	 */
+	public function replaceTokens( $string, $arg_map )
+	{
+		$operation = $this;
+		
+		do {
+			$string = preg_replace_callback( "/\{\{(([\w]+(\[([^\{].+)\])?[:]?)+)\}\}/m", function( $matches ) use ( $operation, $arg_map ) {
+				$token = Token::createFromResources( $matches[1], $operation->getResources( $arg_map ) );
+				
+				try {
+					return (string) $token;
+				}
+				catch( \Exception $e ) {
+					return $e->getMessage();
+				}
+			},
+			$string, -1, $count );
+		}
+		while ( $count > 0 );
+		
+		return $string;
+	}
+	
+	/**
+	 * Get the resources for generating tokens
+	 *
+	 * @param	array		$event_args			Variable arguments from an event
+	 * @return	array
+	 */
+	public function getResources( $event_args=[] )
+	{
+		return array(
+			'feature' => $this->getFeature(),
+			'event' => $this->event(),
+			'event_args' => $event_args,
+		);
+	}
+	
+	/**
+	 * Get the associated feature
+	 *
+	 * @return	Feature|NULL
+	 */
+	public function getFeature()
+	{
+		if ( $rule = $this->rule() ) {
+			return $rule->getFeature();
+		}
+		
+		return NULL;
+	}
+	
+	/**
+	 * Get the attached event
+	 *
+	 * @return	MWP\Rules\ECA\Event|NULL
+	 */
+	public function event()
+	{
+		if ( $rule = $this->rule() ) {
+			return $rule->event();
+		}
+		
+		return NULL;
+	}
+	
+	/**
+	 * Get the attached event
+	 *
+	 * @return	Rule|False
+	 */
+	public function rule()
+	{
+		if ( isset ( $this->rule ) ) {
+			return $this->rule;
+		}
+		
+		try	{
+			$this->rule = Rule::load( $this->rule_id );
+		}
+		catch ( \OutOfRangeException $e ) {
+			$this->rule = FALSE;
+		}
+		
+		return $this->rule;
+	}
+	
+	/**
+	 * Get a form friendly key
+	 *
+	 * @return	string
+	 */
 	public function getFormKey()
 	{
 		return preg_replace('/[^\da-z]/i', '-', $this->key );

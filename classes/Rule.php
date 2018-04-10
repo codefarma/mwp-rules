@@ -439,7 +439,7 @@ class _Rule extends ActiveRecord
 			'label' => __( $submit_text, 'mwp-rules' ), 
 			'attr' => array( 'class' => 'btn btn-primary' ),
 			'row_attr' => array( 'class' => 'text-center' ),
-		));
+		), '');
 		
 		/* If the rule is a sub-rule, redirect to the parent rules tab after saving */
 		if ( $parent = $rule->parent() ) {

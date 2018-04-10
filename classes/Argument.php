@@ -6,7 +6,7 @@
  *
  * @package:  MWP Rules
  * @author:   Kevin Carwile
- * @since:    {build_version}
+ * @since:    0.9.2
  */
 namespace MWP\Rules;
 
@@ -379,7 +379,7 @@ class _Argument extends ActiveRecord
 		
 		$widget_choices = [	'None' => '' ];
 		$widget_toggles = [ '' => array( 'hide' => array( '#widget_config_all', '[id$="advanced_options_tab"]' ) ) ];
-		$config_preset_options = apply_filters( 'rules_config_preset_options', array() );
+		$config_preset_options = $this->getPlugin()->getRulesConfigPresetOptions();
 		
 		foreach( $config_preset_options as $key => $preset ) {
 			$widget_choices[$preset['label']] = $key;
@@ -487,7 +487,7 @@ class _Argument extends ActiveRecord
 		$data = $this->data;
 		$widget_type = $values['widget_config']['widget'];
 		$widget_config = $values['widget_config']['widget_' . $widget_type . '_config'];
-		$config_preset_options = apply_filters( 'rules_config_preset_options', array() );
+		$config_preset_options = $this->getPlugin()->getRulesConfigPresetOptions();
 		
 		if ( isset( $config_preset_options[ $widget_type ]['config']['saveValues'] ) and is_callable( $config_preset_options[ $widget_type ]['config']['saveValues'] ) ) {
 			$saveValues = $config_preset_options[ $widget_type ]['config']['saveValues'];
@@ -531,7 +531,7 @@ class _Argument extends ActiveRecord
 			]));
 		}
 		
-		$this->addFormWidget( $form, $this->getValues( 'default' ) ?: array() );
+		$this->addFormWidget( $form, $this->getSavedValues( 'default' ) ?: array() );
 		
 		$argument = $this;
 		$form->onComplete( function() use ( $argument ) {
@@ -570,9 +570,7 @@ class _Argument extends ActiveRecord
 	 */
 	public function addFormWidget( $form, $values )
 	{
-		$plugin = $this->getPlugin();
-		$config_options = $this->getWidgetConfig();
-		$preset = $plugin->configPreset( $this->widget, $this->varname . '_value', $config_options );
+		$preset = $this->getPreset();
 		
 		/**
 		 * Build the input form
@@ -586,15 +584,43 @@ class _Argument extends ActiveRecord
 	}
 	
 	/**
+	 * Get the values to save created by the widget
+	 *
+	 * @param	array			$values				Values from the submitted form
+	 * @return	array								Processed values to save
+	 */
+	public function getWidgetFormValues( $values )
+	{
+		$preset = $this->getPreset();
+		$widget_values = isset( $values[ $this->varname . '_widget' ] ) ? $values[ $this->varname . '_widget' ] : [];
+		
+		if ( isset( $preset['saveValues'] ) and is_callable( $preset['saveValues'] ) ) {
+			$saveValues = $preset['saveValues'];
+			$saveValues( $widget_values, $this );
+		}
+		
+		return $widget_values;
+	}
+	
+	/**
+	 * @var	array
+	 */
+	protected $widget_config;
+	
+	/**
 	 * Get the options used to configure the input widget
 	 *
 	 * @return	array
 	 */
 	public function getWidgetConfig()
 	{
+		if ( isset( $this->widget_config ) ) {
+			return $this->widget_config;
+		}
+		
 		$data = $this->data;
 		$widget_type = $this->widget;
-		$config_preset_options = apply_filters( 'rules_config_preset_options', array() );		
+		$config_preset_options = $this->getPlugin()->getRulesConfigPresetOptions();		
 		$widget_config = isset( $data['widget_config'][ $widget_type ] ) ? $data['widget_config'][ $widget_type ] : [];
 		$config_options = [];
 		
@@ -627,28 +653,105 @@ class _Argument extends ActiveRecord
 			}
 		}
 
-		return $config_options;
+		$this->widget_config = $config_options;
+		return $this->widget_config;
 	}
 	
 	/**
-	 * Get the values to save created by the widget
-	 *
-	 * @param	array			$values				Values from the submitted form
-	 * @return	array								Processed values to save
+	 * @var	array
 	 */
-	public function getWidgetFormValues( $values )
+	protected $definition;
+	
+	/**
+	 * Get the argument definition
+	 *
+	 * @return	array
+	 */
+	public function getProvidesDefinition()
+	{		
+		return array(
+			'argtype' => $this->type,
+			'label' => $this->title,
+			'description' => $this->description,
+			'class' => $this->class,
+			'nullable' => ! $this->required,
+		);
+	}
+	
+	/**
+	 * Get the argument definition
+	 *
+	 * @return	array
+	 */
+	public function getReceivesDefinition()
 	{
-		$plugin = $this->getPlugin();
-		$config_options = $this->getWidgetConfig();
-		$preset = $plugin->configPreset( $this->widget, $this->varname . '_value', $config_options );
-		$widget_values = isset( $values[ $this->varname . '_widget' ] ) ? $values[ $this->varname . '_widget' ] : [];
-		
-		if ( isset( $preset['saveValues'] ) and is_callable( $preset['saveValues'] ) ) {
-			$saveValues = $preset['saveValues'];
-			$saveValues( $widget_values, $this );
+		if ( isset( $this->definition ) ) {
+			return $this->definition;
 		}
 		
-		return $widget_values;
+		$argument = $this;
+		
+		$this->definition = array(
+			'label' => $this->title,
+			'argtypes' => array( 
+				$this->type => array(
+					'description' => $this->description,
+					'classes' => $this->class ? array( $this->class ) : NULL,
+				),
+			),
+			'required' => (bool) $this->required,
+			'configuration' => array(
+				'form' => array( static::class, 'preset_' . $this->id() . '_form' ),
+				'saveValues' => array( static::class, 'preset_' . $this->id() . '_saveValues' ),
+				'getArg' => array( static::class, 'preset_' . $this->id() . '_getArg' ),
+			),
+		);
+		
+		return $this->definition;
+	}
+	
+	/**
+	 * @var	array
+	 */
+	protected $preset;
+	
+	/**
+	 * Get the preset handlers
+	 *
+	 * @return	array
+	 */
+	public function getPreset()
+	{
+		if ( isset( $this->preset ) ) {
+			return $this->preset;
+		}
+		
+		$this->preset = $this->getPlugin()->configPreset( $this->widget, $this->varname . '_value', $this->getWidgetConfig() );
+		return $this->preset;
+	}
+	
+	/**
+	 * Get the argument value
+	 *
+	 * @param	string			$key				The key of the value to get
+	 * @return	mixed
+	 */
+	public function getValue( $key='custom' )
+	{
+		$data = $this->data;
+		$preset = $this->getPreset();
+		$saved_values = $this->getSavedValues( $key );
+		
+		if ( $saved_values === NULL and $key !== 'default' and isset( $data['advanced_options']['widget_use_default'] ) and $data['advanced_options']['widget_use_default'] ) {
+			$saved_values = $this->getSavedValues( 'default' );
+		}
+		
+		if ( isset( $preset['getArg'] ) and is_callable( $preset['getArg'] ) ) {
+			$getArg = $preset['getArg'];
+			return $getArg( $saved_values, $this );
+		}
+		
+		return NULL;
 	}
 	
 	/**
@@ -657,7 +760,7 @@ class _Argument extends ActiveRecord
 	 * @param	string			$key			Key to retrieve values from
 	 * @return	array|NULL
 	 */
-	public function getValues( $key )
+	public function getSavedValues( $key )
 	{
 		$data = $this->data;
 		if ( $key === 'default' and ! $this->usesDefault() ) {
@@ -670,7 +773,6 @@ class _Argument extends ActiveRecord
 		
 		return NULL;
 	}
-
 	
 	/**
 	 * Check if the argument uses a default value
@@ -731,5 +833,31 @@ class _Argument extends ActiveRecord
 		Plugin::instance()->clearCustomHooksCache();
 		parent::delete();
 	}
+	
+	/**
+	 * Magic callback used for serializing for caching purposes
+	 * 
+	 * @see getRecievesDefinition()
+	 * @return	mixed
+	 */
+	public static function __callStatic( $name, $arguments )
+	{
+		$parts = explode( '_', $name );
+		if ( $parts[0] == 'preset' ) {
+			if ( count( $parts ) == 3 ) {
+				try {
+					if ( $argument = static::load( $parts[1] ) ) {
+						if ( $preset = $argument->getPreset() ) {
+							if ( isset( $preset[ $parts[2] ] ) and is_callable( $preset[ $parts[2] ] ) ) {
+								return call_user_func_array( $preset[ $parts[2] ], $arguments );
+							}
+						}
+					}
+				}
+				catch( \OutOfRangeException $e ) { }
+			}
+		}
+	}
+
 
 }

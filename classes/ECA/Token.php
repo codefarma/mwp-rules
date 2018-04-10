@@ -1,4 +1,3 @@
-.
 <?php
 /**
  * Plugin Class File
@@ -14,6 +13,8 @@ namespace MWP\Rules\ECA;
 if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
+
+use MWP\Rules;
 
 /**
  * Token Class
@@ -56,6 +57,45 @@ class _Token
 	protected $history;
 	
 	/**
+	 * @var MWP\Rules\Feature
+	 */
+	protected $feature;
+	
+	/**
+	 * @var MWP\Rules\ECA\Event
+	 */
+	protected $event;
+	
+	/**
+	 * @var	array
+	 */
+	protected $event_args;
+	
+	/**
+	 * Set the associated feature
+	 *
+	 * @param	MWP\Rules\Feature|NULL		$feature			The feature to associate with token
+	 * @return	void
+	 */
+	public function setFeature( $feature )
+	{
+		$this->feature = $feature;
+	}
+	
+	/**
+	 * Set the associated event
+	 *
+	 * @param	Event		$event				The event to associate with the token
+	 * @param	array		$event_args			The event argument values
+	 * @return	void
+	 */
+	public function setEvent( $event, $event_args )
+	{
+		$this->event = $event;
+		$this->event_args = $event_args;
+	}
+	
+	/**
 	 * Constructor
 	 *
 	 * @param 	mixed			$original		The starting value to start the translation from
@@ -63,7 +103,7 @@ class _Token
 	 * @param	array|NULL		$argument		The starting argument definition
 	 * @return 	void
 	 */
-	public function __construct( $original, $tokenPath=NULL, $argument=NULL )
+	protected function __construct( $original, $tokenPath=NULL, $argument=NULL )
 	{
 		$typeMap = array(
 			'object' => 'object',
@@ -120,10 +160,21 @@ class _Token
 			/* Boolean auto stringification */
 			if ( is_bool( $tokenValue ) ) { $tokenValue = $tokenValue ? 'true' : 'false'; }
 			
+			if ( is_object( $tokenValue ) ) {
+				if ( is_callable( array( $tokenValue, '__toString' ) ) ) {
+					$tokenValue = $tokenValue->__toString();
+				} else {
+					$tokenValue = 'Object[' . get_class( $tokenValue ) . ']';
+				}
+			}
+			
 			$this->stringValue = (string) $tokenValue;
+			
 			return $this->stringValue;
 		}
-		catch( \Exception $e ) { }
+		catch( \Exception $e ) { 
+		
+		}
 		
 		$this->stringValue = '';
 		return $this->stringValue;
@@ -175,6 +226,102 @@ class _Token
 	}
 	
 	/**
+	 * Create a new token
+	 *
+	 * @param 	mixed			$original		The starting value to start the translation from
+	 * @param	string|NULL		$tokenPath		The token path to take during translation
+	 * @param	array|NULL		$argument		The starting argument definition
+	 * @return	Token
+	 */
+	public static function create( $original, $tokenPath=NULL, $argument=NULL )
+	{
+		return new static( $original, $tokenPath, $argument );
+	}
+	
+	/**
+	 * Create a token using given resources
+	 *
+	 * @param	string		$tokenString			The token string
+	 * @param	array		$resources				The resources that hold values for the token to pull from
+	 * @return	Token
+	 */
+	public static function createFromResources( $tokenString, $resources )
+	{
+		$data = static::parseDataFromResources( $tokenString, $resources );
+		return static::create( $data['value'], $data['parsed']['token_path'], $data['argument'] );
+	}
+	
+	/**
+	 * Parse the data needed to create a token using given resources
+	 *
+	 * @param	string		$tokenString			The token string
+	 * @param	array		$resources				The resources that hold values for the token to pull from
+	 * @return	array
+	 */
+	public static function parseDataFromResources( $tokenString, $resources )
+	{
+		$token_pieces = explode( ':', $tokenString );
+		$source = array_shift( $token_pieces );
+		$source_key = array_shift( $token_pieces );
+		$data = [
+			'parsed' => [
+				'source' => $source,
+				'source_key' => $source_key,
+				'token_path' => implode(':', $token_pieces),
+			],
+			'value' => NULL,
+			'argument' => NULL,
+			'errors' => [],
+		];
+		
+		switch( $source ) {
+			case 'event': 
+				if ( isset( $resources['event'] ) and $resources['event'] instanceof Event ) {
+					if ( $data['argument'] = $resources['event']->getArgument( $source_key ) ) {
+						if ( isset( $resources['event_args'] ) and is_array( $resources['event_args'] ) and array_key_exists( $source_key, $resources['event_args'] ) ) {
+							$data['value'] = $resources['event_args'][ $source_key ];
+						} else {
+							$data['errors'][] = 'The provided event args do not contain a value for the requested argument.';
+						}
+					} else {
+						$data['errors'][] = 'The requested event argument does not exist.';
+					}
+				} else {
+					$data['errors'][] = 'No event was provided as a resource.';
+				}
+				break;
+				
+			case 'global':
+				if ( $argument = Rules\Plugin::instance()->getGlobalArguments( $source_key ) ) {
+					$data['argument'] = $argument;
+					if ( isset( $argument['getter'] ) and is_callable( $argument['getter'] ) ) {
+						$data['value'] = call_user_func( $argument['getter'] );
+					} else {
+						$data['errors'][] = 'The global argument exists, but does not have a "getter" callback.';
+					}
+				} else {
+					$data['errors'][] = 'The requested global argument does not exist.';
+				}
+				break;
+				
+			case 'feature':
+				if ( isset( $resources['feature'] ) and $resources['feature'] instanceof Rules\Feature ) {
+					if ( $argument = $resources['feature']->getArgument( $source_key ) ) {
+						$data['argument'] = $argument->getProvidesDefinition();
+						$data['value'] = $argument->getValue();
+					} else {
+						$data['errors'][] = 'The provided feature does not have the requested argument.';
+					}
+				} else {
+					$data['errors'][] = 'No feature was provided as a resource';
+				}
+				break;
+		}
+		
+		return $data;
+	}
+	
+	/**
 	 * Get Token Value
 	 *
 	 * @return	string		The token value
@@ -200,21 +347,10 @@ class _Token
 		
 		if ( isset( $this->tokenPath ) )
 		{
-			$rulesPlugin = \MWP\Rules\Plugin::instance();
+			$rulesPlugin = Rules\Plugin::instance();
 			$current_argument = $this->argument;
 			$currentValue = $this->original;
 			$token_pieces = explode( ':', $this->tokenPath );
-			
-			/* Fetch the starting argument for global arguments */
-			if ( $token_pieces[0] == 'global' ) {
-				array_shift( $token_pieces );
-				$global_arg = array_shift( $token_pieces );
-				$current_argument = $rulesPlugin->getGlobalArguments( $global_arg );
-				if ( ! $current_argument ) { throw new \ErrorException( 'Global argument does not exist: ' . $global_arg ); }
-				if ( ! isset( $current_argument['getter'] ) or ! is_callable( $current_argument['getter'] ) ) { throw new \ErrorException( 'Global argument cannot be fetched: ' . $global_arg ); }
-				$currentValue = call_user_func( $current_argument['getter'] );
-				$this->history[] = 'Fetched the global argument: ' . $global_arg;
-			}
 			
 			while( $token_identifier = array_shift( $token_pieces ) ) 
 			{
