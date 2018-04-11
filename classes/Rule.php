@@ -38,6 +38,7 @@ class _Rule extends ActiveRecord
      */
     public static $columns = array(
         'id',
+		'uuid',
         'title',
         'weight',
         'enabled',
@@ -122,6 +123,28 @@ class _Rule extends ActiveRecord
 		}
 		
 		return NULL;
+	}
+	
+	/**
+	 * Check if the rule is active
+	 *
+	 * @return	bool
+	 */
+	public function isActive()
+	{
+		if ( ! $this->enabled ) {
+			return false;
+		}
+		
+		if ( $parent = $this->parent() ) {
+			return $parent->isActive();
+		}
+		
+		if ( $feature = $this->getFeature() ) {
+			return $feature->isActive();
+		}
+		
+		return true;
 	}
 	
 	/**
@@ -504,7 +527,6 @@ class _Rule extends ActiveRecord
 	{
 		return isset( $this->filtered_values[ $this->event()->thread ] ) ? $this->filtered_values[ $this->event()->thread ] : null;
 	}
-	
 	
 	/**
 	 * Deploy to wordpress via hooks
@@ -922,11 +944,17 @@ class _Rule extends ActiveRecord
 	public function save()
 	{
 		$changed = $this->_getChanged();
+		
+		/* Update all subrules when this rule is moved to a new feature */
 		if ( array_key_exists( 'rule_feature_id', $changed ) ) {
 			foreach( $this->children() as $subrule ) {
 				$subrule->feature_id = $this->feature_id;
 				$subrule->save();
 			}
+		}
+		
+		if ( $this->uuid === NULL ) { 
+			$this->uuid = uniqid( '', true ); 
 		}
 		
 		return parent::save();

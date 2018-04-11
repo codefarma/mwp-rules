@@ -37,6 +37,7 @@ class _Feature extends ActiveRecord
      */
     public static $columns = array(
         'id',
+		'uuid',
 		'title',
 		'weight',
 		'description',
@@ -81,6 +82,24 @@ class _Feature extends ActiveRecord
 	 * @var	string
 	 */
 	public static $sequence_col = 'weight';
+	
+	/**
+	 * Check if the feature is active
+	 *
+	 * @return	bool
+	 */
+	public function isActive()
+	{
+		if ( ! $this->enabled ) {
+			return false;
+		}
+		
+		if ( $app = $this->getApp() ) {
+			return $app->isActive();
+		}
+		
+		return true;
+	}
 	
 	/**
 	 * Get the linked app
@@ -303,6 +322,34 @@ class _Feature extends ActiveRecord
 	public function url( $params=array() )
 	{
 		return $this->getPlugin()->getFeaturesController( $this->getApp() )->getUrl( array( 'id' => $this->id(), 'do' => 'edit' ) + $params );
+	}
+	
+	/**
+	 * Delete
+	 *
+	 * @return	void
+	 */
+	public function delete()
+	{
+		foreach( $this->getRules() as $rule ) {
+			$rule->delete();
+		}
+		
+		return parent::delete();
+	}
+
+	/**
+	 * Save
+	 *
+	 * @return	void
+	 */
+	public function save()
+	{
+		if ( $this->uuid === NULL ) { 
+			$this->uuid = uniqid( '', true ); 
+		}
+		
+		parent::save();
 	}
 	
 }

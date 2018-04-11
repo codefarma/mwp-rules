@@ -36,6 +36,7 @@ class _Action extends GenericOperation
      */
     public static $columns = array(
         'id',
+		'uuid',
         'title',
         'weight',
 		'rule_id',
@@ -339,6 +340,20 @@ class _Action extends GenericOperation
 	public function url( $params=array() )
 	{
 		return $this->getPlugin()->getActionsController()->getUrl( array_merge( array( 'id' => $this->id, 'do' => 'edit', 'rule_id' => $this->rule_id ), $params ) );
+	}
+	
+	/**
+	 * Save
+	 *
+	 * @return	void
+	 */
+	public function save()
+	{
+		if ( $this->uuid === NULL ) { 
+			$this->uuid = uniqid( '', true ); 
+		}
+		
+		parent::save();
 	}
 	
 }

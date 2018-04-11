@@ -197,7 +197,9 @@ class _Plugin extends \MWP\Framework\Plugin
 		
 		/* Connect all enabled first level rules to their hooks */
 		foreach( Rule::loadWhere( array( 'rule_enabled=1 AND rule_parent_id=0' ), 'rule_priority ASC, rule_weight ASC' ) as $rule ) {
-			$rule->deploy();
+			if ( $rule->isActive() ) {
+				$rule->deploy();
+			}
 		}
 	}
 	

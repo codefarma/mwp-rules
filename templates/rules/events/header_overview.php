@@ -18,15 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-$tokens = $event->getTokens();
+$tokens = $event->getTokens( NULL, $rule );
 
 ?>
-
-<?php if ( $rule ) : ?>
-	<div class="rule-overview alert alert-success">
-		<div class="rule-title"><i class="glyphicon glyphicon-king"></i> <span class="subtle">Rule:</span> <a href="<?php echo $rule->url() ?>"><?php echo $rule->title ?></a></div>
-	</div>
-<?php endif; ?>
 
 <div class="event-overview alert alert-info" data-view-model="mwp-rules">
 	<div class="event-title"><i class="glyphicon glyphicon-info-sign" style="vertical-align: -2px;"></i> <span class="subtle">Event: </span> <?php echo $event->title ?></div>
@@ -53,6 +47,35 @@ $tokens = $event->getTokens();
 			<li><code><?php echo esc_html( $token ) . '</code> - ' . esc_html( $description ); ?></li>
 		<?php endforeach; ?>
 		</ul>
+		
+		<?php /*
+		<h3>Global Data</h3>
+		<ul>
+			<?php foreach( Rules\Plugin::instance()->getGlobalArguments() as $global_key => $global_arg ) : ?>
+				<?php $derivatives = Rules\Plugin::instance()->getDerivativeTokens( $global_arg ); ?>
+				<li data-token="global:<?php echo $global_key ?>" class="<?php if ( count( $derivatives ) ) { echo "has-derivatives"; } ?>"><code>global:<?php echo $global_key ?></code></li>
+			<?php endforeach; ?>
+		</ul>
+		<?php if ( ! empty( $event->arguments ) ) : ?>
+			<h3>Event Data</h3>
+			<ul>
+				<?php foreach( $event->arguments as $arg_key => $arg_def ) : ?>
+					<?php $derivatives = Rules\Plugin::instance()->getDerivativeTokens( $arg_def ); ?>
+					<li data-token="event:<?php echo $arg_key ?>" class="<?php if ( count( $derivatives ) ) { echo "has-derivatives"; } ?>"><code>event:<?php echo $arg_key ?></code></li>
+				<?php endforeach; ?>
+			</ul>
+		<?php endif; ?>
+		<?php if ( isset( $rule ) && $feature = $rule->getFeature() ) : ?>
+			<h3>Feature Settings</h3>
+			<ul>
+				<?php foreach( $feature->getArguments() as $argument ) : ?>
+					<?php $derivatives = Rules\Plugin::instance()->getDerivativeTokens( $argument->getProvidesDefinition() ); ?>
+					<li data-token="feature:<?php echo $argument->varname ?>" class="<?php if ( count( $derivatives ) ) { echo "has-derivatives"; } ?>"><code>feature:<?php echo $argument->varname ?></code></li>
+				<?php endforeach; ?>
+			</ul>
+		<?php endif; ?>	
+		*/
+		?>
 	</div>
 </div>
 

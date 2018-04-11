@@ -189,7 +189,7 @@ class _Token
 	 */
 	public static function getReflection( $argument, $tokenpath )
 	{
-		$plugin = \MWP\Rules\Plugin::instance();
+		$plugin = Rules\Plugin::instance();
 		$token_pieces = explode( ':', $tokenpath );
 		
 		if ( is_object( $argument ) ) {

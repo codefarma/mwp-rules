@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use MWP\Rules\ECA\Token;
+use MWP\Rules;
 
 /**
  * Event Class
@@ -101,7 +101,7 @@ class _Event extends BaseDefinition
 	 */
 	public function getDisplayDetails( $rule=NULL )
 	{
-		return \MWP\Rules\Plugin::instance()->getTemplateContent( 'rules/events/header_overview', array( 'event' => $this, 'rule' => $rule ) );
+		return Rules\Plugin::instance()->getTemplateContent( 'rules/events/header_overview', array( 'event' => $this, 'rule' => $rule ) );
 	}
 	
 	/**
@@ -111,7 +111,7 @@ class _Event extends BaseDefinition
 	 */
 	public function getDisplayArgInfo()
 	{
-		return \MWP\Rules\Plugin::instance()->getTemplateContent( 'rules/events/arg_info', array( 'event' => $this ) );
+		return Rules\Plugin::instance()->getTemplateContent( 'rules/events/arg_info', array( 'event' => $this ) );
 	}
 
 	/**
@@ -176,18 +176,20 @@ class _Event extends BaseDefinition
 	 * Build Event Tokens
 	 *
 	 * @param	array|NULL				$arg_map	An associative array of the event arguments, if NULL then token/descriptions will be generated
+	 * @param	MWP\Rules\Rule|NULL		$rule		The associated rule
 	 * @return	array								An associative array of token/var replacements
 	 */
-	public function getTokens( $arg_map=NULL )
+	public function getTokens( $arg_map=NULL, $rule=NULL )
 	{
-		$rulesPlugin = \MWP\Rules\Plugin::instance();
+		$rulesPlugin = Rules\Plugin::instance();
 		$cache_key = isset( $arg_map ) ? $this->thread : 'descriptions';
+		$cache_key .= ( isset( $rule ) ? $rule->id() : '' );
 		
 		if ( isset ( static::$tokensCache[ $cache_key ] ) ) {
 			return static::$tokensCache[ $cache_key ];
 		}
 		
-		$tokens = $this->getArgumentTokens( array( 'argtypes' => array( 'string', 'int', 'float', 'bool' ) ), $arg_map, 2 );
+		$tokens = $this->getArgumentTokens( array( 'argtypes' => array( 'string', 'int', 'float', 'bool' ) ), $arg_map, 2, FALSE, $rule );
 		$_tokens = array();
 		
 		foreach( $tokens as $key => $value ) {
@@ -234,16 +236,25 @@ class _Event extends BaseDefinition
 	 * @param	array|NULL		$arg_map				An associative array of the event arguments, if NULL then token/descriptions will be generated
 	 * @param	int				$depth					The depth of arguments to get tokens for
 	 * @param	bool			$include_arbitrary		Include an arbitrary keys representation token in the results
+	 * @param	MWP\Rules\Rule	$rule					The associated rule
 	 * @return	array
 	 */
-	public function getArgumentTokens( $target_argument=NULL, $arg_map=NULL, $depth=1, $include_arbitrary=FALSE )
+	public function getArgumentTokens( $target_argument=NULL, $arg_map=NULL, $depth=1, $include_arbitrary=FALSE, $rule=NULL )
 	{
-		$rulesPlugin        = \MWP\Rules\Plugin::instance();
+		$rulesPlugin        = Rules\Plugin::instance();
 		$global_args 		= $rulesPlugin->getGlobalArguments();
 		$tokens 		    = array();
-
+		$feature_args       = array();
+		
+		if ( $rule and ( $feature = $rule->getFeature() ) ) {
+			foreach( $feature->getArguments() as $argument ) {
+				$feature_args[ $argument->varname ] = $argument->getProvidesDefinition();
+			}
+		}
+		
 		$arg_groups = array(
 			'event' => $this->arguments ?: array(),
+			'feature' => $feature_args,
 			'global' => $global_args,
 		);
 		
@@ -252,50 +263,23 @@ class _Event extends BaseDefinition
 				
 				/* Create tokens for directly accessible arguments */
 				if ( $rulesPlugin->isArgumentCompliant( $argument, $target_argument ) ) {
-					
-					// Building token values
-					if ( isset ( $arg_map ) ) {
-						switch( $group ) {
-							case 'event': $tokens[ 'event:' . $arg_name ] = Token::create( $arg_map[ $arg_name ] ); break;
-							case 'global': $tokens[ 'global:' . $arg_name ] = Token::create( NULL, 'global:' . $arg_name, $argument ); break;
-						}
-					}
-					
-					// Building token description
-					else {
-						switch( $group ) {
-							case 'event': $tokens[ 'event:' . $arg_name ] = '(' . $argument['argtype'] . ') ' . "The value of the '" . $arg_name . "' argument"; break;
-							case 'global': $tokens[ 'global:' . $arg_name ] = isset( $argument['label'] ) ? '(' . $argument['argtype'] . ') ' . ucfirst( strtolower( $argument['label'] ) ) : "The global '" . $arg_name . "' value"; break;
-						}
+					switch( $group ) {
+						case 'event': $tokens[ 'event:' . $arg_name ] = '(' . $argument['argtype'] . ') ' . "The value of the '" . $arg_name . "' argument"; break;
+						case 'global': $tokens[ 'global:' . $arg_name ] = isset( $argument['label'] ) ? '(' . $argument['argtype'] . ') ' . ucfirst( strtolower( $argument['label'] ) ) : "The global '" . $arg_name . "' value"; break;
+						case 'feature': $tokens[ 'feature:' . $arg_name ] = isset( $argument['label'] ) ? '(' . $argument['argtype'] . ') ' . ucfirst( strtolower( $argument['label'] ) ) : "The feature '" . $arg_name . "' setting value"; break;
 					}
 				}
 				
 				/* Create tokens for derivative arguments also */
 				foreach ( $rulesPlugin->getDerivativeTokens( $argument, $target_argument, $depth, $include_arbitrary ) as $tokenized_key => $derivative_argument ) {						
-					// Building token values
-					if ( $arg_map !== NULL ) {
-						switch( $group ) {
-							case 'event':
-								$tokens[ 'event:' . $arg_name . ':' . $tokenized_key ] = Token::create( $arg_map[ $arg_name ], $tokenized_key, $argument );
-								break;
-							case 'global':
-								if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) {	continue; }
-								$tokens[ 'global:' . $arg_name . ':' . $tokenized_key ] = Token::create( NULL, 'global:' . $tokenized_key );
-								break;
-						}
-					}
-					
-					// Building token descriptions
-					else {
-						switch ( $group ) {
-							case 'event':
-								$tokens[ 'event:' . $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
-								break;
-							case 'global':
-								if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) { continue; }
-								$tokens[ 'global:' . $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
-								break;
-						}									
+					switch ( $group ) {
+						case 'global':
+							if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) { continue; }
+							$tokens[ 'global:' . $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
+							break;
+						default:
+							$tokens[ $group . ':' . $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
+							break;
 					}
 				}
 			}
@@ -312,7 +296,7 @@ class _Event extends BaseDefinition
 	 */
 	public function executeDeferred( $actions )
 	{
-		$plugin = \MWP\Rules\Plugin::instance();
+		$plugin = Rules\Plugin::instance();
 		$this->locked = TRUE;
 		
 		while ( $deferred = array_shift( $actions ) )

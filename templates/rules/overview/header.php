@@ -67,7 +67,7 @@ if ( isset( $argument ) ) {
 	
 	$event = $rule->event();
 	if ( $event ) {
-		echo $event->getDisplayDetails();
+		echo $event->getDisplayDetails( $rule );
 	}
 	
 	$_rule = $rule;

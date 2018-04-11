@@ -179,7 +179,7 @@ class _System
 							'getArg' => function( $values ) {
 								return explode( "\n", str_replace( "\r\n", "\n", $values['rules_email_headers'] ) );
 							},
-						),						
+						),
 					),
 				),
 				'callback' => function( $to, $subject, $message, $headers, $values ) {

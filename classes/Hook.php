@@ -39,7 +39,6 @@ class _Hook extends ActiveRecord
 		'title',
 		'weight',
 		'description',
-		'key',
 		'enable_api',
 		'api_methods',
 		'type',

@@ -36,6 +36,7 @@ class _App extends ActiveRecord
      */
     public static $columns = array(
         'id',
+		'uuid',
 		'title',
 		'description',
 		'weight',
@@ -79,6 +80,20 @@ class _App extends ActiveRecord
 	 * @var	string
 	 */
 	public static $sequence_col = 'weight';
+	
+	/**
+	 * Check if the app is active
+	 *
+	 * @return	bool
+	 */
+	public function isActive()
+	{
+		if ( ! $this->enabled ) {
+			return false;
+		}
+		
+		return true;
+	}
 	
 	/**
 	 * Build an editing form
@@ -187,5 +202,32 @@ class _App extends ActiveRecord
 		return $this->getPlugin()->getAppsController()->getUrl( array_replace_recursive( array( 'id' => $this->id(), 'do' => 'edit' ), $params ) );
 	}
 	
+	/**
+	 * Delete
+	 *
+	 * @return	void
+	 */
+	public function delete()
+	{
+		foreach( $this->getFeatures() as $feature ) {
+			$feature->delete();
+		}
+		
+		return parent::delete();
+	}
+	
+	/**
+	 * Save
+	 *
+	 * @return	void
+	 */
+	public function save()
+	{
+		if ( $this->uuid === NULL ) { 
+			$this->uuid = uniqid( '', true ); 
+		}
+		
+		parent::save();
+	}
 	
 }

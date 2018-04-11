@@ -36,6 +36,7 @@ class _Condition extends GenericOperation
      */
     public static $columns = array(
         'id',
+		'uuid',
         'title',
         'weight',
 		'parent_id',
@@ -384,5 +385,19 @@ class _Condition extends GenericOperation
 		
 		return parent::delete();
 	}	
+	
+	/**
+	 * Save
+	 *
+	 * @return	void
+	 */
+	public function save()
+	{
+		if ( $this->uuid === NULL ) { 
+			$this->uuid = uniqid( '', true ); 
+		}
+		
+		parent::save();
+	}
 	
 }
