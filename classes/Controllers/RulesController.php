@@ -82,12 +82,13 @@ class _RulesController extends ActiveRecordController
 				'searchable' => array(
 					'rule_title' => array( 'type' => 'contains', 'combine_words' => 'and' ),
 				),
-				'bulk_actions' => array(
+				'bulkActions' => array(
 					'enable' => __( 'Enable Rules', 'mwp-rules' ),
 					'disable' => __( 'Disable Rules', 'mwp-rules' ),
 					'enableDebugRecursive' => __( 'Enable Debug Mode', 'mwp-rules' ),
 					'disableDebugRecursive' => __( 'Disable Debug Mode', 'mwp-rules' ),
 					'delete' => __( 'Delete Rules', 'mwp-rules' ),
+					'export' => __( 'Export Rules', 'mwp-rules' ),
 				),
 				'handlers' => array(
 					'rule_title' => function( $record )

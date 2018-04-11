@@ -57,7 +57,7 @@ class _ConditionsController extends ActiveRecordController
 			( 
 				'sort_by' => 'condition_weight',
 				'sort_order' => 'ASC',
-				'bulk_actions' => array(),
+				'bulkActions' => array(),
 				'columns' => array(
 					'details' => __( 'Conditions', 'mwp-rules' ),
 				),

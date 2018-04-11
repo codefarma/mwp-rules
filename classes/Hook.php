@@ -19,7 +19,7 @@ use MWP\Framework\Pattern\ActiveRecord;
 /**
  * CustomAction Class
  */
-class _Hook extends ActiveRecord
+class _Hook extends ExportableRecord
 {
     /**
      * @var    array        Required for all active record classes
@@ -36,6 +36,7 @@ class _Hook extends ActiveRecord
      */
     public static $columns = array(
         'id',
+		'uuid',
 		'title',
 		'weight',
 		'description',
@@ -297,7 +298,7 @@ class _Hook extends ActiveRecord
 		
 		$form->addField( 'save', 'submit', array(
 			'label' => __( 'Save', 'mwp-rules' ),
-		));
+		), '');
 		
 		return $form;
 	}
@@ -334,25 +335,84 @@ class _Hook extends ActiveRecord
 	}
 	
 	/**
+	 * Get export data
+	 *
+	 * @return	array
+	 */
+	public function getExportData()
+	{
+		$data = $this->_data;
+		unset( $data[ static::$prefix . static::$key ] );
+		
+		return array(
+			'data' => $data,
+			'arguments' => array_map( function( $argument ) { return $argument->getExportData(); }, $this->getArguments() ),
+		);
+	}
+	
+	/**
+	 * Import data
+	 *
+	 * @param	array			$data				The data to import
+	 * @return	array
+	 */
+	public static function import( $data )
+	{
+		$uuid_col = static::$prefix . 'uuid';
+		$results = [];
+		
+		if ( isset( $data['data'] ) ) 
+		{
+			$_existing = ( isset( $data['data'][ $uuid_col ] ) and $data['data'][ $uuid_col ] ) ? static::loadWhere( array( $uuid_col . '=%s', $data['data'][ $uuid_col ] ) ) : [];
+			$hook = count( $_existing ) ? array_shift( $_existing ) : new static;
+			
+			/* Set column values */
+			foreach( $data['data'] as $col => $value ) {
+				$col = substr( $col, strlen( static::$prefix ) );
+				$hook->_setDirectly( $col, $value );
+			}
+			
+			$result = $hook->save();
+			
+			if ( ! is_wp_error( $result ) ) {
+				$results['imports']['hooks'][] = $data['data'];
+				if ( isset( $data['arguments'] ) and ! empty( $data['arguments'] ) ) {
+					foreach( $data['arguments'] as $argument ) {
+						$results = array_merge_recursive( $results, Argument::import( $argument, $hook ) );
+					}
+				}
+			} else {
+				$results['errors']['features'][] = $result;
+			}
+		}
+		
+		return $results;
+	}
+	
+	/**
 	 * Save
 	 *
-	 * @return	void
+	 * @return	bool|WP_Error
 	 */
 	public function save()
 	{
+		if ( ! $this->uuid ) { 
+			$this->uuid = uniqid( '', true ); 
+		}
+		
 		Plugin::instance()->clearCustomHooksCache();
-		parent::save();
+		return parent::save();
 	}
 	
 	/**
 	 * Delete
 	 *
-	 * @return	void
+	 * @return	bool|WP_Error
 	 */
 	public function delete()
 	{
 		Argument::deleteWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', 'hook', $this->id() ) );
 		Plugin::instance()->clearCustomHooksCache();
-		parent::delete();
+		return parent::delete();
 	}
 }

@@ -59,6 +59,12 @@ if ( isset( $argument ) ) {
 			<code><?php echo esc_html( $hook->hook ) ?></code>
 		</div>
 	<?php } ?>
+	
+	<?php if ( isset( $rule_item ) and $rule_item and $rule ) { ?>
+		<div class="rule-title">
+			<span class="subtle"><i class="glyphicon glyphicon-triangle-right"></i> Rule:</span> <a href="<?php echo $rule->url([ '_tab' => $rule_item ]) ?>"><?php echo esc_html( $rule->title ) ?></a> 
+		</div>	
+	<?php } ?>
 
 	</div>
 <?php endif; ?>
@@ -69,6 +75,10 @@ if ( isset( $argument ) ) {
 	if ( $event ) {
 		echo $event->getDisplayDetails( $rule );
 	}
+	
+?>
+
+<?php 
 	
 	$_rule = $rule;
 	$rule_parents = [];

@@ -45,6 +45,10 @@ return [
 			'menu' => __( 'Apps', 'mwp-rules' ),
 		],
 		'tableConfig' => array(
+			'bulkActions' => array(
+				'delete' => __( 'Delete Apps', 'mwp-rules' ),
+				'export' => __( 'Export Apps', 'mwp-rules' ),
+			),
 			'columns' => array(
 				'app_title'        => __( 'App Title', 'mwp-rules' ),
 				'app_description'  => __( 'App Description', 'mwp-rules' ),
@@ -93,6 +97,10 @@ return [
 			'parent' => 'mwp-rules',
 		],
 		'tableConfig' => [
+			'bulkActions' => array(
+				'delete' => __( 'Delete Hooks', 'mwp-rules' ),
+				'export' => __( 'Export Hooks', 'mwp-rules' ),
+			),
 			'columns' => [
 				'hook_type' => __( 'Type', 'mwp-rules' ),
 				'hook_hook' => __( 'Hook', 'mwp-rules' ),

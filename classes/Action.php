@@ -141,9 +141,20 @@ class _Action extends GenericOperation
 		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		$action = $this;
 		
-		/* Display details for the event */
-		if ( $event = $action->event() ) {
-			$form->addHtml( 'event_details', $event->getDisplayDetails( $action->rule() ) );
+		/* Display details for the app/feature/parent */
+		$form->addHtml( 'rule_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
+			'rule_item' => 'rule_actions',
+			'rule' => $this->getRule(), 
+			'feature' => $this->getRule() ? $this->getRule()->getFeature() : null, 
+			'app' => $this->getRule() ? $this->getRule()->getApp() : null, 
+		]));
+		
+		if ( $action->title ) {
+			$form->addHtml( 'rule_title', $plugin->getTemplateContent( 'rules/overview/title', [
+				'icon' => '<i class="glyphicon glyphicon-flash"></i>',
+				'label' => 'Action',
+				'title' => $action->title,
+			]));
 		}
 		
 		$form->addField( 'enabled', 'checkbox', array(
@@ -332,6 +343,57 @@ class _Action extends GenericOperation
 	}
 	
 	/**
+	 * Get export data
+	 *
+	 * @return	array
+	 */
+	public function getExportData()
+	{
+		$data = $this->_data;
+		unset( $data[ static::$prefix . static::$key ] );
+		
+		return array(
+			'data' => $data,
+		);
+	}
+	
+	/**
+	 * Import data
+	 *
+	 * @param	array			$data				The data to import
+	 * @param	Rule			$rule_id			The parent rule id
+	 * @return	array
+	 */
+	public static function import( $data, $rule_id )
+	{
+		$uuid_col = static::$prefix . 'uuid';
+		$results = [];
+		
+		if ( isset( $data['data'] ) ) 
+		{
+			$_existing = ( isset( $data['data'][ $uuid_col ] ) and $data['data'][ $uuid_col ] ) ? static::loadWhere( array( $uuid_col . '=%s', $data['data'][ $uuid_col ] ) ) : [];
+			$action = count( $_existing ) ? array_shift( $_existing ) : new static;
+			
+			/* Set column values */
+			foreach( $data['data'] as $col => $value ) {
+				$col = substr( $col, strlen( static::$prefix ) );
+				$action->_setDirectly( $col, $value );
+			}
+			
+			$action->rule_id = $rule_id;
+			$result = $action->save();
+			
+			if ( ! is_wp_error( $result ) ) {
+				$results['imports']['actions'][] = $data['data'];
+			} else {
+				$results['errors']['actions'][] = $result;
+			}
+		}
+		
+		return $results;
+	}
+	
+	/**
 	 * Get the action url
 	 *
 	 * @param	array			$params			Url params
@@ -345,15 +407,15 @@ class _Action extends GenericOperation
 	/**
 	 * Save
 	 *
-	 * @return	void
+	 * @return	bool|WP_Error
 	 */
 	public function save()
 	{
-		if ( $this->uuid === NULL ) { 
+		if ( ! $this->uuid ) { 
 			$this->uuid = uniqid( '', true ); 
 		}
 		
-		parent::save();
+		return parent::save();
 	}
 	
 }

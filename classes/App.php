@@ -19,7 +19,7 @@ use MWP\Framework\Pattern\ActiveRecord;
 /**
  * App Class
  */
-class _App extends ActiveRecord
+class _App extends ExportableRecord
 {
     /**
      * @var    array        Required for all active record classes
@@ -203,9 +203,64 @@ class _App extends ActiveRecord
 	}
 	
 	/**
+	 * Get export data
+	 *
+	 * @return	array
+	 */
+	public function getExportData()
+	{
+		$data = $this->_data;
+		unset( $data[ static::$prefix . static::$key ] );
+		
+		return array(
+			'data' => $data,
+			'features' => array_map( function( $feature ) { return $feature->getExportData(); }, $this->getFeatures() ),
+		);
+	}
+	
+	/**
+	 * Import data
+	 *
+	 * @param	array			$data				The data to import
+	 * @return	array
+	 */
+	public static function import( $data )
+	{
+		$uuid_col = static::$prefix . 'uuid';
+		$results = [];
+		
+		if ( isset( $data['data'] ) ) 
+		{
+			$_existing = ( isset( $data['data'][ $uuid_col ] ) and $data['data'][ $uuid_col ] ) ? static::loadWhere( array( $uuid_col . '=%s', $data['data'][ $uuid_col ] ) ) : [];
+			$app = count( $_existing ) ? array_shift( $_existing ) : new static;
+			
+			/* Set column values */
+			foreach( $data['data'] as $col => $value ) {
+				$col = substr( $col, strlen( static::$prefix ) );
+				$app->_setDirectly( $col, $value );
+			}
+			
+			$result = $app->save();
+			
+			if ( ! is_wp_error( $result ) ) {
+				$results['imports']['apps'][] = $data['data'];
+				if ( isset( $data['features'] ) and ! empty( $data['features'] ) ) {
+					foreach( $data['features'] as $feature ) {
+						$results = array_merge_recursive( $results, Feature::import( $feature, $app->id() ) );
+					}
+				}
+			} else {
+				$results['errors']['apps'][] = $result;
+			}
+		}
+		
+		return $results;
+	}
+	
+	/**
 	 * Delete
 	 *
-	 * @return	void
+	 * @return	bool
 	 */
 	public function delete()
 	{
@@ -219,15 +274,42 @@ class _App extends ActiveRecord
 	/**
 	 * Save
 	 *
-	 * @return	void
+	 * @return	bool
 	 */
 	public function save()
 	{
-		if ( $this->uuid === NULL ) { 
+		if ( ! $this->uuid ) { 
 			$this->uuid = uniqid( '', true ); 
 		}
 		
-		parent::save();
+		return parent::save();
 	}
 	
+	/**
+	 * Perform a bulk action on records
+	 *
+	 * @param	string			$action					The action to perform
+	 * @param	array			$records				The records to perform the bulk action on
+	 */
+	public static function processBulkAction( $action, array $records )
+	{
+		switch( $action ) {
+			case 'export':
+				$package = Plugin::instance()->createPackage( $records );
+				$package_title = sanitize_title( current_time( 'mysql' ) );
+				header('Content-disposition: attachment; filename=' . $package_title . '.package.rules.json');
+				header('Content-type: application/json');
+				echo json_encode( $package, JSON_PRETTY_PRINT );
+				exit;
+				
+			default:
+				parent::processBulkAction( $action, $records );
+				break;
+		}
+		foreach( $records as $record ) {
+			if ( is_callable( array( $record, $action ) ) ) {
+				call_user_func( array( $record, $action ) );
+			}
+		}
+	}	
 }

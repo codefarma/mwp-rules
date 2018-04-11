@@ -1411,6 +1411,119 @@ class _Plugin extends \MWP\Framework\Plugin
 		
 		return apply_filters( 'rules_restore_object', NULL, $arg['data'], $arg['_obj_class'] ) ?: (object) $arg['data'];		
 	}
+	
+	/**
+	 * Get the custom hooks used in an export
+	 *
+	 * @param	array		$data			The export data
+	 * @return	array
+	 */
+	public function getHooksFromExportData( $data, $hooks=[] )
+	{
+		if ( isset( $data['rules'] ) and ! empty( $data['rules'] ) ) {
+			foreach( $data['rules'] as $rule ) {
+				$_type = $rule['data']['rule_event_type'];
+				$_hook = $rule['data']['rule_event_hook'];
+				
+				/* Only load custom hooks that we haven't fetched already */
+				if ( ! isset( $hooks[ $_type . ':' . $_hook ] ) ) {
+					$where = ( $_type == 'action' ? array( 'hook_type IN (%s, %s) AND hook_hook=%s', 'custom', 'action', $_hook ) : array( 'hook_type=%s AND hook_hook=%s', 'filter', $_hook ) );
+					if ( $_hooks = Hook::loadWhere( $where ) ) {
+						$hooks[ $_type . ':' . $_hook ] = array_shift( $_hooks );
+					}
+				}
+			}
+		}
+		
+		foreach( array( 'apps', 'features' ) as $container_type ) {
+			if ( isset( $data[ $container_type ] ) and ! empty( $data[ $container_type ] ) ) {
+				foreach( $data[ $container_type ] as $container ) {
+					$hooks = $this->getHooksFromExportData( $container, $hooks );
+				}
+			}
+		}
+		
+		return $hooks;
+	}
+	
+	/**
+	 * Create a package of rule configurations
+	 *
+	 * @param	array|object		$models			An array of models, or a single model to export
+	 * @return	array
+	 */
+	public function createPackage( $models )
+	{
+		if ( ! is_array( $models ) ) { 
+			$models = array( $models );
+		}
+		
+		$package = array(
+			'rules_version' => $this->getVersion(),
+			'hooks' => [],
+		);
+		
+		foreach( $models as $model ) {
+			if ( $model instanceof App ) {
+				$package['apps'][] = $model->getExportData();
+			}
+			if ( $model instanceof Feature ) {
+				$package['features'][] = $model->getExportData();
+			}
+			if ( $model instanceof Rule ) {
+				$package['rules'][] = $model->getExportData();
+			}
+			if ( $model instanceof Hook ) {
+				$package['hooks'][] = $model->getExportData();
+			}
+		}
+		
+		$package['hooks'] = array_unique( array_merge( $package['hooks'], array_map( function( $hook ) { return $hook->getExportData(); }, $this->getHooksFromExportData( $package ) ) ) );
+		
+		return $package;
+	}
+	
+	/**
+	 * Import a package
+	 *
+	 * @param	array			$package			The package data to import
+	 * @throws  \ErrorException
+	 * @return	array
+	 */
+	public function importPackage( $package )
+	{
+		if ( ! isset( $package['rules_version'] ) ) {
+			throw new \ErrorException( 'The import data does not appear to be a rules package.' );
+		}
+		
+		$results = [];
+		
+		if ( isset( $package['hooks'] ) ) {
+			foreach( $package['hooks'] as $hook ) {
+				$results = array_merge_recursive( $results, Hook::import( $hook ) );
+			}
+		}
+		
+		if ( isset( $package['apps'] ) ) {
+			foreach( $package['apps'] as $app ) {
+				$results = array_merge_recursive( $results, App::import( $app ) );
+			}
+		}
+		
+		if ( isset( $package['features'] ) ) {
+			foreach( $package['features'] as $feature ) {
+				$results = array_merge_recursive( $results, Feature::import( $feature ) );
+			}
+		}
+		
+		if ( isset( $package['rules'] ) ) {
+			foreach( $package['rules'] as $rule ) {
+				$results = array_merge_recursive( $results, Rule::import( $rule ) );
+			}
+		}
+		
+		return $results;
+	}
 
 	/**
 	 * Recursion Protection

@@ -36,6 +36,7 @@ class _Argument extends ActiveRecord
      */
     public static $columns = array(
         'id',
+		'uuid',
 		'title',
 		'type',
 		'class',
@@ -802,6 +803,58 @@ class _Argument extends ActiveRecord
 	}
 	
 	/**
+	 * Get export data
+	 *
+	 * @return	array
+	 */
+	public function getExportData()
+	{
+		$data = $this->_data;
+		unset( $data[ static::$prefix . static::$key ] );
+		
+		return array(
+			'data' => $data,
+		);
+	}
+	
+	/**
+	 * Import data
+	 *
+	 * @param	array			$data				The data to import
+	 * @param	ActiveRecord	$parent				The parent object
+	 * @return	array
+	 */
+	public static function import( $data, ActiveRecord $parent )
+	{
+		$uuid_col = static::$prefix . 'uuid';
+		$results = [];
+		
+		if ( isset( $data['data'] ) ) 
+		{
+			$_existing = ( isset( $data['data'][ $uuid_col ] ) and $data['data'][ $uuid_col ] ) ? static::loadWhere( array( $uuid_col . '=%s', $data['data'][ $uuid_col ] ) ) : [];
+			$argument = count( $_existing ) ? array_shift( $_existing ) : new static;
+			
+			/* Set column values */
+			foreach( $data['data'] as $col => $value ) {
+				$col = substr( $col, strlen( static::$prefix ) );
+				$argument->_setDirectly( $col, $value );
+			}
+			
+			$argument->parent_type = static::getParentType( $parent );
+			$argument->parent_id = $parent->id();
+			$result = $argument->save();
+			
+			if ( ! is_wp_error( $result ) ) {
+				$results['imports']['arguments'][] = $data['data'];
+			} else {
+				$results['errors']['arguments'][] = $result;
+			}
+		}
+		
+		return $results;
+	}
+	
+	/**
 	 * Get the app url
 	 *
 	 * @param	array			$params			Url params
@@ -815,23 +868,27 @@ class _Argument extends ActiveRecord
 	/**
 	 * Save
 	 *
-	 * @return	void
+	 * @return	bool|WP_Error
 	 */
 	public function save()
 	{
+		if ( ! $this->uuid ) { 
+			$this->uuid = uniqid( '', true ); 
+		}
+		
 		Plugin::instance()->clearCustomHooksCache();
-		parent::save();
+		return parent::save();
 	}
 	
 	/**
 	 * Delete
 	 *
-	 * @return	void
+	 * @return	bool|WP_Error
 	 */
 	public function delete()
 	{
 		Plugin::instance()->clearCustomHooksCache();
-		parent::delete();
+		return parent::delete();
 	}
 	
 	/**

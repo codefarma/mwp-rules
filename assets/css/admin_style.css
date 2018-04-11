@@ -61,12 +61,22 @@
 	vertical-align: middle;
 }
 
+.mwp-rules-form .alert .rule-title {
+	font-size: 1.3em;
+	position: relative;
+	vertical-align: middle;
+}
+
 .mwp-rules-form .app-title + .feature-title {
 	margin-top: 15px;
 }
 
 .mwp-rules-form .overview-title {
 	margin: 0 0 15px 5px;
+}
+
+.mwp-rules-form .feature-title + .rule-title {
+	margin-top: 15px;
 }
 
 .mwp-rules-form .alert .app-title .glyphicon {

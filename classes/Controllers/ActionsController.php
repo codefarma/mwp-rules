@@ -57,7 +57,7 @@ class _ActionsController extends ActiveRecordController
 			'tableConfig' => array(
 				'sort_by' => 'action_weight',
 				'sort_order' => 'ASC',
-				'bulk_actions' => array(),
+				'bulkActions' => array(),
 				'columns' => array(
 					'details' => __( 'Details', 'mwp-rules' ),
 				),

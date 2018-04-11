@@ -20,6 +20,20 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
+                "rule_uuid": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 25,
+                    "name": "rule_uuid",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
                 "rule_title": {
                     "allow_null": false,
                     "auto_increment": false,
@@ -218,6 +232,16 @@ return <<<'JSON'
                     "columns": [
                         "rule_id"
                     ]
+                },
+                "rule_uuid": {
+                    "type": "key",
+                    "name": "rule_uuid",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "rule_uuid"
+                    ]
                 }
             }
         },
@@ -234,6 +258,20 @@ return <<<'JSON'
                     "name": "condition_id",
                     "type": "BIGINT",
                     "unsigned": true,
+                    "values": [],
+                    "zerofill": false
+                },
+                "condition_uuid": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 25,
+                    "name": "condition_uuid",
+                    "type": "VARCHAR",
+                    "unsigned": false,
                     "values": [],
                     "zerofill": false
                 },
@@ -383,6 +421,16 @@ return <<<'JSON'
                     "columns": [
                         "condition_id"
                     ]
+                },
+                "condition_uuid": {
+                    "type": "key",
+                    "name": "condition_uuid",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "condition_uuid"
+                    ]
                 }
             }
         },
@@ -399,6 +447,20 @@ return <<<'JSON'
                     "name": "action_id",
                     "type": "BIGINT",
                     "unsigned": true,
+                    "values": [],
+                    "zerofill": false
+                },
+                "action_uuid": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 25,
+                    "name": "action_uuid",
+                    "type": "VARCHAR",
+                    "unsigned": false,
                     "values": [],
                     "zerofill": false
                 },
@@ -640,6 +702,16 @@ return <<<'JSON'
                     ],
                     "columns": [
                         "action_id"
+                    ]
+                },
+                "action_uuid": {
+                    "type": "key",
+                    "name": "action_uuid",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "action_uuid"
                     ]
                 }
             }
@@ -1195,6 +1267,20 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
+                "feature_uuid": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 25,
+                    "name": "feature_uuid",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
                 "feature_title": {
                     "allow_null": false,
                     "auto_increment": false,
@@ -1312,6 +1398,16 @@ return <<<'JSON'
                     ],
                     "columns": [
                         "feature_id"
+                    ]
+                },
+                "feature_uuid": {
+                    "type": "key",
+                    "name": "feature_uuid",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "feature_uuid"
                     ]
                 }
             }

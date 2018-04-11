@@ -851,6 +851,11 @@ abstract class _GenericOperation extends ActiveRecord
 		return NULL;
 	}
 	
+	public function getEvent()
+	{
+		return $this->event();
+	}
+	
 	/**
 	 * Get the attached event
 	 *
@@ -870,6 +875,11 @@ abstract class _GenericOperation extends ActiveRecord
 		}
 		
 		return $this->rule;
+	}
+	
+	public function getRule()
+	{
+		return $this->rule();
 	}
 	
 	/**

@@ -37,7 +37,7 @@ class _LogsController extends ActiveRecordController
 				'default_where' => array( 'error>0 OR ( op_id=0 AND rule_parent=0 )' ),
 				'sort_by' => 'time',
 				'sort_order' => 'DESC',
-				'bulk_actions' => array(),
+				'bulkActions' => array(),
 				'columns' => array(
 					'log_source' => __( 'Log Source', 'mwp-rules' ),
 					'event_type' => __( 'Event', 'mwp-rules' ),
@@ -179,6 +179,18 @@ class _LogsController extends ActiveRecordController
 		$output = $this->getPlugin()->getTemplateContent( 'rules/logs/view_wrapper', array( 'title' => $record->_getViewTitle(), 'plugin' => $this->getPlugin(), 'controller' => $this, 'log' => $record ) );
 		
 		echo $this->wrap( $record->_getViewTitle(), $output, 'view' );
+	}
+	
+	/**
+	 * Flush all the system logs
+	 *
+	 * @return	void
+	 */
+	public function do_flush_system()
+	{
+		$class = $this->recordClass;
+		$class::deleteWhere('1');
+		wp_redirect( $this->getUrl() );
 	}
 
 }

@@ -150,9 +150,20 @@ class _Condition extends GenericOperation
 		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		$condition = $this;
 		
-		/* Display details for the event */
-		if ( $event = $condition->event() ) {
-			$form->addHtml( 'event_details', $event->getDisplayDetails( $condition->rule() ) );
+		/* Display details for the app/feature/parent */
+		$form->addHtml( 'rule_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
+			'rule_item' => 'rule_conditions',
+			'rule' => $this->getRule(), 
+			'feature' => $this->getRule() ? $this->getRule()->getFeature() : null, 
+			'app' => $this->getRule() ? $this->getRule()->getApp() : null, 
+		]));
+		
+		if ( $condition->title ) {
+			$form->addHtml( 'rule_title', $plugin->getTemplateContent( 'rules/overview/title', [
+				'icon' => '<i class="glyphicon glyphicon-filter"></i>',
+				'label' => 'Condition',
+				'title' => $condition->title,
+			]));
 		}
 		
 		$form->addField( 'enabled', 'checkbox', array(
@@ -371,10 +382,74 @@ class _Condition extends GenericOperation
 		return $this->childrenCache;
 	}
 	
+	public function getChildren()
+	{
+		return $this->children();
+	}
+	
+	/**
+	 * Get export data
+	 *
+	 * @return	array
+	 */
+	public function getExportData()
+	{
+		$data = $this->_data;
+		unset( $data[ static::$prefix . static::$key ] );
+		
+		return array(
+			'data' => $data,
+			'children' => array_map( function( $subrule ) { return $subrule->getExportData(); }, $this->getChildren() ),
+		);
+	}
+	
+	/**
+	 * Import data
+	 *
+	 * @param	array			$data				The data to import
+	 * @param	Rule			$rule_id			The parent rule id
+	 * @param	int				$parent_id			The parent condition id
+	 * @return	array
+	 */
+	public static function import( $data, $rule_id, $parent_id=0 )
+	{
+		$uuid_col = static::$prefix . 'uuid';
+		$results = [];
+		
+		if ( isset( $data['data'] ) ) 
+		{
+			$_existing = ( isset( $data['data'][ $uuid_col ] ) and $data['data'][ $uuid_col ] ) ? static::loadWhere( array( $uuid_col . '=%s', $data['data'][ $uuid_col ] ) ) : [];
+			$condition = count( $_existing ) ? array_shift( $_existing ) : new static;
+			
+			/* Set column values */
+			foreach( $data['data'] as $col => $value ) {
+				$col = substr( $col, strlen( static::$prefix ) );
+				$condition->_setDirectly( $col, $value );
+			}
+			
+			$condition->rule_id = $rule_id;
+			$condition->parent_id = $parent_id;
+			$result = $condition->save();
+			
+			if ( ! is_wp_error( $result ) ) {
+				$results['imports']['conditions'][] = $data['data'];
+				if ( isset( $data['children'] ) and ! empty( $data['children'] ) ) {
+					foreach( $data['children'] as $subcondition ) {
+						$results = array_merge_recursive( $results, Condition::import( $subcondition, $rule_id, $condition->id() ) );
+					}
+				}
+			} else {
+				$results['errors']['conditions'][] = $result;
+			}
+		}
+		
+		return $results;
+	}
+	
 	/**
 	 * [ActiveRecord] Delete Record
 	 *
-	 * @return	void
+	 * @return	bool|WP_Error
 	 */
 	public function delete()
 	{
@@ -389,15 +464,15 @@ class _Condition extends GenericOperation
 	/**
 	 * Save
 	 *
-	 * @return	void
+	 * @return	bool|WP_Error
 	 */
 	public function save()
 	{
-		if ( $this->uuid === NULL ) { 
+		if ( ! $this->uuid ) { 
 			$this->uuid = uniqid( '', true ); 
 		}
 		
-		parent::save();
+		return parent::save();
 	}
 	
 }

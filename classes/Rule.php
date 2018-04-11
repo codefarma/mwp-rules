@@ -21,7 +21,7 @@ use MWP\Rules\Action;
 /**
  * Rule Class
  */
-class _Rule extends ActiveRecord
+class _Rule extends ExportableRecord
 {
 	/**
      * @var    array        Required for all active record classes
@@ -820,6 +820,11 @@ class _Rule extends ActiveRecord
 		return $this->childrenCache;
 	}
 	
+	public function getChildren()
+	{
+		return $this->children();
+	}
+	
 	/**
 	 * Get the parent rule if it exists
 	 *
@@ -877,17 +882,23 @@ class _Rule extends ActiveRecord
 	
 	/**
 	 * Retrieve enabled conditions assigned to this rule
+	 *
+	 * @return	array
 	 */
 	public function conditions()
 	{
-		if ( isset( $this->conditionCache ) )
-		{
+		if ( isset( $this->conditionCache ) ) {
 			return $this->conditionCache;
 		}
 		
 		$this->conditionCache = Condition::loadWhere( array( 'condition_parent_id=0 AND condition_rule_id=%d', $this->id ), 'condition_weight ASC' );
 		
 		return $this->conditionCache;
+	}
+	
+	public function getConditions()
+	{
+		return $this->conditions();
 	}
 	
 	/**
@@ -917,6 +928,11 @@ class _Rule extends ActiveRecord
 		return $this->actionCache[ $cache_key ] = Action::loadWhere( $where, 'action_weight ASC' );
 	}
 	
+	public function getActions( $mode=NULL )
+	{
+		return $this->actions( $mode );
+	}
+	
 	/**
 	 * Get Compare Mode
 	 */
@@ -937,9 +953,80 @@ class _Rule extends ActiveRecord
 	}
 	
 	/**
+	 * Get export data
+	 *
+	 * @return	array
+	 */
+	public function getExportData()
+	{
+		$data = $this->_data;
+		unset( $data[ static::$prefix . static::$key ] );
+		
+		return array(
+			'data' => $data,
+			'children' => array_map( function( $subrule ) { return $subrule->getExportData(); }, $this->getChildren() ),
+			'conditions' => array_map( function( $condition ) { return $condition->getExportData(); }, $this->getConditions() ),
+			'actions' => array_map( function( $action ) { return $action->getExportData(); }, $this->getActions() ),
+		);
+	}
+	
+	/**
+	 * Import data
+	 *
+	 * @param	array			$data				The data to import
+	 * @param	int				$parent_id			The parent rule id
+	 * @param	int				$feature_id			The parent feature id
+	 * @return	array
+	 */
+	public static function import( $data, $parent_id=0, $feature_id=0 )
+	{
+		$uuid_col = static::$prefix . 'uuid';
+		$results = [];
+		
+		if ( isset( $data['data'] ) ) 
+		{
+			$_existing = ( isset( $data['data'][ $uuid_col ] ) and $data['data'][ $uuid_col ] ) ? static::loadWhere( array( $uuid_col . '=%s', $data['data'][ $uuid_col ] ) ) : [];
+			$rule = count( $_existing ) ? array_shift( $_existing ) : new static;
+			
+			/* Set column values */
+			foreach( $data['data'] as $col => $value ) {
+				$col = substr( $col, strlen( static::$prefix ) );
+				$rule->_setDirectly( $col, $value );
+			}
+			
+			$rule->parent_id = $parent_id;
+			$rule->feature_id = $feature_id;
+			$result = $rule->save();
+			
+			if ( ! is_wp_error( $result ) ) {
+				$results['imports']['rules'][] = $data['data'];
+				if ( isset( $data['conditions'] ) and ! empty( $data['conditions'] ) ) {
+					foreach( $data['conditions'] as $condition ) {
+						$results = array_merge_recursive( $results, Condition::import( $condition, $rule->id() ) );
+					}
+				}
+				if ( isset( $data['actions'] ) and ! empty( $data['actions'] ) ) {
+					foreach( $data['actions'] as $action ) {
+						$results = array_merge_recursive( $results, Action::import( $action, $rule->id() ) );
+					}
+				}
+				if ( isset( $data['children'] ) and ! empty( $data['children'] ) ) {
+					foreach( $data['children'] as $subrule ) {
+						$results = array_merge_recursive( $results, Rule::import( $subrule, $rule->id(), $feature_id ) );
+					}
+				}
+			} else {
+				$results['errors']['rules'][] = $result;
+			}
+		}
+		
+		return $results;
+	}
+	
+	/**
 	 * Save
 	 *
-	 * @return	void
+	 * @return	bool|WP_Error
 	 */
 	public function save()
 	{
@@ -953,7 +1040,7 @@ class _Rule extends ActiveRecord
 			}
 		}
 		
-		if ( $this->uuid === NULL ) { 
+		if ( ! $this->uuid ) { 
 			$this->uuid = uniqid( '', true ); 
 		}
 		
@@ -963,19 +1050,19 @@ class _Rule extends ActiveRecord
 	/**
 	 * Delete
 	 *
-	 * @return	void
+	 * @return	bool|WP_Error
 	 */
 	public function delete()
 	{
-		foreach( $this->children() as $subrule ) {
+		foreach( $this->getChildren() as $subrule ) {
 			$subrule->delete();
 		}
 		
-		foreach( $this->actions() as $action ) {
+		foreach( $this->getActions() as $action ) {
 			$action->delete();
 		}
 		
-		foreach( $this->conditions() as $condition ) {
+		foreach( $this->getConditions() as $condition ) {
 			$condition->delete();
 		}
 		

@@ -19,7 +19,7 @@ use MWP\Framework\Pattern\ActiveRecord;
 /**
  * FeatureSet Class
  */
-class _Feature extends ActiveRecord
+class _Feature extends ExportableRecord
 {
 	
     /**
@@ -312,7 +312,6 @@ class _Feature extends ActiveRecord
 		return NULL;
 	}
 	
-	
 	/**
 	 * Get the app url
 	 *
@@ -325,14 +324,81 @@ class _Feature extends ActiveRecord
 	}
 	
 	/**
+	 * Get export data
+	 *
+	 * @return	array
+	 */
+	public function getExportData()
+	{
+		$data = $this->_data;
+		unset( $data[ static::$prefix . static::$key ] );
+		
+		return array(
+			'data' => $data,
+			'arguments' => array_map( function( $argument ) { return $argument->getExportData(); }, $this->getArguments() ),
+			'rules' => array_map( function( $rule ) { return $rule->getExportData(); }, $this->getRules() ),
+		);
+	}
+	
+	/**
+	 * Import data
+	 *
+	 * @param	array			$data				The data to import
+	 * @param	int				$app_id				The app id the feature belongs to
+	 * @return	array
+	 */
+	public static function import( $data, $app_id=0 )
+	{
+		$uuid_col = static::$prefix . 'uuid';
+		$results = [];
+		
+		if ( isset( $data['data'] ) ) 
+		{
+			$_existing = ( isset( $data['data'][ $uuid_col ] ) and $data['data'][ $uuid_col ] ) ? static::loadWhere( array( $uuid_col . '=%s', $data['data'][ $uuid_col ] ) ) : [];
+			$feature = count( $_existing ) ? array_shift( $_existing ) : new static;
+			
+			/* Set column values */
+			foreach( $data['data'] as $col => $value ) {
+				$col = substr( $col, strlen( static::$prefix ) );
+				$feature->_setDirectly( $col, $value );
+			}
+			
+			$feature->app_id = $app_id;
+			$result = $feature->save();
+			
+			if ( ! is_wp_error( $result ) ) {
+				$results['imports']['features'][] = $data['data'];
+				if ( isset( $data['arguments'] ) and ! empty( $data['arguments'] ) ) {
+					foreach( $data['arguments'] as $argument ) {
+						$results = array_merge_recursive( $results, Argument::import( $argument, $feature ) );
+					}
+				}
+				if ( isset( $data['rules'] ) and ! empty( $data['rules'] ) ) {
+					foreach( $data['rules'] as $rule ) {
+						$results = array_merge_recursive( $results, Rule::import( $rule, 0, $feature->id() ) );
+					}
+				}
+			} else {
+				$results['errors']['features'][] = $result;
+			}
+		}
+		
+		return $results;
+	}
+	
+	/**
 	 * Delete
 	 *
-	 * @return	void
+	 * @return	bool|WP_Error
 	 */
 	public function delete()
 	{
 		foreach( $this->getRules() as $rule ) {
 			$rule->delete();
+		}
+		
+		foreach( $this->getArguments() as $argument ) {
+			$argument->delete();
 		}
 		
 		return parent::delete();
@@ -341,15 +407,15 @@ class _Feature extends ActiveRecord
 	/**
 	 * Save
 	 *
-	 * @return	void
+	 * @return	bool|WP_Error
 	 */
 	public function save()
 	{
-		if ( $this->uuid === NULL ) { 
+		if ( ! $this->uuid ) { 
 			$this->uuid = uniqid( '', true ); 
 		}
 		
-		parent::save();
+		return parent::save();
 	}
 	
 }

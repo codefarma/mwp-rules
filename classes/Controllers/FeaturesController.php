@@ -68,6 +68,10 @@ class _FeaturesController extends ActiveRecordController
 		
 		return array_replace_recursive( parent::getDefaultConfig(), array(
 			'tableConfig' => array(
+				'bulkActions' => array(
+					'delete' => __( 'Delete Features', 'mwp-rules' ),
+					'export' => __( 'Export Features', 'mwp-rules' ),
+				),
 				'columns' => array(
 					'feature_title'        => __( 'Feature Title', 'mwp-rules' ),
 					'feature_description'  => __( 'Feature Description', 'mwp-rules' ),
