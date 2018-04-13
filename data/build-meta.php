@@ -732,6 +732,20 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
+                "argument_uuid": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 25,
+                    "name": "argument_uuid",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
                 "argument_title": {
                     "allow_null": false,
                     "auto_increment": false,
@@ -910,6 +924,20 @@ return <<<'JSON'
                     "name": "hook_id",
                     "type": "BIGINT",
                     "unsigned": true,
+                    "values": [],
+                    "zerofill": false
+                },
+                "hook_uuid": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 25,
+                    "name": "hook_uuid",
+                    "type": "VARCHAR",
+                    "unsigned": false,
                     "values": [],
                     "zerofill": false
                 },
