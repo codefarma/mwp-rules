@@ -29,22 +29,6 @@ return [
 			'parent' => 'mwp-rules',
 			'menu' => __( 'App Manager', 'mwp-rules' ),
 		],
-		'tableConfig' => array(
-			'bulkActions' => array(
-				'delete' => __( 'Delete Apps', 'mwp-rules' ),
-				'export' => __( 'Export Apps', 'mwp-rules' ),
-			),
-			'columns' => array(
-				'app_title'        => __( 'App Title', 'mwp-rules' ),
-				'app_description'  => __( 'App Description', 'mwp-rules' ),
-				'app_enabled'      => __( 'App Enabled', 'mwp-rules' ),
-			),
-			'handlers' => array(
-				'app_enabled' => function( $row ) {
-					return (bool) $row['app_enabled'] ? 'Yes' : 'No';
-				},
-			),
-		),
 	],
 	
 	/* Rulesets */

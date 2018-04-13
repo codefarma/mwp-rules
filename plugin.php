@@ -5,7 +5,7 @@
  * Description: An automation rules engine for WordPress
  * Author: Kevin Carwile
  * Author URI: https://www.codefarma.com
- * Version: 0.9.2
+ * Version: 1.0.0
  */
 namespace MWP\Rules;
 
@@ -61,6 +61,7 @@ add_action( 'mwp_framework_init', function()
 	Controllers\DashboardController::create( 'dashboard', $config['controllers']['rules_dashboard'] );
 	
 	/* Assign customized controller classes */
+	App             ::setControllerClass( Controllers\AppsController::class );
 	Feature         ::setControllerClass( Controllers\FeaturesController::class );
 	Rule            ::setControllerClass( Controllers\RulesController::class );
 	Action          ::setControllerClass( Controllers\ActionsController::class );

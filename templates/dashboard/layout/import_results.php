@@ -6,7 +6,7 @@
  *
  * @package  MWP Rules
  * @author   Kevin Carwile
- * @since    {build_version}
+ * @since    1.0.0
  *
  * @param	string		$controller			The dashboard controller
  * @param	array		$results			The import results

@@ -20,7 +20,7 @@ use MWP\Rules;
 /**
  * Rules Class
  */
-class _RulesController extends ActiveRecordController
+class _RulesController extends ExportableController
 {
 	
 	/**

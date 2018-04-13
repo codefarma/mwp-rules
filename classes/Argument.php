@@ -193,7 +193,7 @@ class _Argument extends ActiveRecord
 	 * 
 	 * @return	string
 	 */
-	public function _getEditTitle()
+	public function _getEditTitle( $type=NULL )
 	{
 		return __( static::$lang_edit . ' ' . $this->getSingularName() );
 	}
@@ -217,13 +217,14 @@ class _Argument extends ActiveRecord
 	{
 		$data = $this->data;
 		$actions = parent::getControllerActions();
+		
 		unset( $actions['view'] );
 		
 		$argument_actions = array(
 			'edit' => '',
 			'set_default' => array(
 				'title' => '',
-				'icon' => 'glyphicon glyphicon-cog',
+				'icon' => 'glyphicon glyphicon-edit',
 				'attr' => array( 
 					'title' => __( 'Set Default Value', 'mwp-rules' ),
 					'class' => 'btn btn-xs btn-default',
@@ -419,7 +420,7 @@ class _Argument extends ActiveRecord
 		));
 		
 		$default_value_description = $this->getParent() instanceof Feature ? 
-			__( 'If enabled, you can customize the default value of this setting. The default value will be used until a user customizes it.', 'mwp-rules' ) : 
+			__( 'If enabled, you can set a default value to be used for this argument in the absense of a user set value.', 'mwp-rules' ) : 
 			__( 'If enabled, you can customize the default value displayed in the widget when manually configuring it in rule operations.', 'mwp-rules' );
 		
 		$form->addField( 'widget_use_default', 'checkbox', array(
@@ -432,7 +433,7 @@ class _Argument extends ActiveRecord
 		if ( $this->getParent() instanceof Feature ) {		
 			$form->addField( 'widget_allow_custom_value', 'checkbox', array(
 				'label' => __( 'User Customizable', 'mwp-rules' ),
-				'description' => __( 'Allow users to customize the value of this setting.', 'mwp-rules' ),
+				'description' => __( 'Allow users to edit the value of this setting.', 'mwp-rules' ),
 				'value' => 1,
 				'data' => isset( $data['advanced_options']['widget_allow_custom_value'] ) ? (bool) $data['advanced_options']['widget_allow_custom_value'] : true,
 			));
@@ -441,7 +442,7 @@ class _Argument extends ActiveRecord
 		$form->addField( 'widget_use_advanced', 'checkbox', array(
 			'row_prefix' => '<hr>',
 			'label' => __( 'Custom Widget Config', 'mwp-rules' ),
-			'description' => __( 'For advanced users, you can provide additional options to configure the input widget using custom PHP code.', 'mwp-rules' ),
+			'description' => __( 'You can provide additional options to configure the input widget using custom PHP code.', 'mwp-rules' ),
 			'value' => 1,
 			'data' => isset( $data['advanced_options']['widget_use_advanced'] ) ? (bool) $data['advanced_options']['widget_use_advanced'] : false,
 			'toggles' => array( 1 => array( 'show' => array( '#widget_options_phpcode' ) ) ),
@@ -559,7 +560,7 @@ class _Argument extends ActiveRecord
 	{
 		$data = $this->data;
 		$widget_values = $this->getWidgetFormValues( $values );
-		$this->persistValues( 'default', $widget_values );
+		$this->updateValues( $widget_values, 'default' );
 	}
 	
 	/**
@@ -623,7 +624,11 @@ class _Argument extends ActiveRecord
 		$widget_type = $this->widget;
 		$config_preset_options = $this->getPlugin()->getRulesConfigPresetOptions();		
 		$widget_config = isset( $data['widget_config'][ $widget_type ] ) ? $data['widget_config'][ $widget_type ] : [];
-		$config_options = [];
+		$config_options = [
+			'label' => $this->title,
+			'description' => $this->description,
+			'required' => $this->required,
+		];
 		
 		/* Use the getOptions callback to get configured options for this widget */
 		if ( isset( $config_preset_options[ $widget_type ]['config']['getConfig'] ) and is_callable( $config_preset_options[ $widget_type ]['config']['getConfig'] ) ) {
@@ -732,12 +737,22 @@ class _Argument extends ActiveRecord
 	}
 	
 	/**
+	 * Get the key used to store custom setting values for this argument
+	 *
+	 * @return	string
+	 */
+	public function getValueKey()
+	{
+		return 'setting';
+	}
+	
+	/**
 	 * Get the argument value
 	 *
 	 * @param	string			$key				The key of the value to get
 	 * @return	mixed
 	 */
-	public function getValue( $key='custom' )
+	public function getValue( $key=NULL )
 	{
 		$data = $this->data;
 		$preset = $this->getPreset();
@@ -756,14 +771,22 @@ class _Argument extends ActiveRecord
 	}
 	
 	/**
-	 * Get persisted widget values by key
+	 * Get saved widget values by key
 	 *
 	 * @param	string			$key			Key to retrieve values from
 	 * @return	array|NULL
 	 */
-	public function getSavedValues( $key )
+	public function getSavedValues( $key=NULL )
 	{
 		$data = $this->data;
+		
+		/* In absence of key, return customized values with a fallback to the default values */
+		if ( $key === NULL ) {
+			if ( $value_key = $this->getValueKey() ) {
+				return $this->getSavedValues( $value_key ) ?: $this->getSavedValues( 'default' );
+			}
+		}
+		
 		if ( $key === 'default' and ! $this->usesDefault() ) {
 			return NULL;
 		}
@@ -787,15 +810,28 @@ class _Argument extends ActiveRecord
 	}
 	
 	/**
-	 * Persist widget values to a key
-	 *
-	 * @param	string			$key			Key to persist values to
-	 * @param	array			$values			The values to persist
-	 * @return	void
+	 * Check if the argument can have its value customized
+	 * 
+	 * @return	bool
 	 */
-	public function persistValues( $key, $values )
+	public function isSettable()
 	{
 		$data = $this->data;
+		return ( isset( $data['advanced_options']['widget_allow_custom_value'] ) and $data['advanced_options']['widget_allow_custom_value'] );
+	}
+	
+	/**
+	 * Update saved widget values
+	 *
+	 * @param	array			$values			The values to update
+	 * @param	string|NULL		$key			Key to update values for
+	 * @return	void
+	 */
+	public function updateValues( $values, $key=NULL )
+	{
+		$data = $this->data;
+		$key = $key ?: $this->getValueKey();
+		
 		$data['values'][ $key ] = array(
 			$this->varname => $values,
 		);
@@ -811,6 +847,15 @@ class _Argument extends ActiveRecord
 	{
 		$data = $this->_data;
 		unset( $data[ static::$prefix . static::$key ] );
+		
+		$argument_data = $this->data;
+		if ( isset( $argument_data['values'] ) and is_array( $argument_data['values'] ) ) {
+			$argument_data['values'] = array(
+				'default' => isset( $argument_data['values']['default'] ) ? $argument_data['values']['default'] : array(),
+			);
+		}
+		
+		$data['argument_data'] = json_encode( $argument_data );
 		
 		return array(
 			'data' => $data,
@@ -837,6 +882,14 @@ class _Argument extends ActiveRecord
 			/* Set column values */
 			foreach( $data['data'] as $col => $value ) {
 				$col = substr( $col, strlen( static::$prefix ) );
+				
+				/* Merge custom data */
+				if ( $col === 'data' ) {
+					$argument_data = $argument->data;
+					$new_data = json_decode( $value, true ) ?: array();
+					$value = json_encode( array_replace_recursive( $argument_data, $new_data ) );
+				}
+				
 				$argument->_setDirectly( $col, $value );
 			}
 			

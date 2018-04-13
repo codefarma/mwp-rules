@@ -6,7 +6,7 @@
  *
  * @package  MWP Rules
  * @author   Kevin Carwile
- * @since    {build_version}
+ * @since    1.0.0
  *
  * @param	string		$controller			The dashboard controller
  */
@@ -51,7 +51,8 @@ $rules = Rules\Rule::loadWhere('rule_feature_id=0 AND rule_parent_id=0');
 						<th>App Name</th>
 						<th>Author</th>
 						<th>Version</th>
-						<th>Options</th>
+						<th><i class="glyphicon glyphicon-gift"></i> Package</th>
+						<th><i class="glyphicon glyphicon-cog"></i> Settings</th>
 						<th class="text-right">Status</th>
 					</tr>
 				  </thead>
@@ -62,7 +63,14 @@ $rules = Rules\Rule::loadWhere('rule_feature_id=0 AND rule_parent_id=0');
 						<td><?php echo $app->creator ?></td>
 						<td><?php echo $app->version ?></td>
 						<td>
-							<a href="#" type="button"><i class="glyphicon glyphicon-cog"></i> Settings</button>
+							<a href="<?php echo $plugin->getAppsController()->getUrl(['do'=>'export','id'=>$app->id()]) ?>"><i class="glyphicon glyphicon-download"></i> Download</a>
+						</td>
+						<td>
+							<?php if ( $app->hasSettings() ) { ?>
+							<a href="<?php echo $plugin->getAppsController()->getUrl(['do'=>'settings','id'=>$app->id()]) ?>" type="button"><i class="glyphicon glyphicon-triangle-right"></i> Configure</button>
+							<?php } else { ?>
+							None
+							<?php } ?>
 						</td>
 						<td class="text-right"><?php echo $app->enabled ? '<span class="text-success">Enabled</span>' : '<span class="text-danger">Disabled</span>'; ?></td>
 					</tr>
@@ -89,7 +97,8 @@ $rules = Rules\Rule::loadWhere('rule_feature_id=0 AND rule_parent_id=0');
 					<tr>
 						<th>Feature Name</th>
 						<th>Total Rules</th>
-						<th>Options</th>
+						<th><i class="glyphicon glyphicon-gift"></i> Package</th>
+						<th><i class="glyphicon glyphicon-cog"></i> Settings</th>
 						<th class="text-right">Status</th>
 					</tr>
 				  </thead>
@@ -99,7 +108,14 @@ $rules = Rules\Rule::loadWhere('rule_feature_id=0 AND rule_parent_id=0');
 						<td><?php echo esc_html( $feature->title ) ?></td>
 						<td><?php echo $feature->getRuleCount() ?></td>
 						<td>
-							<a href="#" type="button"><i class="glyphicon glyphicon-cog"></i> Settings</button>
+							<a href="<?php echo $plugin->getFeaturesController()->getUrl(['do'=>'export','id'=>$feature->id()]) ?>"><i class="glyphicon glyphicon-download"></i> Download</a>
+						</td>
+						<td>
+							<?php if ( $feature->hasSettings() ) { ?>
+							<a href="<?php echo $plugin->getFeaturesController()->getUrl(['do'=>'settings','id'=>$feature->id()]) ?>" style="margin-right: 10px"><i class="glyphicon glyphicon-triangle-right"></i> Configure</a>  
+							<?php } else { ?>
+							None
+							<?php } ?>
 						</td>
 						<td class="text-right"><?php echo $feature->enabled ? '<span class="text-success">Enabled</span>' : '<span class="text-danger">Disabled</span>'; ?></td>
 					</tr>

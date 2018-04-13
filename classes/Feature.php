@@ -84,6 +84,21 @@ class _Feature extends ExportableRecord
 	public static $sequence_col = 'weight';
 	
 	/**
+	 * Get the 'edit record' page title
+	 * 
+	 * @return	string
+	 */
+	public function _getEditTitle( $type=NULL )
+	{
+		switch( $type ) {
+			case 'settings':
+				return __( 'Feature Settings', 'mwp-rules' );
+		}
+		
+		return parent::_getEditTitle( $type );
+	}
+	
+	/**
 	 * Check if the feature is active
 	 *
 	 * @return	bool
@@ -118,13 +133,99 @@ class _Feature extends ExportableRecord
 	}
 	
 	/**
+	 * @var	array
+	 */
+	protected $_arguments;
+	
+	/**
 	 * Get the hook arguments
 	 *
 	 * @return	array
 	 */
 	public function getArguments()
 	{
-		return Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', Argument::getParentType( $this ), $this->id() ), 'argument_weight ASC' );
+		if ( isset( $this->_arguments ) ) {
+			return $this->_arguments;
+		}
+		
+		$this->_arguments = Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', Argument::getParentType( $this ), $this->id() ), 'argument_weight ASC' );
+		
+		return $this->_arguments;
+	}
+	
+	/**
+	 * Get customizable arguments
+	 *
+	 * @return	array
+	 */
+	public function getSettableArguments()
+	{
+		$arguments = array();
+		foreach( $this->getArguments() as $argument ) {
+			if ( $argument->isSettable() ) {
+				$arguments[] = $argument;
+			}
+		}
+		
+		return $arguments;
+	}
+	
+	/**
+	 * Does this feature have settings?
+	 *
+	 * @return	bool
+	 */
+	public function hasSettings()
+	{
+		return count( $this->getSettableArguments() ) > 0;
+	}
+	
+	/**
+	 * Get controller actions
+	 *
+	 * @return	array
+	 */
+	public function getControllerActions()
+	{
+		$data = $this->data;
+		$actions = parent::getControllerActions();
+		
+		unset( $actions['view'] );
+		
+		$feature_actions = array(
+			'edit' => '',
+			'settings' => array(
+				'title' => '',
+				'icon' => 'glyphicon glyphicon-cog',
+				'attr' => array( 
+					'title' => __( 'Edit Settings', 'mwp-rules' ),
+					'class' => 'btn btn-xs btn-default',
+				),
+				'params' => array(
+					'do' => 'settings',
+					'id' => $this->id(),
+				),
+			),
+			'export' => array(
+				'title' => '',
+				'icon' => 'glyphicon glyphicon-export',
+				'attr' => array( 
+					'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
+					'class' => 'btn btn-xs btn-default',
+				),
+				'params' => array(
+					'do' => 'export',
+					'id' => $this->id(),
+				),
+			),
+			'delete' => ''
+		);
+		
+		if ( ! $this->hasSettings() ) {
+			unset( $feature_actions['settings'] );
+		}
+		
+		return array_replace_recursive( $feature_actions, $actions );
 	}
 	
 	/**
@@ -266,6 +367,59 @@ class _Feature extends ExportableRecord
 		$_values = $values['feature_details'];
 		
 		parent::processEditForm( $_values );
+	}
+	
+	/**
+	 * Build the feature settings form
+	 *
+	 * @return	MWP\Framework\Helpers\Form
+	 */
+	public function buildSettingsForm()
+	{
+		$plugin = $this->getPlugin();
+		$form = static::createForm( 'settings', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		
+		/* Display details for the app/feature */
+		$form->addHtml( 'feature_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
+			'app' => $this->getApp(), 
+		]));
+		
+		if ( $this->title ) {
+			$form->addHtml( 'feature_title', $plugin->getTemplateContent( 'rules/overview/title', [
+				'icon' => '<i class="glyphicon glyphicon-lamp"></i> ',
+				'label' => 'Feature',
+				'title' => $this->title,
+			]));
+		}
+		
+		foreach( $this->getArguments() as $argument ) {
+			if ( $argument->isSettable() ) {
+				$argument->addFormWidget( $form, $argument->getSavedValues() );
+			}
+		}
+		
+		$form->addField( 'submit', 'submit', array(
+			'label' => __( 'Save Settings', 'mwp-rules' ),
+		));
+		
+		return $form;
+	}
+	
+	/**
+	 * Process the feature settings form
+	 *
+	 * @param	array			$values				Value from the form submission
+	 * @return	void
+	 */
+	public function processSettingsForm( $values )
+	{
+		foreach( $this->getArguments() as $argument ) {
+			if ( $argument->isSettable() ) {
+				$formValues = $argument->getWidgetFormValues( $values );
+				$argument->updateValues( $formValues );
+				$argument->save();
+			}
+		}
 	}
 	
 	/**

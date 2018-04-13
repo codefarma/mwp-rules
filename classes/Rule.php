@@ -156,7 +156,7 @@ class _Rule extends ExportableRecord
 	{
 		return array(
 			'edit' => array(
-				'icon' => 'glyphicon glyphicon-cog',
+				'icon' => 'glyphicon glyphicon-wrench',
 				'title' => __( 'Configure', 'mwp-rules' ),
 				'attr' => array(
 					'class' => 'btn btn-sm btn-default',
@@ -167,6 +167,7 @@ class _Rule extends ExportableRecord
 					'id' => $this->id,
 				),
 			),
+			/*
 			'add' => array(
 				'icon' => 'glyphicon glyphicon-plus',
 				'attr' => array(
@@ -178,6 +179,20 @@ class _Rule extends ExportableRecord
 					'parent_id' => $this->id,
 				)
 			),
+			*/
+			'export' => array(
+				'title' => '',
+				'icon' => 'glyphicon glyphicon-export',
+				'attr' => array( 
+					'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
+					'class' => 'btn btn-sm btn-default',
+				),
+				'params' => array(
+					'do' => 'export',
+					'id' => $this->id(),
+				),
+			),
+			
 			'delete' => array(
 				'icon' => 'glyphicon glyphicon-trash',
 				'attr' => array( 

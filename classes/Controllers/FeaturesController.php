@@ -20,7 +20,7 @@ use MWP\Rules;
 /**
  * ArgumentsController Class
  */
-class _FeaturesController extends ActiveRecordController
+class _FeaturesController extends ExportableController
 {
 	/**
 	 * @var	MWP\Rules\App
@@ -162,6 +162,50 @@ class _FeaturesController extends ActiveRecordController
 		$record->app_id = $this->getAppId();
 		
 		parent::do_new( $record );
+	}
+	
+	/**
+	 * Customize the feature settings
+	 *
+	 * @param	MWP\Rules\Feature|NULL		$feature			The feature to customize settings for, or NULL to load by request param
+	 * @return	void
+	 */
+	public function do_settings( $feature=NULL )
+	{
+		$class = $this->recordClass;
+		$controller = $this;
+		
+		if ( ! $feature ) {
+			try {
+				$feature = $class::load( isset( $_REQUEST['id'] ) ? $_REQUEST['id'] : 0 );
+			}
+			catch( \OutOfRangeException $e ) {
+ 				echo $this->error( __( 'The record could not be loaded.', 'mwp-framework' ) . ' Class: ' . $this->recordClass . ' ' . ', ID: ' . ( (int) $_REQUEST['id'] ) );
+				return;
+			}
+		}
+		
+		$form = $feature->getForm( 'settings' );
+		$save_error = NULL;
+		
+		if ( $form->isValidSubmission() ) 
+		{
+			$feature->processForm( $form->getValues(), 'settings' );			
+			$result = $feature->save();
+			
+			if ( ! is_wp_error( $result ) ) {
+				$form->processComplete( function() use ( $controller ) {
+					wp_redirect( $controller->getUrl() );
+					exit;
+				});	
+			} else {
+				$save_error = $result;
+			}
+		}
+
+		$output = $this->getPlugin()->getTemplateContent( 'views/management/records/edit', array( 'title' => $feature->_getEditTitle( 'settings' ), 'form' => $form, 'plugin' => $this->getPlugin(), 'controller' => $this, 'record' => $feature, 'error' => $save_error ) );
+		
+		echo $this->wrap( $feature->_getEditTitle( 'settings' ), $output, 'settings' );
 	}
 	
 }

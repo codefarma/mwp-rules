@@ -97,6 +97,109 @@ class _App extends ExportableRecord
 	}
 	
 	/**
+	 * Get the 'edit record' page title
+	 * 
+	 * @return	string
+	 */
+	public function _getEditTitle( $type=NULL )
+	{
+		switch( $type ) {
+			case 'settings':
+				return __( 'App Settings', 'mwp-rules' );
+		}
+		
+		return parent::_getEditTitle( $type );
+	}
+	
+	/**
+	 * @var	array
+	 */
+	protected $_features;
+	
+	/**
+	 * Get the features of this app
+	 *
+	 * @return	array[Feature]
+	 */
+	public function getFeatures()
+	{
+		if ( isset( $this->_features ) ) {
+			return $this->_features;
+		}
+		
+		$this->_features = Feature::loadWhere( array( 'feature_app_id=%d', $this->id() ) );
+		
+		return $this->_features;
+	}
+	
+	/**
+	 * Check if the app has settings
+	 *
+	 * @return	bool
+	 */
+	public function hasSettings()
+	{
+		$has_settings = false;
+		
+		/* If any feature has settings, then the app has settings */
+		foreach( $this->getFeatures() as $feature ) {
+			if ( $feature->hasSettings() ) {
+				$has_settings = true;
+			}
+		}
+		
+		return $has_settings;
+	}
+	
+	/**
+	 * Get controller actions
+	 *
+	 * @return	array
+	 */
+	public function getControllerActions()
+	{
+		$data = $this->data;
+		$actions = parent::getControllerActions();
+		
+		unset( $actions['view'] );
+		
+		$app_actions = array(
+			'edit' => '',
+			'settings' => array(
+				'title' => '',
+				'icon' => 'glyphicon glyphicon-cog',
+				'attr' => array( 
+					'title' => __( 'Edit Settings', 'mwp-rules' ),
+					'class' => 'btn btn-xs btn-default',
+				),
+				'params' => array(
+					'do' => 'settings',
+					'id' => $this->id(),
+				),
+			),
+			'export' => array(
+				'title' => '',
+				'icon' => 'glyphicon glyphicon-export',
+				'attr' => array( 
+					'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
+					'class' => 'btn btn-xs btn-default',
+				),
+				'params' => array(
+					'do' => 'export',
+					'id' => $this->id(),
+				),
+			),
+			'delete' => ''
+		);
+		
+		if ( ! $this->hasSettings() ) {
+			unset( $app_actions['settings'] );
+		}
+		
+		return array_replace_recursive( $app_actions, $actions );
+	}
+	
+	/**
 	 * Build an editing form
 	 *
 	 * @return	MWP\Framework\Helpers\Form
@@ -183,13 +286,60 @@ class _App extends ExportableRecord
 	}
 	
 	/**
-	 * Get the features of this app
+	 * Build the feature settings form
 	 *
-	 * @return	array[Feature]
+	 * @return	MWP\Framework\Helpers\Form
 	 */
-	public function getFeatures()
+	public function buildSettingsForm()
 	{
-		return Feature::loadWhere( array( 'feature_app_id=%d', $this->id() ) );
+		$plugin = $this->getPlugin();
+		$form = static::createForm( 'settings', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		
+		if ( $this->title ) {
+			$form->addHtml( 'app_title', $plugin->getTemplateContent( 'rules/overview/title', [
+				'icon' => '<i class="glyphicon glyphicon-tent"></i> ',
+				'label' => 'App',
+				'title' => $this->title,
+			]));
+		}
+		
+		foreach( $this->getFeatures() as $feature ) {
+			if ( $arguments = $feature->getSettableArguments() ) {
+				$form->addField( 'feature_' . $feature->id() . '_settings', 'fieldgroup' );
+				$form->setCurrentContainer( 'feature_' . $feature->id() . '_settings' );
+				$form->addHeading( 'feature_' . $feature->id() . '_heading', $feature->title );
+				foreach( $arguments as $argument ) {
+					$argument->addFormWidget( $form, $argument->getSavedValues() );
+				}
+				$form->endLastContainer();
+			}
+		}
+		
+		$form->addField( 'submit', 'submit', array(
+			'label' => __( 'Save Settings', 'mwp-rules' ),
+		));
+		
+		return $form;
+	}
+	
+	/**
+	 * Process the feature settings form
+	 *
+	 * @param	array			$values				Value from the form submission
+	 * @return	void
+	 */
+	public function processSettingsForm( $values )
+	{
+		foreach( $this->getFeatures() as $feature ) {
+			if ( $arguments = $feature->getSettableArguments() ) {
+				$feature_values = $values[ 'feature_' . $feature->id() . '_settings' ];
+				foreach( $arguments as $argument ) {
+					$formValues = $argument->getWidgetFormValues( $feature_values );
+					$argument->updateValues( $formValues );
+					$argument->save();
+				}
+			}
+		}
 	}
 	
 	/**

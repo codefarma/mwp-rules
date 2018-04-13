@@ -101,7 +101,7 @@ class _Hook extends ExportableRecord
 	 * 
 	 * @return	string
 	 */
-	public function _getEditTitle()
+	public function _getEditTitle( $type=NULL )
 	{
 		$singular = $this->type == 'custom' ? 'Custom Action' : ucfirst( $this->type );
 		return __( static::$lang_edit . ' ' . $singular );
