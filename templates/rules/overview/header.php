@@ -36,7 +36,7 @@ if ( isset( $argument ) ) {
 
 ?>
 
-<?php if ( isset( $app ) or isset( $feature ) or isset( $hook ) ) : ?>
+<?php if ( isset( $app ) or isset( $feature ) or isset( $hook ) or ( isset( $rule_item ) and $rule_item and $rule ) ) : ?>
 	<div class="alert alert-warning overview">
 
 	<?php if ( isset( $app ) ) { ?>

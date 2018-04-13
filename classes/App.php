@@ -44,6 +44,7 @@ class _App extends ExportableRecord
 		'creator',
 		'created_time',
 		'imported_time',
+		'version',
     );
 
     /**

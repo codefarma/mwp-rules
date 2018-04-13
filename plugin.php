@@ -58,6 +58,8 @@ add_action( 'mwp_framework_init', function()
 		'controllers' => Plugin::instance()->getData( 'controllers', 'config' ),
 	);
 	
+	Controllers\DashboardController::create( 'dashboard', $config['controllers']['rules_dashboard'] );
+	
 	/* Assign customized controller classes */
 	Feature         ::setControllerClass( Controllers\FeaturesController::class );
 	Rule            ::setControllerClass( Controllers\RulesController::class );
@@ -68,9 +70,9 @@ add_action( 'mwp_framework_init', function()
 	Argument        ::setControllerClass( Controllers\ArgumentsController::class );
 	
 	/* Create controllers and admin pages */
-	Rule            ::createController('admin', $config['controllers']['rules_rules']);
 	App             ::createController('admin', $config['controllers']['rules_apps']);
 	Feature         ::createController('admin', $config['controllers']['rules_features']);
+	Rule            ::createController('admin', $config['controllers']['rules_rules']);
 	Condition       ::createController('admin', $config['controllers']['rules_conditions']);
 	Action          ::createController('admin', $config['controllers']['rules_actions']);
 	Hook            ::createController('admin', $config['controllers']['rules_hooks']);

@@ -10,31 +10,16 @@ $plugin = Rules\Plugin::instance();
 
 return [	
 
-	/* Rules */
-	'rules_rules' => [
+	/* Rules Dashboard */
+	'rules_dashboard' => [
 		'adminPage' => [
-			'title' => __( 'Rules', 'mwp-rules' ),
+			'title' => __( 'Dashboard', 'mwp-rules' ),
 			'type' => 'menu', 
 			'slug' => 'mwp-rules', 
-			'menu' => __( 'Rules', 'mwp-rules' ), 
+			'menu' => __( 'Rules Engine', 'mwp-rules' ),
+			'menu_submenu' => __( 'Dashboard', 'mwp-rules' ),
 			'icon' => $plugin->fileUrl( 'assets/img/gavel.png' ), 
 			'position' => 76,
-		],
-	],
-	
-	/* Rules Conditions */
-	'rules_conditions' => [
-		'adminPage' => [ 
-			'type' => 'submenu', 
-			'parent_slug' => 'mwp-rules',
-		],
-	],
-
-	/* Rules Actions */
-	'rules_actions' => [
-		'adminPage' => [ 
-			'type' => 'submenu', 
-			'parent_slug' => 'mwp-rules',
 		],
 	],
 	
@@ -42,7 +27,7 @@ return [
 		'adminPage' => [
 			'type' => 'submenu',
 			'parent' => 'mwp-rules',
-			'menu' => __( 'Apps', 'mwp-rules' ),
+			'menu' => __( 'App Manager', 'mwp-rules' ),
 		],
 		'tableConfig' => array(
 			'bulkActions' => array(
@@ -67,10 +52,55 @@ return [
 		'adminPage' => [
 			'type' => 'submenu',
 			'parent' => 'mwp-rules',
-			'menu' => __( 'Features', 'mwp-rules' ),
+			'menu' => __( 'Feature Manager', 'mwp-rules' ),
 		],
 	],
 
+	/* Rules */
+	'rules_rules' => [
+		'adminPage' => [
+			'title' => __( 'Rules', 'mwp-rules' ),
+			'type' => 'submenu', 
+			'parent' => 'mwp-rules', 
+			'menu' => __( 'Rule Manager', 'mwp-rules' ), 
+		],
+	],
+	
+	/* Rules Conditions */
+	'rules_conditions' => [
+		'adminPage' => [ 
+			'type' => 'submenu', 
+		],
+	],
+
+	/* Rules Actions */
+	'rules_actions' => [
+		'adminPage' => [ 
+			'type' => 'submenu', 
+		],
+	],
+	
+	/* Rules Hooks */
+	'rules_hooks' => [
+		'adminPage' => [ 
+			'type' => 'submenu', 
+			'menu' => __( 'Custom Actions', 'mwp-rules' ), 
+			'parent' => 'mwp-rules',
+		],
+		'tableConfig' => [
+			'bulkActions' => array(
+				'delete' => __( 'Delete Hooks', 'mwp-rules' ),
+				'export' => __( 'Export Hooks', 'mwp-rules' ),
+			),
+			'columns' => [
+				'hook_type' => __( 'Type', 'mwp-rules' ),
+				'hook_hook' => __( 'Hook', 'mwp-rules' ),
+				'hook_title' => __( 'Title', 'mwp-rules' ),
+				'hook_description' => __( 'Description', 'mwp-rules' ),
+			],
+		],
+	],
+	
 	/* Rules Logs */
 	'rules_logs' => [
 		'adminPage' => [ 
@@ -86,27 +116,6 @@ return [
 			'type' => 'submenu', 
 			'menu' => __( 'Scheduled Actions', 'mwp-rules' ), 
 			'parent' => 'mwp-rules',
-		],
-	],
-	
-	/* Rules Hooks */
-	'rules_hooks' => [
-		'adminPage' => [ 
-			'type' => 'submenu', 
-			'menu' => __( 'Custom Hooks', 'mwp-rules' ), 
-			'parent' => 'mwp-rules',
-		],
-		'tableConfig' => [
-			'bulkActions' => array(
-				'delete' => __( 'Delete Hooks', 'mwp-rules' ),
-				'export' => __( 'Export Hooks', 'mwp-rules' ),
-			),
-			'columns' => [
-				'hook_type' => __( 'Type', 'mwp-rules' ),
-				'hook_hook' => __( 'Hook', 'mwp-rules' ),
-				'hook_title' => __( 'Title', 'mwp-rules' ),
-				'hook_description' => __( 'Description', 'mwp-rules' ),
-			],
 		],
 	],
 	
