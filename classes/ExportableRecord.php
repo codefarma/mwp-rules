@@ -22,6 +22,22 @@ use MWP\Framework\Pattern\ActiveRecord;
 abstract class _ExportableRecord extends ActiveRecord
 {
 	/**
+	 * Get export data
+	 *
+	 * @return	array
+	 */
+	public function getExportData()
+	{
+		$data = $this->_data;
+		unset( $data[ static::$prefix . static::$key ] );
+		unset( $data[ static::$prefix . 'imported' ] );
+		
+		return array(
+			'data' => $data,
+		);
+	}
+	
+	/**
 	 * Perform a bulk action on records
 	 *
 	 * @param	string			$action					The action to perform

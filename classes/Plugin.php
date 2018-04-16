@@ -405,6 +405,16 @@ class _Plugin extends \MWP\Framework\Plugin
 	 * 
 	 * @return	ActiveRecordController
 	 */
+	public function getDashboardController()
+	{
+		return Controllers\DashboardController::get('dashboard');
+	}
+	
+	/**
+	 * Get the rules controller
+	 * 
+	 * @return	ActiveRecordController
+	 */
 	public function getRulesController( $feature=null, $key='admin' )
 	{
 		$controller = Rule::getController( $key );
@@ -1504,9 +1514,9 @@ class _Plugin extends \MWP\Framework\Plugin
 			}
 		}
 		
-		if ( isset( $package['apps'] ) ) {
-			foreach( $package['apps'] as $app ) {
-				$results = array_merge_recursive( $results, App::import( $app ) );
+		if ( isset( $package['rules'] ) ) {
+			foreach( $package['rules'] as $rule ) {
+				$results = array_merge_recursive( $results, Rule::import( $rule ) );
 			}
 		}
 		
@@ -1516,9 +1526,9 @@ class _Plugin extends \MWP\Framework\Plugin
 			}
 		}
 		
-		if ( isset( $package['rules'] ) ) {
-			foreach( $package['rules'] as $rule ) {
-				$results = array_merge_recursive( $results, Rule::import( $rule ) );
+		if ( isset( $package['apps'] ) ) {
+			foreach( $package['apps'] as $app ) {
+				$results = array_merge_recursive( $results, App::import( $app ) );
 			}
 		}
 		

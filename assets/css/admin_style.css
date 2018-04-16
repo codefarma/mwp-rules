@@ -16,6 +16,10 @@
 	padding: 15px;
 }
 
+a.nounderline:hover {
+	text-decoration: none
+}
+
 .mwp-rules-form .field-description {
 	color: #666;
 }

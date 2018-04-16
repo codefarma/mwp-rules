@@ -42,9 +42,9 @@ class _App extends ExportableRecord
 		'weight',
 		'enabled',
 		'creator',
-		'created_time',
-		'imported_time',
+		'imported',
 		'version',
+		'data' => array( 'format' => 'JSON' ),
     );
 
     /**
@@ -360,13 +360,9 @@ class _App extends ExportableRecord
 	 */
 	public function getExportData()
 	{
-		$data = $this->_data;
-		unset( $data[ static::$prefix . static::$key ] );
-		
-		return array(
-			'data' => $data,
-			'features' => array_map( function( $feature ) { return $feature->getExportData(); }, $this->getFeatures() ),
-		);
+		$export = parent::getExportData();
+		$export['features'] = array_map( function( $feature ) { return $feature->getExportData(); }, $this->getFeatures() );
+		return $export;
 	}
 	
 	/**
@@ -391,15 +387,28 @@ class _App extends ExportableRecord
 				$app->_setDirectly( $col, $value );
 			}
 			
+			$app->imported = time();
 			$result = $app->save();
 			
-			if ( ! is_wp_error( $result ) ) {
-				$results['imports']['apps'][] = $data['data'];
+			if ( ! is_wp_error( $result ) ) 
+			{
+				$results['imports']['apps'][] = $data;
+				
+				$imported_feature_uuids = [];
+				
+				/* Import features */
 				if ( isset( $data['features'] ) and ! empty( $data['features'] ) ) {
 					foreach( $data['features'] as $feature ) {
+						$imported_feature_uuids[] = $feature['data']['feature_uuid'];
 						$results = array_merge_recursive( $results, Feature::import( $feature, $app->id() ) );
 					}
 				}
+				
+				/* Cull previously imported features which are no longer part of this imported app */
+				foreach( Feature::loadWhere( array( 'feature_app_id=%d AND feature_imported > 0 AND feature_uuid NOT IN (\'' . implode("','", $imported_feature_uuids) . '\')', $app->id() ) ) as $feature ) {
+					$feature->delete();
+				}
+				
 			} else {
 				$results['errors']['apps'][] = $result;
 			}

@@ -77,7 +77,11 @@ class _AppsController extends ExportableController
 		
 		if ( $form->isValidSubmission() ) 
 		{
-			$app->processForm( $form->getValues(), 'settings' );			
+			$app->processForm( $form->getValues(), 'settings' );
+			if ( isset( $_REQUEST['from'] ) and $_REQUEST['from'] == 'dashboard' ) {
+				$controller = $this->getPlugin()->getDashboardController();
+			}
+
 			$form->processComplete( function() use ( $controller ) {
 				wp_redirect( $controller->getUrl() );
 				exit;

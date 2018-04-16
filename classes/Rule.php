@@ -52,7 +52,7 @@ class _Rule extends ExportableRecord
 		'feature_id',
 		'enable_recursion',
 		'recursion_limit',
-		'imported_time',
+		'imported',
     );
 
     /**
@@ -272,7 +272,7 @@ class _Rule extends ExportableRecord
 		'rule_settings' );
 		
 		/* Rule priority */
-		if ( ! $rule->parent() ) {
+		if ( $this->id() and ! $rule->parent() ) {
 			$form->addField( 'priority', 'integer', array( 
 				'label' => __( 'Rule Priority', 'mwp-rules' ),
 				'description' => __( 'The priority at which this base rule will be evaluated during an event.', 'mwp-rules' ),
@@ -283,7 +283,7 @@ class _Rule extends ExportableRecord
 		}
 		
 		/* Step 1: Configure the event for new rules */
-		if ( ! $rule->id ) 
+		if ( ! $rule->id() ) 
 		{
 			if ( ! $rule->parent_id ) {
 				$event_choices = array();
@@ -311,7 +311,7 @@ class _Rule extends ExportableRecord
 			
 			$form->onComplete( function() use ( $rule, $plugin ) {
 				$controller = $plugin->getRulesController();
-				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id ) ) );
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_conditions' ) ) );
 				exit;
 			});
 			
@@ -974,15 +974,11 @@ class _Rule extends ExportableRecord
 	 */
 	public function getExportData()
 	{
-		$data = $this->_data;
-		unset( $data[ static::$prefix . static::$key ] );
-		
-		return array(
-			'data' => $data,
-			'children' => array_map( function( $subrule ) { return $subrule->getExportData(); }, $this->getChildren() ),
-			'conditions' => array_map( function( $condition ) { return $condition->getExportData(); }, $this->getConditions() ),
-			'actions' => array_map( function( $action ) { return $action->getExportData(); }, $this->getActions() ),
-		);
+		$export = parent::getExportData();
+		$export['children'] = array_map( function( $subrule ) { return $subrule->getExportData(); }, $this->getChildren() );
+		$export['conditions'] = array_map( function( $condition ) { return $condition->getExportData(); }, $this->getConditions() );
+		$export['actions'] = array_map( function( $action ) { return $action->getExportData(); }, $this->getActions() );
+		return $export;
 	}
 	
 	/**
@@ -1011,25 +1007,59 @@ class _Rule extends ExportableRecord
 			
 			$rule->parent_id = $parent_id;
 			$rule->feature_id = $feature_id;
+			$rule->imported = time();
 			$result = $rule->save();
 			
-			if ( ! is_wp_error( $result ) ) {
-				$results['imports']['rules'][] = $data['data'];
+			if ( ! is_wp_error( $result ) ) 
+			{
+				$results['imports']['rules'][] = $data;
+				
+				$imported_condition_uuids = [];
+				$imported_action_uuids = [];
+				$imported_rule_uuids = [];
+				
+				/* Import conditions, keeping track of imported uuids */
 				if ( isset( $data['conditions'] ) and ! empty( $data['conditions'] ) ) {
 					foreach( $data['conditions'] as $condition ) {
-						$results = array_merge_recursive( $results, Condition::import( $condition, $rule->id() ) );
+						$_results = Condition::import( $condition, $rule->id() );
+						if ( isset( $_results['imports']['conditions'] ) ) {
+							$imported_condition_uuids = array_merge( $imported_condition_uuids, array_map( function( $c ) { return $c['data']['condition_uuid']; }, $_results['imports']['conditions'] ) );
+						}
+						$results = array_merge_recursive( $results, $_results );
 					}
 				}
+				
+				/* Import actions, keeping track of imported uuids */
 				if ( isset( $data['actions'] ) and ! empty( $data['actions'] ) ) {
 					foreach( $data['actions'] as $action ) {
+						$imported_action_uuids[] = $action['data']['action_uuid'];
 						$results = array_merge_recursive( $results, Action::import( $action, $rule->id() ) );
 					}
 				}
+				
+				/* Import subrules, keeping track of imported uuids */
 				if ( isset( $data['children'] ) and ! empty( $data['children'] ) ) {
 					foreach( $data['children'] as $subrule ) {
+						$imported_rule_uuids[] = $subrule['data']['rule_uuid'];
 						$results = array_merge_recursive( $results, Rule::import( $subrule, $rule->id(), $feature_id ) );
 					}
 				}
+				
+				/* Cull previously imported conditions which are no longer part of this imported rule */
+				foreach( Condition::loadWhere( array( 'condition_rule_id=%d AND condition_imported > 0 AND condition_uuid NOT IN (\'' . implode("','", $imported_condition_uuids) . '\')', $rule->id() ) ) as $condition ) {
+					$condition->delete();
+				}
+				
+				/* Cull previously imported actions which are no longer part of this imported rule */
+				foreach( Action::loadWhere( array( 'action_rule_id=%d AND action_imported > 0 AND action_uuid NOT IN (\'' . implode("','", $imported_action_uuids) . '\')', $rule->id() ) ) as $action ) {
+					$action->delete();
+				}
+				
+				/* Cull previously imported subrules which are no longer part of this imported rule */
+				foreach( Rule::loadWhere( array( 'rule_parent_id=%d AND rule_imported > 0 AND rule_uuid NOT IN (\'' . implode("','", $imported_rule_uuids) . '\')', $rule->id() ) ) as $subrule ) {
+					$subrule->delete();
+				}
+				
 			} else {
 				$results['errors']['rules'][] = $result;
 			}

@@ -71,7 +71,7 @@ class _System
 			
 			/* Truth comparison */
 			array( 'rules_truth', array(
-				'title' => 'Check A Truth',
+				'title' => 'Check a Truth',
 				'description' => 'Checks if a value is equivalent to a boolean truth.',
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
@@ -129,7 +129,7 @@ class _System
 			
 			/* Number Comparison */
 			array( 'rules_number_comparison', array(
-				'title' => 'Compare Numbers',
+				'title' => 'Check a Number',
 				'description' => 'Check the value of a number against another.',
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
@@ -213,7 +213,7 @@ class _System
 			
 			/* String Comparision */
 			array( 'rules_string_comparison', array(
-				'title' => 'Compare Strings',
+				'title' => 'Check a String Value',
 				'description' => 'Check the contents of a string.',
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
@@ -285,7 +285,7 @@ class _System
 			
 			/* Array Attributes */
 			array( 'rules_array_comparison', array(
-				'title' => 'Inspect An Array',
+				'title' => 'Check an Array Value',
 				'description' => 'Check the attributes of an array for specific conditions.',				
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
@@ -369,7 +369,7 @@ class _System
 			
 			/* Object Comparision */
 			array( 'rules_object_comparison', array(
-				'title' => 'Inspect An Object',
+				'title' => 'Check an Object Value',
 				'description' => 'Inspect an object to compare its class or equality with another object.',
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
@@ -434,7 +434,7 @@ class _System
 			
 			/* Time Comparision */
 			array( 'rules_time_comparison', array(
-				'title' => 'Compare Dates',
+				'title' => 'Check a Date Value',
 				'description' => 'Compare a date/time with another date/time.',
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
@@ -516,7 +516,7 @@ class _System
 			
 			/* Data Type Comparision */
 			array( 'rules_data_type_comparison', array(
-				'title' => 'Check Data Type',
+				'title' => 'Check a Data Type',
 				'description' => 'Check if a value has a certain data type.',
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {

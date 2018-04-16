@@ -39,12 +39,12 @@ $controller = $table->getController();
 			<?php endforeach ?>
 		</div>
 		
-		<strong style="font-size:1.2em"><?php echo $definition ? $definition->title : 'Unregistered action' ?></strong> 
+		<strong class="text-info" style="font-size:1.2em"><?php echo $action->title ?> </strong> 
 		<?php if ( ! $action->enabled ) : ?>
 			<span class="label label-danger">Disabled</span>
 		<?php endif ?>
 		<p>
-			<?php echo $action->title ?> 
+			<i class="glyphicon glyphicon-triangle-right"></i> Using: <span class="text-success"><?php echo $definition ? $definition->title : 'Unregistered action' ?></span> 
 			<?php if ( $action->schedule_mode == 0 ) : ?>
 				<span title="This action will be executed immediately during the event" class="label label-default"><i class="glyphicon glyphicon-time"></i> Immediately</span>
 			<?php endif ?>

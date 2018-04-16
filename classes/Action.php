@@ -106,7 +106,7 @@ class _Action extends GenericOperation
 	{
 		return array(
 			'edit' => array(
-				'icon' => 'glyphicon glyphicon-cog',
+				'icon' => 'glyphicon glyphicon-wrench',
 				'attr' => array(
 					'class' => 'btn btn-sm btn-default',
 					'title' => __( 'Configure Action', 'mwp-rules' ),
@@ -349,12 +349,8 @@ class _Action extends GenericOperation
 	 */
 	public function getExportData()
 	{
-		$data = $this->_data;
-		unset( $data[ static::$prefix . static::$key ] );
-		
-		return array(
-			'data' => $data,
-		);
+		$export = parent::getExportData();
+		return $export;
 	}
 	
 	/**
@@ -381,10 +377,11 @@ class _Action extends GenericOperation
 			}
 			
 			$action->rule_id = $rule_id;
+			$action->imported = time();
 			$result = $action->save();
 			
 			if ( ! is_wp_error( $result ) ) {
-				$results['imports']['actions'][] = $data['data'];
+				$results['imports']['actions'][] = $data;
 			} else {
 				$results['errors']['actions'][] = $result;
 			}

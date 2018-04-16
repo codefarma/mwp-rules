@@ -19,7 +19,7 @@ use MWP\Framework\Pattern\ActiveRecord;
 /**
  * Argument Class
  */
-class _Argument extends ActiveRecord
+class _Argument extends ExportableRecord
 {
     /**
      * @var    array        Required for all active record classes
@@ -48,6 +48,7 @@ class _Argument extends ActiveRecord
 		'parent_type',
 		'widget',
 		'data' => array( 'format' => 'JSON' ),
+		'imported',
     );
 
     /**
@@ -845,8 +846,7 @@ class _Argument extends ActiveRecord
 	 */
 	public function getExportData()
 	{
-		$data = $this->_data;
-		unset( $data[ static::$prefix . static::$key ] );
+		$export = parent::getExportData();
 		
 		$argument_data = $this->data;
 		if ( isset( $argument_data['values'] ) and is_array( $argument_data['values'] ) ) {
@@ -855,11 +855,9 @@ class _Argument extends ActiveRecord
 			);
 		}
 		
-		$data['argument_data'] = json_encode( $argument_data );
+		$export['data']['argument_data'] = json_encode( $argument_data );
 		
-		return array(
-			'data' => $data,
-		);
+		return $export;
 	}
 	
 	/**
@@ -885,7 +883,7 @@ class _Argument extends ActiveRecord
 				
 				/* Merge custom data */
 				if ( $col === 'data' ) {
-					$argument_data = $argument->data;
+					$argument_data = $argument->data ?: array();
 					$new_data = json_decode( $value, true ) ?: array();
 					$value = json_encode( array_replace_recursive( $argument_data, $new_data ) );
 				}
@@ -895,10 +893,11 @@ class _Argument extends ActiveRecord
 			
 			$argument->parent_type = static::getParentType( $parent );
 			$argument->parent_id = $parent->id();
+			$argument->imported = time();
 			$result = $argument->save();
 			
 			if ( ! is_wp_error( $result ) ) {
-				$results['imports']['arguments'][] = $data['data'];
+				$results['imports']['arguments'][] = $data;
 			} else {
 				$results['errors']['arguments'][] = $result;
 			}

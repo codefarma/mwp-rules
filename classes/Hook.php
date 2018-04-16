@@ -44,6 +44,7 @@ class _Hook extends ExportableRecord
 		'api_methods',
 		'type',
 		'hook',
+		'imported',
     );
 
     /**
@@ -341,13 +342,9 @@ class _Hook extends ExportableRecord
 	 */
 	public function getExportData()
 	{
-		$data = $this->_data;
-		unset( $data[ static::$prefix . static::$key ] );
-		
-		return array(
-			'data' => $data,
-			'arguments' => array_map( function( $argument ) { return $argument->getExportData(); }, $this->getArguments() ),
-		);
+		$export = parent::getExportData();
+		$export['arguments'] = array_map( function( $argument ) { return $argument->getExportData(); }, $this->getArguments() );
+		return $export;
 	}
 	
 	/**
@@ -372,15 +369,28 @@ class _Hook extends ExportableRecord
 				$hook->_setDirectly( $col, $value );
 			}
 			
+			$hook->imported = time();
 			$result = $hook->save();
 			
-			if ( ! is_wp_error( $result ) ) {
-				$results['imports']['hooks'][] = $data['data'];
+			if ( ! is_wp_error( $result ) ) 
+			{
+				$results['imports']['hooks'][] = $data;
+				
+				$imported_argument_uuids = [];
+
+				/* Import hook arguments */
 				if ( isset( $data['arguments'] ) and ! empty( $data['arguments'] ) ) {
 					foreach( $data['arguments'] as $argument ) {
+						$imported_argument_uuids[] = $argument['data']['argument_uuid'];
 						$results = array_merge_recursive( $results, Argument::import( $argument, $hook ) );
 					}
 				}
+				
+				/* Cull previously imported arguments which are no longer part of this imported hook */
+				foreach( Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d AND argument_imported > 0 AND argument_uuid NOT IN (\'' . implode("','", $imported_argument_uuids) . '\')', Argument::getParentType( $hook ), $hook->id() ) ) as $argument ) {
+					$argument->delete();
+				}
+				
 			} else {
 				$results['errors']['features'][] = $result;
 			}

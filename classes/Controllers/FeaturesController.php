@@ -191,16 +191,14 @@ class _FeaturesController extends ExportableController
 		if ( $form->isValidSubmission() ) 
 		{
 			$feature->processForm( $form->getValues(), 'settings' );			
-			$result = $feature->save();
-			
-			if ( ! is_wp_error( $result ) ) {
-				$form->processComplete( function() use ( $controller ) {
-					wp_redirect( $controller->getUrl() );
-					exit;
-				});	
-			} else {
-				$save_error = $result;
+			if ( isset( $_REQUEST['from'] ) and $_REQUEST['from'] == 'dashboard' ) {
+				$controller = $this->getPlugin()->getDashboardController();
 			}
+			
+			$form->processComplete( function() use ( $controller ) {
+				wp_redirect( $controller->getUrl() );
+				exit;
+			});	
 		}
 
 		$output = $this->getPlugin()->getTemplateContent( 'views/management/records/edit', array( 'title' => $feature->_getEditTitle( 'settings' ), 'form' => $form, 'plugin' => $this->getPlugin(), 'controller' => $this, 'record' => $feature, 'error' => $save_error ) );

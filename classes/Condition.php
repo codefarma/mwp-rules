@@ -48,6 +48,7 @@ class _Condition extends GenericOperation
         'enabled',
 		'group_compare',
 		'not',
+		'imported',
     );
 
     /**
@@ -115,7 +116,7 @@ class _Condition extends GenericOperation
 				)
 			),
 			'edit' => array(
-				'icon' => 'glyphicon glyphicon-cog',
+				'icon' => 'glyphicon glyphicon-wrench',
 				'attr' => array(
 					'class' => 'btn btn-sm btn-default',
 					'title' => __( 'Configure Condition', 'mwp-rules' ),
@@ -394,13 +395,9 @@ class _Condition extends GenericOperation
 	 */
 	public function getExportData()
 	{
-		$data = $this->_data;
-		unset( $data[ static::$prefix . static::$key ] );
-		
-		return array(
-			'data' => $data,
-			'children' => array_map( function( $subrule ) { return $subrule->getExportData(); }, $this->getChildren() ),
-		);
+		$export = parent::getExportData();
+		$export['children'] = array_map( function( $subrule ) { return $subrule->getExportData(); }, $this->getChildren() );
+		return $export;
 	}
 	
 	/**
@@ -429,10 +426,13 @@ class _Condition extends GenericOperation
 			
 			$condition->rule_id = $rule_id;
 			$condition->parent_id = $parent_id;
+			$condition->imported = time();
 			$result = $condition->save();
 			
-			if ( ! is_wp_error( $result ) ) {
-				$results['imports']['conditions'][] = $data['data'];
+			if ( ! is_wp_error( $result ) ) 
+			{
+				$results['imports']['conditions'][] = $data;
+				
 				if ( isset( $data['children'] ) and ! empty( $data['children'] ) ) {
 					foreach( $data['children'] as $subcondition ) {
 						$results = array_merge_recursive( $results, Condition::import( $subcondition, $rule_id, $condition->id() ) );

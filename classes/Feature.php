@@ -42,9 +42,7 @@ class _Feature extends ExportableRecord
 		'weight',
 		'description',
 		'enabled',
-		'creator',
-		'created_time',
-		'imported_time',
+		'imported',
 		'app_id',
     );
 
@@ -484,14 +482,10 @@ class _Feature extends ExportableRecord
 	 */
 	public function getExportData()
 	{
-		$data = $this->_data;
-		unset( $data[ static::$prefix . static::$key ] );
-		
-		return array(
-			'data' => $data,
-			'arguments' => array_map( function( $argument ) { return $argument->getExportData(); }, $this->getArguments() ),
-			'rules' => array_map( function( $rule ) { return $rule->getExportData(); }, $this->getRules() ),
-		);
+		$export = parent::getExportData();
+		$export['arguments'] = array_map( function( $argument ) { return $argument->getExportData(); }, $this->getArguments() );
+		$export['rules'] = array_map( function( $rule ) { return $rule->getExportData(); }, $this->getRules() );
+		return $export;
 	}
 	
 	/**
@@ -518,20 +512,42 @@ class _Feature extends ExportableRecord
 			}
 			
 			$feature->app_id = $app_id;
+			$feature->imported = time();
 			$result = $feature->save();
 			
-			if ( ! is_wp_error( $result ) ) {
-				$results['imports']['features'][] = $data['data'];
+			if ( ! is_wp_error( $result ) ) 
+			{
+				$results['imports']['features'][] = $data;
+				
+				$imported_argument_uuids = [];
+				$imported_rule_uuids = [];
+				
+				/* Import feature arguments */
 				if ( isset( $data['arguments'] ) and ! empty( $data['arguments'] ) ) {
 					foreach( $data['arguments'] as $argument ) {
+						$imported_argument_uuids[] = $argument['data']['argument_uuid'];
 						$results = array_merge_recursive( $results, Argument::import( $argument, $feature ) );
 					}
 				}
+				
+				/* Import feature rules */
 				if ( isset( $data['rules'] ) and ! empty( $data['rules'] ) ) {
 					foreach( $data['rules'] as $rule ) {
+						$imported_rule_uuids[] = $rule['data']['rule_uuid'];
 						$results = array_merge_recursive( $results, Rule::import( $rule, 0, $feature->id() ) );
 					}
 				}
+				
+				/* Cull previously imported arguments which are no longer part of this imported feature */
+				foreach( Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d AND argument_imported > 0 AND argument_uuid NOT IN (\'' . implode("','", $imported_argument_uuids) . '\')', Argument::getParentType( $feature ), $feature->id() ) ) as $argument ) {
+					$argument->delete();
+				}
+				
+				/* Cull previously imported subrules which are no longer part of this imported feature */
+				foreach( Rule::loadWhere( array( 'rule_parent_id=0 AND rule_feature_id=%d AND rule_imported > 0 AND rule_uuid NOT IN (\'' . implode("','", $imported_rule_uuids) . '\')', $feature->id() ) ) as $rule ) {
+					$rule->delete();
+				}
+				
 			} else {
 				$results['errors']['features'][] = $result;
 			}

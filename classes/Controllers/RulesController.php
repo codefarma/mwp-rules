@@ -145,7 +145,7 @@ class _RulesController extends ExportableController
 						return '<div class="mwp-bootstrap">' . 
 							$event_title . '<br>' . 
 							( $event ? $event->description . '<br>' : '' ) .
-							'<code>' . ( $record['rule_event_type'] == 'filter' ? 'add_filter(\'' : 'add_action(\'' ) . $record['rule_event_hook'] . '\')</code> ' . 
+							'<span class="text-info">via:</span> <code>' . ( $record['rule_event_type'] == 'filter' ? 'add_filter(\'' : 'add_action(\'' ) . $record['rule_event_hook'] . '\')</code> ' . 
 						'</div>';
 						
 					},

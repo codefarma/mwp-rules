@@ -21,7 +21,7 @@ use MWP\Rules\ECA\Token;
 /**
  * GenericOperation Class
  */
-abstract class _GenericOperation extends ActiveRecord
+abstract class _GenericOperation extends ExportableRecord
 {
 	/**
 	 * @var string

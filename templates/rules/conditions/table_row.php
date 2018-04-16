@@ -39,7 +39,7 @@ $controller = $table->getController();
 				</a>
 			<?php endforeach ?>
 		</div>
-		<strong style="font-size:1.2em"><?php echo $definition ? $definition->title : 'Unregistered condition' ?></strong> 
+		<strong class="text-info" style="font-size:1.2em"><?php echo $condition->title ?> </strong> 
 		<?php if ( count( $subconditions ) ) : ?>
 			<span class="label label-info"><?php if ( $condition->compareMode() == 'and' ) : ?>AND ALL SUBCONDITIONS<?php else: ?>OR ANY SUBCONDITION<?php endif ?></span>
 		<?php endif ?>
@@ -47,7 +47,7 @@ $controller = $table->getController();
 			<span class="label label-danger">Disabled</span>
 		<?php endif ?>
 		<p>
-			<?php echo $condition->title ?> 
+			<i class="glyphicon glyphicon-triangle-right"></i> Using: <span class="text-success"><?php echo $definition ? $definition->title : 'Unregistered condition' ?></span> 
 			<?php if ( $condition->not ) : ?>
 				<span title="This condition evaluates TRUE if the condition is NOT MET" class="label label-warning">NOT</span>
 			<?php endif ?>
