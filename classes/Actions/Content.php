@@ -147,6 +147,63 @@ class _Content
 		
 		rules_define_actions( array(
 		
+			/* Register A Post Type */
+			array( 'rules_register_post_type', array( 
+				'title' => 'Register A Post Type',
+				'description' => 'Register a post type to use on the site.',
+				'configuration' => array(
+				
+				),
+				'arguments' => array(
+					'type' => array(
+						'label' => 'Post Type',
+						'default' => 'manual',
+						'required' => true,
+						'argtypes' => array(
+							'string' => array( 'description' => 'The name of the post type. (max. 20 characters, cannot contain capital letters or spaces)' ),
+						),
+						'configuration' => $plugin->configPreset( 'text', 'rules_post_type', array( 
+							'label' => 'Slug', 
+							'attr' => array( 'placeholder' => __( 'post_type', 'mwp-rules' ) ),
+							'description' => 'max. 20 characters, cannot contain capital letters or spaces',
+							'validators' => [ function( $data, $context ) {
+								$slug = str_replace( '_', '', $data );
+								if ( preg_match( '/[A-Z \W]/', $slug ) ) {
+									$context->addViolation( 'Slug contains invalid characters.' );
+								}
+								if ( strlen( $data ) > 20 ) {
+									$context->addViolation( 'Slug cannot be more than 20 characters.' );
+								}
+								if ( ! $data ) {
+									$context->addViolation( 'Slus is a required field.' );
+								}
+							}],
+						)),
+					),
+					'args' => array(
+						'label' => 'Arguments',
+						'default' => 'phpcode',
+						'required' => false,
+						'argtypes' => array(
+							'array' => array( 'description' => 'An array of arguments to use when registering the post type.' ),
+						),
+						'configuration' => $plugin->configPreset( 'key_array', 'post_type_arguments', array(
+							'label' => 'Post Type Settings',
+						)),
+					),
+				),
+				'callback' => function( $type, $args ) {
+					$args = $args ?: array();
+					$post_type = register_post_type( $type, $args );
+					
+					if ( is_wp_error( $post_type ) ) {
+						return array( 'success' => false, 'message' => $post_type->get_error_message(), 'type' => $type, 'args' => $args );
+					}
+					
+					return array( 'success' => true, 'message' => 'Post type registered.', 'type' => $type, 'args' => $args );
+				},
+			)),
+			
 			/* Create A Post */
 			array( 'rules_create_post', array(
 				'title' => 'Create A Post',
@@ -158,7 +215,7 @@ class _Content
 							__( 'Open', 'mwp-rules' ) => 'open',
 							__( 'Closed', 'mwp-rules' ) => 'closed',
 						);
-							
+						
 						$form->addField( 'post_comment_status', 'choice', array(
 							'label' => __( 'Post Comment Status', 'mwp-rules' ),
 							'choices' => $open_closed_choices,

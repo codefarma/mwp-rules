@@ -842,6 +842,12 @@ class _Plugin extends \MWP\Framework\Plugin
 					},
 				),
 			),
+			'choice' => array(
+				'label' => 'Choice Field',
+			),
+			'integer' => array( 
+				'label' => 'Integer Input',
+			),
 			'textarea' => array(
 				'label' => 'Text Area',
 			),
@@ -900,6 +906,42 @@ class _Plugin extends \MWP\Framework\Plugin
 		
 		switch ( $key ) {
 			
+			/* Choice Entry Field */
+			case 'choice':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'choice', array_replace_recursive( array(
+							'label' => __( 'Choice', 'mwp-rules' ),
+							'choices' => [],
+							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : NULL,
+						),
+						$options ));
+					},
+					'getArg' => function( $values ) use ( $field_name ) {
+						return isset( $values[ $field_name ] ) ? $values[ $field_name ] : NULL;
+					}
+				);
+				break;
+				
+			/* Integer Entry Field */
+			case 'integer':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'integer', array_replace_recursive( array(
+							'label' => __( 'Number', 'mwp-rules' ),
+							'description' => __( 'Enter an integer value.', 'mwp-rules' ),
+							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : NULL,
+						),
+						$options ));
+					},
+					'getArg' => function( $values ) use ( $field_name ) {
+						return isset( $values[ $field_name ] ) ? $values[ $field_name ] : NULL;
+					}
+				);
+				break;
+			
 			/* Simple Text Field */
 			case 'text':
 			
@@ -912,7 +954,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values ) use ( $field_name ) {
-						return $values[ $field_name ];
+						return isset( $values[ $field_name ] ) ? $values[ $field_name ] : NULL;
 					}
 				);
 				break;
@@ -929,7 +971,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values ) use ( $field_name ) {
-						return $values[ $field_name ];
+						return isset( $values[ $field_name ] ) ? $values[ $field_name ] : NULL;
 					}
 				);
 				break;
@@ -955,7 +997,7 @@ class _Plugin extends \MWP\Framework\Plugin
 					},
 					'getArg' => function( $values ) use ( $field_name ) {
 						$date = new \DateTime();
-						$date->setTimestamp( $values[ $field_name ] );
+						$date->setTimestamp( isset( $values[ $field_name ] ) ? (int) $values[ $field_name ] : 0 );
 						
 						return $date;
 					},
@@ -981,7 +1023,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$field = trim( array_shift( $pieces ) );
 						$attribute = trim( implode( ':', $pieces ) );
 						if ( in_array( $field, array( 'id', 'slug', 'email', 'login' ) ) ) {
-							return get_user_by( $field, $attribute );
+							return get_user_by( $field, $attribute ) ?: NULL;
 						}
 					},
 				);
@@ -1139,13 +1181,13 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$values = array();
+						$array_values = array();
 						$strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
 						foreach( $strings as $value ) {
-							$values[] = $value;
+							$array_values[] = $value;
 						}
 						
-						return $values;
+						return $array_values;
 					}
 				);
 				break;
@@ -1164,7 +1206,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$values = array();
+						$meta_values = array();
 						$strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
 						foreach( $strings as $string ) {
 							if ( strpos( $string, ':' ) !== false ) {
@@ -1177,7 +1219,7 @@ class _Plugin extends \MWP\Framework\Plugin
 							}
 						}
 						
-						return $values;
+						return $meta_values;
 					}
 				);
 				break;

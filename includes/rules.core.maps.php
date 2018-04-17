@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_filter( 'rules_global_arguments', function( $globals ) 
 {
 	return array_replace_recursive( $globals, array(
+		/*
 		'current_site' => array(
 			'argtype' => 'object',
 			'class' => 'MWP\Rules\WP\Site',
@@ -18,10 +19,11 @@ add_filter( 'rules_global_arguments', function( $globals )
 				return \MWP\Rules\WP\Site::instance();
 			}
 		),
+		*/
 		'current_user' => array(
 			'argtype' => 'object',
 			'class' => 'WP_User',
-			'label' => 'Current Logged In User',
+			'label' => 'Current Site User',
 			'getter' => function() {
 				return wp_get_current_user();
 			}

@@ -48,9 +48,11 @@ add_action( 'mwp_framework_init', function()
 		
 		->attach( new Conditions\System )
 		->attach( new Conditions\Content )
+		->attach( new Conditions\Users )
 		
 		->attach( new Actions\System )
 		->attach( new Actions\Content )
+		->attach( new Actions\Users )
 		;
 	
 	/* Load config */	

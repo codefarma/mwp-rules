@@ -66,6 +66,26 @@ class _Content
 	public function registerECAs()
 	{
 		$plugin = $this->getPlugin();
+		
+		rules_register_conditions( array(
+			
+			/* Check if post type exists */
+			array( 'rules_post_type_exists', array(
+				'title' => 'Check If A Post Type Exists',
+				'description' => 'Check if a particular post type has been registered.',
+				'arguments' => array(
+					'post_type' => array(
+						'label' => 'Post Type',
+						'default' => 'manual',
+						'configuration' => $plugin->configPreset( 'text', 'rules_post_type', array( 'label' => 'Post Type Slug' ) ),
+					),
+				),
+				'callback' => function( $post_type ) {
+					return post_type_exists( $post_type );
+				}
+			)),
+		
+		));
 
 	}
 }

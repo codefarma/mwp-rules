@@ -584,6 +584,38 @@ class _System
 				},
 			)),
 			
+			/* Check if a function exists */
+			array( 'rules_check_function_exists', array(
+				'title' => 'Check If Function Exists',
+				'description' => 'Check to see if a particular function name exists',
+				'arguments' => array(
+					'function_name' => array(
+						'label' => 'Function Name',
+						'default' => 'manual',
+						'configuration' => $plugin->configPreset( 'text', 'rules_function_name', array( 'label' => 'Function Name' ) ),
+					),
+				),
+				'callback' => function( $function_name ) {
+					return function_exists( $function_name );
+				}
+			)),
+			
+			/* Check if a class exists */
+			array( 'rules_check_class_exists', array(
+				'title' => 'Check If A Class Exists',
+				'description' => 'Check to see if a particular class name exists',
+				'arguments' => array(
+					'classname' => array(
+						'label' => 'Class Name',
+						'default' => 'manual',
+						'configuration' => $plugin->configPreset( 'text', 'rules_class_name', array( 'label' => 'Class Name' ) ),
+					),
+				),
+				'callback' => function( $classname ) {
+					return class_exists( $classname );
+				}
+			)),
+			
 			/* Execute Custom PHP Code */
 			array( 'rules_execute_php', array(
 				'title' => 'Execute Custom PHP Code',
