@@ -157,13 +157,16 @@ class _Action extends GenericOperation
 			]));
 		}
 		
+		static::buildConfigForm( $form, $action );
+		
 		$form->addField( 'enabled', 'checkbox', array(
 			'label' => __( 'Action Enabled?', 'mwp-rules' ),
 			'value' => 1,
 			'data' => isset( $action->enabled ) ? (bool) $action->enabled : true,
 			'row_suffix' => '<hr>',
 			'required' => false,
-		));
+		),
+		'operation_details', 'key', 'before' );
 		
 		/* Else action config */
 		$form->addField( 'else', 'choice', array(
@@ -175,9 +178,8 @@ class _Action extends GenericOperation
 			'data' => (int) $action->else,
 			'required' => true,
 			'expanded' => true,
-		));
-		
-		static::buildConfigForm( $form, $action );
+		),
+		'operation_details', 'title' );
 		
 		if ( $action->id ) {
 			
@@ -200,6 +202,10 @@ class _Action extends GenericOperation
 				);
 			}
 			
+			$form->addTab( 'operation_advanced', array( 
+				'title' => __( 'Advanced', 'mwp-rules' ),
+			));
+		
 			$form->addField( 'schedule_mode', 'choice', array(
 				'label' => __( 'Action execution is', 'mwp-rules' ),
 				'description' => "
@@ -219,14 +225,13 @@ class _Action extends GenericOperation
 					4 => array( 'show' => array( '#schedule_key', '#schedule_customcode' ) ),
 				),
 				'row_suffix' => '<hr>',
-			),
-			NULL, 'title' );
+			));
 		
 			/* Fixed amount of time in the future */
-			$form->addField( 'schedule_minutes', 'integer', array( 'label' => __( 'Minutes', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_minutes' ), 'data' => (int) $action->schedule_minutes ), NULL, 'schedule_mode' );
-			$form->addField( 'schedule_hours', 'integer', array( 'label' => __( 'Hours', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_hours' ), 'data' => (int) $action->schedule_hours ), NULL, 'schedule_minutes' );
-			$form->addField( 'schedule_days', 'integer', array( 'label' => __( 'Days', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_days' ), 'data' => (int) $action->schedule_days ), NULL, 'schedule_hours' );
-			$form->addField( 'schedule_months', 'integer', array( 'label' => __( 'Months', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_months' ), 'data' => (int) $action->schedule_months ), NULL, 'schedule_days' );
+			$form->addField( 'schedule_minutes', 'integer', array( 'label' => __( 'Minutes', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_minutes' ), 'data' => (int) $action->schedule_minutes ) );
+			$form->addField( 'schedule_hours', 'integer', array( 'label' => __( 'Hours', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_hours' ), 'data' => (int) $action->schedule_hours ) );
+			$form->addField( 'schedule_days', 'integer', array( 'label' => __( 'Days', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_days' ), 'data' => (int) $action->schedule_days ) );
+			$form->addField( 'schedule_months', 'integer', array( 'label' => __( 'Months', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_months' ), 'data' => (int) $action->schedule_months ) );
 			
 			/* Specific date in the future */
 			$form->addField( 'schedule_date', 'datetime', array(
@@ -236,14 +241,14 @@ class _Action extends GenericOperation
 				'input' => 'timestamp',
 				'widget' => 'single_text',
 				'view_timezone' => get_option('timezone_string'),
-			),
-			NULL, 'schedule_months' );
+			));
 			
 			/* Custom calculated date time */
-			$form->addField( 'schedule_customcode', 'codemirror', array( 
-				'row_attr' => array( 'id' => 'schedule_customcode' ),
+			$form->addField( 'schedule_customcode', 'textarea', array( 
+				'row_attr' => array( 'id' => 'schedule_customcode', 'data-view-model' => 'mwp-rules' ),
 				'label' => __( 'Scheduled Date', 'mwp-rules' ),
-				'data' => $action->schedule_customcode ?: "// <?php\n\nreturn;",
+				'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
+				'data' => $action->schedule_customcode ?: "// <?php\n\nreturn strtotime('tomorrow 8:00am');",
 				'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 
 					'operation' => $action, 
 					'event' => $action->event(), 
@@ -253,8 +258,7 @@ class _Action extends GenericOperation
 						__( '<strong>string</strong> - A date/time string', 'mwp-rules' ),
 					), 
 				)),
-			),
-			NULL, 'schedule_date' );
+			));
 			
 			$form->addField( 'schedule_key', 'text', array( 
 				'row_attr' => array( 'id' => 'schedule_key' ),
@@ -262,14 +266,13 @@ class _Action extends GenericOperation
 				'data' => $action->schedule_key,
 				'description' => __( 'Optional. Only one action will remain scheduled for any given keyphrase at a time. If an action is rescheduled, any previously scheduled actions with the same keyphrase will be removed.', 'mwp-rules' ),
 				'required' => false,
-			),
-			NULL, 'schedule_customcode' );
+			));
 		}
 		
 		if ( ! $action->id ) {
 			$form->onComplete( function() use ( $action, $plugin ) {
 				$controller = $plugin->getActionsController();
-				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $action->id ) ) );
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $action->id(), '_tab' => 'operation_config' ) ) );
 				exit;
 			});
 		}
@@ -277,18 +280,6 @@ class _Action extends GenericOperation
 		return $form;
 	}
 	
-	/**
-	 * Process submitted form values 
-	 *
-	 * @param	array			$values				Submitted form values
-	 * @return	void
-	 */
-	protected function processEditForm( $values )
-	{
-		$this->processConfigForm( $values );
-		parent::processEditForm( $values );
-	}
-
 	/**
 	 * Get the condition definition
 	 * 

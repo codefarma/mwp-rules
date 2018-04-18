@@ -145,15 +145,17 @@ class _Content
 	{
 		$plugin = $this->getPlugin();
 		
+		$post_lang = 'Post';
+		$core_lang = 'Core';
+		$comment_lang = 'Comment';
+		
 		rules_define_actions( array(
 		
 			/* Register A Post Type */
 			array( 'rules_register_post_type', array( 
 				'title' => 'Register A Post Type',
 				'description' => 'Register a post type to use on the site.',
-				'configuration' => array(
-				
-				),
+				'group' => $core_lang,
 				'arguments' => array(
 					'type' => array(
 						'label' => 'Post Type',
@@ -166,7 +168,7 @@ class _Content
 							'label' => 'Slug', 
 							'attr' => array( 'placeholder' => __( 'post_type', 'mwp-rules' ) ),
 							'description' => 'max. 20 characters, cannot contain capital letters or spaces',
-							'validators' => [ function( $data, $context ) {
+							'constraints' => [ function( $data, $context ) {
 								$slug = str_replace( '_', '', $data );
 								if ( preg_match( '/[A-Z \W]/', $slug ) ) {
 									$context->addViolation( 'Slug contains invalid characters.' );
@@ -208,6 +210,7 @@ class _Content
 			array( 'rules_create_post', array(
 				'title' => 'Create A Post',
 				'description' => 'Create a new post',
+				'group' => $post_lang,
 				'configuration' => array(
 					'form' => function( $form, $values, $operation ) use ( $plugin ) {
 						$open_closed_choices = array(
@@ -441,11 +444,7 @@ class _Content
 					
 					if ( $values['post_run_php'] ) {
 						$created_post = get_post( $result );
-						$evaluate = function( $phpcode ) use ( $arg_map, $created_post ) {
-							extract( $arg_map );
-							return @eval( $phpcode );
-						};
-						
+						$evaluate = rules_evaluation_closure( array_merge( $arg_map, array( 'created_post' => $created_post ) ) );
 						$custom_result = $evaluate( $values['post_run_phpcode'] );
 						if ( $custom_result ) {
 							return $custom_result;
@@ -460,6 +459,7 @@ class _Content
 			array( 'rules_update_post', array(
 				'title' => 'Update A Post',
 				'description' => 'Update the attributes of an existing post.',
+				'group' => $post_lang,
 				'configuration' => array(
 					'form' => function( $form, $values, $operation ) use ( $plugin ) {
 						
@@ -770,6 +770,7 @@ class _Content
 			array( 'rules_delete_post', array(
 				'title' => 'Trash/Delete A Post',
 				'description' => 'Delete or trash a post.',
+				'group' => $post_lang,
 				'configuration' => array(
 					'form' => function( $form, $values ) {
 						$form->addField( 'rules_post_trash', 'choice', array(
@@ -810,6 +811,7 @@ class _Content
 			array( 'rules_create_comment', array(
 				'title' => 'Create A Comment',
 				'description' => 'Create a new comment on a post',
+				'group' => $comment_lang,
 				'configuration' => array(
 					'form' => function( $form, $values, $operation ) use ( $plugin ) {
 						$status_choices = array(
@@ -946,11 +948,7 @@ class _Content
 					
 					if ( $values['post_run_php'] ) {
 						$created_comment = get_comment( $result );
-						$evaluate = function( $phpcode ) use ( $arg_map, $created_comment ) {
-							extract( $arg_map );
-							return @eval( $phpcode );
-						};
-						
+						$evaluate = rules_evaluation_closure( array_merge( $arg_map, array( 'created_comment' => $created_comment ) ) );
 						$custom_result = $evaluate( $values['post_run_phpcode'] );
 						if ( $custom_result ) {
 							return $custom_result;
@@ -965,6 +963,7 @@ class _Content
 			array( 'rules_update_comment', array(
 				'title' => 'Update A Comment',
 				'description' => 'Update the attributes of an existing comment.',
+				'group' => $comment_lang,
 				'configuration' => array(
 					'form' => function( $form, $values, $operation ) use ( $plugin ) {
 						
@@ -1144,6 +1143,7 @@ class _Content
 			array( 'rules_delete_comment', array(
 				'title' => 'Trash/Delete A Comment',
 				'description' => 'Delete or trash a comment.',
+				'group' => $comment_lang,
 				'configuration' => array(
 					'form' => function( $form, $values ) {
 						$form->addField( 'rules_comment_trash', 'choice', array(

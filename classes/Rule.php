@@ -238,6 +238,7 @@ class _Rule extends ExportableRecord
 		));
 		
 		if ( $this->id() and ! $this->parent() ) {
+			
 			$feature_choices = [
 				'Unassigned' => 0,
 			];
@@ -248,6 +249,10 @@ class _Rule extends ExportableRecord
 					$app_features[ $feature->title ] = $feature->id();
 				}
 				$feature_choices[ $app->title ] = $app_features;
+			}
+			
+			foreach( Feature::loadWhere( 'feature_app_id=0' ) as $feature ) {
+				$feature_choices[ 'Independent Features' ][ $feature->title ] = $feature->id();
 			}
 			
 			$form->addField( 'feature_id', 'choice', array(
@@ -290,15 +295,23 @@ class _Rule extends ExportableRecord
 				
 				foreach( array( 'action', 'filter' ) as $type ) {
 					foreach( $plugin->getEvents( $type ) as $event ) {
-						$event_choices[ ucwords( $type ) ][ $event->title ] = $event->type . '/' . $event->hook;
+						$group = ( $event->group ?: 'Unclassified' ) . ' ' . ucwords( $type ) . 's';
+						$event_choices[ $group ][ $event->title ] = $event->type . '/' . $event->hook;
 					}
 				}
 				
 				$form->addField( 'event', 'choice', array(
+					'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
 					'label' => __( 'Rule Triggered When:', 'mwp-rules' ),
+					'attr' => array( 'placeholder' => 'Select an event', 'data-bind' => 'jquery: { selectize: {} }' ),
 					'choices' => $event_choices,
 					'data' => $rule->event_type . '/' . $rule->event_hook,
-					'required' => true,
+					'required' => false,
+					'constraints' => [ function( $data, $context ) {
+						if ( ! $data ) {
+							$context->addViolation( __( 'You must select an event for the rule.', 'mwp-rules' ) );
+						}
+					}],
 				),
 				'rule_settings', 'title', 'before' );
 			}

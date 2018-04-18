@@ -208,14 +208,14 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
-                "rule_imported_time": {
+                "rule_imported": {
                     "allow_null": false,
                     "auto_increment": false,
                     "binary": false,
                     "decimals": null,
                     "default": "0",
                     "length": 11,
-                    "name": "rule_imported_time",
+                    "name": "rule_imported",
                     "type": "INT",
                     "unsigned": false,
                     "values": [],
@@ -396,16 +396,15 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
-                "condition_footprint": {
-                    "allow_null": true,
+                "condition_imported": {
+                    "allow_null": false,
                     "auto_increment": false,
                     "binary": false,
-                    "collation": "utf8mb4_unicode_ci",
                     "decimals": null,
-                    "default": null,
-                    "length": 56,
-                    "name": "condition_footprint",
-                    "type": "VARCHAR",
+                    "default": "0",
+                    "length": 11,
+                    "name": "condition_imported",
+                    "type": "INT",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
@@ -665,20 +664,6 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
-                "action_footprint": {
-                    "allow_null": true,
-                    "auto_increment": false,
-                    "binary": false,
-                    "collation": "utf8mb4_unicode_ci",
-                    "decimals": null,
-                    "default": null,
-                    "length": 56,
-                    "name": "action_footprint",
-                    "type": "VARCHAR",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                },
                 "action_else": {
                     "allow_null": false,
                     "auto_increment": false,
@@ -688,6 +673,19 @@ return <<<'JSON'
                     "length": 1,
                     "name": "action_else",
                     "type": "TINYINT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "action_imported": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "action_imported",
+                    "type": "INT",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
@@ -896,6 +894,19 @@ return <<<'JSON'
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
+                },
+                "argument_imported": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "argument_imported",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
                 }
             },
             "indexes": {
@@ -1047,6 +1058,19 @@ return <<<'JSON'
                     "length": 1028,
                     "name": "hook_hook",
                     "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "hook_imported": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "hook_imported",
+                    "type": "INT",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
@@ -1363,41 +1387,14 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
-                "feature_creator": {
-                    "allow_null": true,
-                    "auto_increment": false,
-                    "binary": false,
-                    "collation": "utf8mb4_unicode_ci",
-                    "decimals": null,
-                    "default": null,
-                    "length": 255,
-                    "name": "feature_creator",
-                    "type": "VARCHAR",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                },
-                "feature_created_time": {
+                "feature_imported": {
                     "allow_null": false,
                     "auto_increment": false,
                     "binary": false,
                     "decimals": null,
                     "default": "0",
                     "length": 11,
-                    "name": "feature_created_time",
-                    "type": "INT",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                },
-                "feature_imported_time": {
-                    "allow_null": false,
-                    "auto_increment": false,
-                    "binary": false,
-                    "decimals": null,
-                    "default": "0",
-                    "length": 11,
-                    "name": "feature_imported_time",
+                    "name": "feature_imported",
                     "type": "INT",
                     "unsigned": false,
                     "values": [],

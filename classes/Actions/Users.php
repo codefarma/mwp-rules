@@ -67,6 +67,8 @@ class _Users
 	{
 		$plugin = $this->getPlugin();
 		
+		$user_lang = 'User';
+		
 		rules_define_actions( array(
 		
 			/* Create A User 
@@ -92,6 +94,7 @@ class _Users
 			array( 'rules_update_user', array(
 				'title' => 'Update User Profile',
 				'description' => 'Change the attributes of a user profile',
+				'group' => $user_lang,
 				'configuration' => array(
 					'form' => function( $form, $values ) {
 						$update_options = array(
@@ -264,11 +267,64 @@ class _Users
 			)),
 		
 			/* Delete A User */
+			array( 'rules_delete_user', array(
+				'title' => 'Delete A User',
+				'description' => 'Delete a user from the database.',
+				'group' => $user_lang,
+				'configuration' => array(
+					'form' => function( $form, $values ) {
+						$form->addField( 'keep_posts', 'checkbox', array(
+							'label' => __( 'Reassign Posts?', 'mwp-rules' ),
+							'description' => __( 'If posts from this user are not reassigned to another user, they will be deleted.', 'mwp-rules' ),
+							'value' => 1,
+							'data' => isset( $values['keep_posts'] ) ? (bool) $values['keep_posts'] : false,
+							'toggles' => array(
+								1 => array( 'show' => array( '#rules-delete-user_reassign_user_form_wrapper' ) ),
+							),
+						));
+					}
+				),
+				'arguments' => array(
+					'user' => array(
+						'label' => 'User',
+						'required' => true,
+						'argtypes' => array(
+							'object' => array( 'description' => 'The user to delete', 'classes' => array( 'WP_User' ) ),
+						),
+						'configuration' => $plugin->configPreset( 'user', 'user', array( 'label' => 'User' ) ),
+					),
+					'reassign_user' => array(
+						'label' => 'Reassignment User',
+						'required' => false,
+						'default' => 'manual',
+						'argtypes' => array(
+							'object' => array( 'description' => 'The user to reassign posts to', 'classes' => array( 'WP_User' ) ),
+						),
+						'configuration' => $plugin->configPreset( 'user', 'reassignment_user', array( 'label' => 'Reassignment User' ) ),
+					),
+				),
+				'callback' => function( $user, $reassign_user ) {
+					if ( ! $user instanceof \WP_User or ! $user->exists() ) {
+						return array( 'success' => false, 'message' => 'Invalid user provided.', 'user' => $user );
+					}
+					
+					include_once( ABSPATH . '/wp-admin/includes/user.php' );
+					
+					$reassign_id = NULL;
+					
+					if ( isset( $values['keep_posts'] ) and $values['keep_posts'] ) {
+						$reassign_id = ( isset( $reassign_user ) and $reassign_user instanceof \WP_User ) ? $reassign_user->ID : NULL;
+					}
+					
+					wp_delete_user( $user->ID, $reassign_id );
+				}
+			)),
 			
 			/* Change User Role */
 			array( 'rules_update_user_roles', array(
 				'title' => 'Update User Roles',
 				'description' => 'Change the roles assigned to a user.',
+				'group' => $user_lang,
 				'configuration' => array(
 					'form' => function( $form, $values ) {
 						$update_options = array(

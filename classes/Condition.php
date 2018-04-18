@@ -167,14 +167,15 @@ class _Condition extends GenericOperation
 			]));
 		}
 		
+		static::buildConfigForm( $form, $condition );
+		
 		$form->addField( 'enabled', 'checkbox', array(
 			'label' => __( 'Condition Enabled?', 'mwp-rules' ),
 			'value' => 1,
 			'data' => isset( $condition->enabled ) ? (bool) $condition->enabled : true,
 			'row_suffix' => '<hr>',
-		));
-		
-		static::buildConfigForm( $form, $condition );
+		),
+		'operation_details', 'key', 'before' );
 		
 		/** Condition specific form fields **/
 		
@@ -184,7 +185,7 @@ class _Condition extends GenericOperation
 			'description' => __( 'Using NOT will reverse the condition result so that the result is TRUE if the condition is NOT MET. ', 'mwp-rules' ),
 			'data' => (bool) $condition->not,
 		),
-		NULL, 'title' );
+		'operation_details', 'title' );
 		
 		if ( $condition->children() ) {
 			$form->addField( 'group_compare', 'choice', array(
@@ -204,13 +205,13 @@ class _Condition extends GenericOperation
 					</ul>",
 				'row_suffix' => '<hr>',
 			),
-			NULL, 'enabled' );
-		}		
+			'operation_details', 'enabled' );
+		}
 		
 		if ( ! $condition->id ) {
 			$form->onComplete( function() use ( $condition, $plugin ) {
 				$controller = $plugin->getConditionsController();
-				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $condition->id ) ) );
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $condition->id(), '_tab' => 'operation_config' ) ) );
 				exit;
 			});
 		}
@@ -218,18 +219,6 @@ class _Condition extends GenericOperation
 		return $form;
 	}
 	
-	/**
-	 * Process submitted form values 
-	 *
-	 * @param	array			$values				Submitted form values
-	 * @return	void
-	 */
-	protected function processEditForm( $values )
-	{
-		$this->processConfigForm( $values );
-		parent::processEditForm( $values );
-	}
-
 	/**
 	 * Get the condition definition
 	 * 

@@ -71,6 +71,7 @@ class _Content
 			array( 'filter', 'the_title', array(
 				'title' => 'Post Title Is Filtered',
 				'description' => 'The post title is filtered before it is output to the page.',
+				'group' => 'Output',
 				'arguments' => array(
 					'title' => array( 'argtype' => 'string', 'label' => 'Post Title', 'description' => 'The post title' ),
 					'post_id' => array( 'argtype' => 'int', 'class' => 'WP_Post', 'label' => 'Post ID', 'description' => 'The ID of the post whose title is being filtered' ),
@@ -81,6 +82,7 @@ class _Content
 			array( 'filter', 'the_content', array(
 				'title' => 'Post Content Is Filtered',
 				'description' => 'The post content is filtered before it is output to the page.',
+				'group' => 'Output',
 				'arguments' => array(
 					'content' => array( 'argtype' => 'string', 'label' => 'Post Content', 'description' => 'The post content' ),
 				),
@@ -90,6 +92,7 @@ class _Content
 			array( 'filter', 'the_excerpt', array(
 				'title' => 'Post Excerpt Is Filtered',
 				'description' => 'The post excerpt is filtered before it is output to the page.',
+				'group' => 'Output',
 				'arguments' => array(
 					'excerpt' => array( 'argtype' => 'string', 'label' => 'Post Excerpt', 'description' => 'The post excerpt' ),
 				),
@@ -99,6 +102,7 @@ class _Content
 			array( 'filter', 'the_meta_key', array(
 				'title' => 'Post Meta Is Filtered',
 				'description' => 'Post meta keys are filtered before they are output to the page as list items.',
+				'group' => 'Output',
 				'arguments' => array(
 					'html' => array( 'argtype' => 'string', 'label' => 'Meta Key HTML', 'description' => 'The html that displays the meta key list item' ),
 					'meta_key' => array( 'argtype' => 'string', 'label' => 'Meta Key', 'description' => 'The meta key being displayed' ),
@@ -110,6 +114,7 @@ class _Content
 			array( 'filter', 'prepend_attachment', array(
 				'title' => 'Post Attachment Is Filtered',
 				'description' => 'The post attachment markup is filtered before it is prepended to the post content.',
+				'group' => 'Output',
 				'arguments' => array(
 					'markup' => array( 'argtype' => 'string', 'label' => 'Markup', 'description' => 'The post attachment html markup' ),
 				),
@@ -119,6 +124,7 @@ class _Content
 			array( 'action', 'save_post', array(
 				'title' => 'Post Is Created Or Updated',
 				'description' => 'This event occurs for posts and revisions when they are created, updated, or auto-saved.',
+				'group' => 'Post',
 				'arguments' => array(
 					'post_id' => array( 'argtype' => 'int', 'label' => 'Post ID', 'description' => 'The ID of the post which was created or updated' ),
 					'post' => array( 'argtype' => 'object', 'class' => 'WP_Post', 'label' => 'Post', 'description' => 'The post object' ),
@@ -130,6 +136,7 @@ class _Content
 			array( 'action', 'trashed_post', array( 
 				'title' => 'Post Is Trashed',
 				'description' => 'This event occurs after a post has been moved to the trash.',
+				'group' => 'Post',
 				'arguments' => array(
 					'post_id' => array( 'argtype' => 'int', 'class' => 'WP_Post', 'label' => 'Post ID', 'description' => 'The ID of the post that was trashed' ),
 				),
@@ -139,6 +146,7 @@ class _Content
 			array( 'action', 'untrashed_post', array( 
 				'title' => 'Post Is Un-Trashed',
 				'description' => 'This event occurs after a post has been restored from the trash.',
+				'group' => 'Post',
 				'arguments' => array(
 					'post_id' => array( 'argtype' => 'int', 'class' => 'WP_Post', 'label' => 'Post ID', 'description' => 'The ID of the post that was untrashed' ),
 				),
@@ -148,6 +156,7 @@ class _Content
 			array( 'action', 'before_delete_post', array(
 				'title' => 'Post Is Being Deleted Permanently',
 				'description' => 'This event occurs just before a post and all of its associated data is deleted.',
+				'group' => 'Post',
 				'arguments' => array(
 					'post_id' => array( 'argtype' => 'int', 'class' => 'WP_Post', 'label' => 'Post ID', 'description' => 'The ID of the post which is being deleted' ),
 				),
@@ -157,6 +166,7 @@ class _Content
 			array( 'action', 'added_user_meta', array(
 				'title' => 'Post Meta Has Been Added',
 				'description' => 'This event occurs when post meta data is added for the first time.',
+				'group' => 'Post',
 				'arguments' => array(
 					'meta_id' => array( 'argtype' => 'int', 'label' => 'Meta ID', 'description' => 'The ID of the meta data row' ),
 					'post_id' => array( 'argtype' => 'int', 'class' => 'WP_Post', 'label' => 'Post ID', 'description' => 'The ID of the post that the meta data belongs to' ),
@@ -169,6 +179,7 @@ class _Content
 			array( 'action', 'updated_user_meta', array(
 				'title' => 'Post Meta Has Been Updated',
 				'description' => 'This event occurs after post meta data has been successfully updated.',
+				'group' => 'Post',
 				'arguments' => array(
 					'meta_id' => array( 'argtype' => 'int', 'label' => 'Meta ID', 'description' => 'The ID of the meta data row' ),
 					'post_id' => array( 'argtype' => 'int', 'class' => 'WP_Post', 'label' => 'Post ID', 'description' => 'The ID of the post that the meta data belongs to' ),
@@ -181,6 +192,7 @@ class _Content
 			array( 'action', 'deleted_user_meta', array(
 				'title' => 'Post Meta Has Been Deleted',
 				'description' => 'This event occurs after post meta data has been deleted.',
+				'group' => 'Post',
 				'arguments' => array(
 					'meta_ids' => array( 'argtype' => 'array', 'label' => "Meta IDs", 'description' => 'The IDs of the meta data rows that were deleted' ),
 					'post_id' => array( 'argtype' => 'int', 'class' => 'WP_Post', 'label' => 'Post ID', 'description' => 'The ID of the post that the meta data belongs to' ),
@@ -193,6 +205,7 @@ class _Content
 			array( 'action', 'set_object_terms', array(
 				'title' => 'Post Taxonomy Terms Have Been Updated',
 				'description' => 'This event occurs when a post has had new taxonomy terms assigned.',
+				'group' => 'Post',
 				'arguments' => array(
 					'post_id' => array( 'argtype' => 'int', 'class' => 'WP_Post', 'label' => 'Post ID', 'description' => 'The ID of the post which was assigned the taxonomy terms' ),
 					'terms' => array( 'argtype' => 'array', 'class' => 'WP_Term', 'label' => 'Term IDs', 'description' => 'The IDs of the terms which were set on the post' ),
@@ -206,6 +219,7 @@ class _Content
 			array( 'action', 'wp_insert_comment', array( 
 				'title' => 'Comment Is Posted',
 				'description' => 'This event occurs when a new comment is posted.',
+				'group' => 'Comment',
 				'arguments' => array(
 					'comment_id' => array( 'argtype' => 'int', 'label' => 'Comment ID', 'description' => 'The ID of the new comment' ),
 					'comment' => array( 'argtype' => 'object', 'class' => 'WP_Comment', 'label' => 'Comment', 'description' => 'The new comment' ),
@@ -216,6 +230,7 @@ class _Content
 			array( 'action', 'edit_comment', array( 
 				'title' => 'Comment Is Edited',
 				'description' => 'This event occurs when a comment is edited.',
+				'group' => 'Comment',
 				'arguments' => array(
 					'comment_id' => array( 'argtype' => 'int', 'class' => 'WP_Comment', 'label' => 'Comment ID', 'description' => 'The ID of the edited comment' ),
 					'data' => array( 'argtype' => 'array', 'label' => 'Comment Data', 'description' => 'The updated comment data' ),
@@ -226,6 +241,7 @@ class _Content
 			array( 'action', 'transition_comment_status', array( 
 				'title' => 'Comment Status Has Been Changed',
 				'description' => 'This event occurs when the status of a comment has transitioned.',
+				'group' => 'Comment',
 				'arguments' => array(
 					'new_status' => array( 'argtype' => 'string', 'label' => 'New Status', 'description' => 'The new status of the comment' ),
 					'old_status' => array( 'argtype' => 'string', 'label' => 'Old Status', 'description' => 'The old status of the comment' ),
@@ -237,6 +253,7 @@ class _Content
 			array( 'action', 'spammed_comment', array( 
 				'title' => 'Comment Is Marked As Spam',
 				'description' => 'This event occurs after a comment has been marked as spam.',
+				'group' => 'Comment',
 				'arguments' => array(
 					'comment_id' => array( 'argtype' => 'int', 'class' => 'WP_Comment', 'label' => 'Comment ID', 'description' => 'The ID of the spam comment' ),
 				),
@@ -246,6 +263,7 @@ class _Content
 			array( 'action', 'unspammed_comment', array( 
 				'title' => 'Comment Is Un-Marked As Spam',
 				'description' => 'This event occurs after a comment has been un-marked as spam.',
+				'group' => 'Comment',
 				'arguments' => array(
 					'comment_id' => array( 'argtype' => 'int', 'class' => 'WP_Comment', 'label' => 'Comment ID', 'description' => 'The ID of the not spam comment' ),
 				),
@@ -255,6 +273,7 @@ class _Content
 			array( 'filter', 'comment_text', array( 
 				'title' => 'Comment Text Is Filtered',
 				'description' => 'Comments are filtered before they are output to the page.',
+				'group' => 'Comment',
 				'arguments' => array(
 					'comment_text' => array( 'argtype' => 'string', 'label' => 'Comment Text', 'description' => 'The content of the comment' ),
 					'comment' => array( 'argtype' => 'object', 'class' => 'WP_Comment', 'label' => 'Comment', 'description' => 'The comment', 'nullable' => true ),
@@ -266,6 +285,7 @@ class _Content
 			array( 'action', 'trashed_comment', array( 
 				'title' => 'Comment Is Trashed',
 				'description' => 'This event occurs after a comment has been moved to the trash.',
+				'group' => 'Comment',
 				'arguments' => array(
 					'comment_id' => array( 'argtype' => 'int', 'class' => 'WP_Comment', 'label' => 'Comment ID', 'description' => 'The ID of the comment which was trashed' ),
 				),
@@ -275,6 +295,7 @@ class _Content
 			array( 'action', 'untrashed_comment', array( 
 				'title' => 'Comment Is Un-Trashed',
 				'description' => 'This event occurs after a comment has been restored from the trash.',
+				'group' => 'Comment',
 				'arguments' => array(
 					'comment_id' => array( 'argtype' => 'int', 'class' => 'WP_Comment', 'label' => 'Comment ID', 'description' => 'The ID of the comment which was untrashed' ),
 				),
@@ -284,6 +305,7 @@ class _Content
 			array( 'action', 'delete_comment', array(
 				'title' => 'Comment Is Being Deleted Permanently',
 				'description' => 'This event occurs just before a comment and all of its associated data is deleted.',
+				'group' => 'Comment',
 				'arguments' => array(
 					'comment_id' => array( 'argtype' => 'int', 'class' => 'WP_Comment', 'label' => 'Comment ID', 'description' => 'The ID of the comment which is being deleted' ),
 				),
@@ -293,6 +315,7 @@ class _Content
 			array( 'action', 'added_comment_meta', array(
 				'title' => 'Comment Meta Has Been Added',
 				'description' => 'This event occurs when comment meta data is added for the first time.',
+				'group' => 'Comment',
 				'arguments' => array(
 					'meta_id' => array( 'argtype' => 'int', 'label' => 'Meta ID', 'description' => 'The ID of the meta data row' ),
 					'comment_id' => array( 'argtype' => 'int', 'class' => 'WP_Comment', 'label' => 'Comment ID', 'description' => 'The ID of the comment that the meta data belongs to' ),
@@ -305,6 +328,7 @@ class _Content
 			array( 'action', 'updated_comment_meta', array(
 				'title' => 'Comment Meta Has Been Updated',
 				'description' => 'This event occurs after comment meta data has been successfully updated.',
+				'group' => 'Comment',
 				'arguments' => array(
 					'meta_id' => array( 'argtype' => 'int', 'label' => 'Meta ID', 'description' => 'The ID of the meta data row' ),
 					'comment_id' => array( 'argtype' => 'int', 'class' => 'WP_Comment', 'label' => 'Comment ID', 'description' => 'The ID of the comment that the meta data belongs to' ),
@@ -317,6 +341,7 @@ class _Content
 			array( 'action', 'deleted_comment_meta', array(
 				'title' => 'Comment Meta Has Been Deleted',
 				'description' => 'This event occurs after comment meta data has been deleted.',
+				'group' => 'Comment',
 				'arguments' => array(
 					'meta_ids' => array( 'argtype' => 'array', 'label' => "Meta IDs", 'description' => 'The IDs of the meta data rows that were deleted' ),
 					'comment_id' => array( 'argtype' => 'int', 'class' => 'WP_Comment', 'label' => 'Comment ID', 'description' => 'The ID of the comment that the meta data belongs to' ),
@@ -329,6 +354,7 @@ class _Content
 			array( 'action', 'created_term', array(
 				'title' => 'Taxonomy Term Is Added',
 				'description' => 'This event fires after a taxonomy term is added to a taxonomy.',
+				'group' => 'Taxonomy',
 				'arguments' => array(
 					'term_id' => array( 'argtype' => 'int', 'class' => 'WP_Term', 'label' => 'Term ID', 'description' => 'The ID of the taxonomy term which has been added' ),
 					'term_taxonomy_id' => array( 'argtype' => 'int', 'label' => 'Term Taxonomy ID', 'description' => 'The ID of the term to taxonomy relationship database record' ),
@@ -340,6 +366,7 @@ class _Content
 			array( 'action', 'edited_term', array(
 				'title' => 'Taxonomy Term Is Edited',
 				'description' => 'This event fires after a taxonomy term has been edited.',
+				'group' => 'Taxonomy',
 				'arguments' => array(
 					'term_id' => array( 'argtype' => 'int', 'class' => 'WP_Term', 'label' => 'Term ID', 'description' => 'The ID of the taxonomy term which has been edited' ),
 					'term_taxonomy_id' => array( 'argtype' => 'int', 'label' => 'Term Taxonomy ID', 'description' => 'The ID of the term to taxonomy relationship database record' ),
@@ -351,6 +378,7 @@ class _Content
 			array( 'action', 'pre_delete_term', array(
 				'title' => 'Taxonomy Term Is Being Deleted',
 				'description' => 'This event fires just before a taxonomy term and all of its associated data is deleted.',
+				'group' => 'Taxonomy',
 				'arguments' => array(
 					'term_id' => array( 'argtype' => 'int', 'class' => 'WP_Term', 'label' => 'Term ID', 'description' => 'The ID of the taxonomy term which is being deleted' ),
 					'taxonomy_name' => array( 'argtype' => 'string', 'class' => 'WP_Taxonomy', 'label' => 'Taxonomy Name', 'description' => 'The name of the taxonomy to which the term belongs' ),
@@ -361,6 +389,7 @@ class _Content
 			array( 'action', 'added_term_meta', array(
 				'title' => 'Taxonomy Term Meta Has Been Added',
 				'description' => 'This event occurs when taxonomy term meta data is added for the first time.',
+				'group' => 'Taxonomy',
 				'arguments' => array(
 					'meta_id' => array( 'argtype' => 'int', 'label' => 'Meta ID', 'description' => 'The ID of the meta data row' ),
 					'term_id' => array( 'argtype' => 'int', 'class' => 'WP_Term', 'label' => 'Term ID', 'description' => 'The ID of the taxonomy term that the meta data belongs to' ),
@@ -373,6 +402,7 @@ class _Content
 			array( 'action', 'updated_term_meta', array(
 				'title' => 'Taxonomy Term Meta Has Been Updated',
 				'description' => 'This event occurs after taxonomy term meta data has been successfully updated.',
+				'group' => 'Taxonomy',
 				'arguments' => array(
 					'meta_id' => array( 'argtype' => 'int', 'label' => 'Meta ID', 'description' => 'The ID of the meta data row' ),
 					'term_id' => array( 'argtype' => 'int', 'class' => 'WP_Term', 'label' => 'Term ID', 'description' => 'The ID of the taxonomy term that the meta data belongs to' ),
@@ -385,6 +415,7 @@ class _Content
 			array( 'action', 'deleted_term_meta', array(
 				'title' => 'Taxonomy Term Meta Has Been Deleted',
 				'description' => 'This event occurs after taxonomy term meta data has been deleted.',
+				'group' => 'Taxonomy',
 				'arguments' => array(
 					'meta_ids' => array( 'argtype' => 'array', 'label' => "Meta IDs", 'description' => 'The IDs of the meta data rows that were deleted' ),
 					'term_id' => array( 'argtype' => 'int', 'class' => 'WP_Term', 'label' => 'Term ID', 'description' => 'The ID of the taxonomy term that the meta data belongs to' ),

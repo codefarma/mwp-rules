@@ -71,6 +71,7 @@ class _Users
 			array( 'action', 'user_register', array(
 				'title' => 'User Has Been Created',
 				'description' => 'Access data for a new user immediately after they are added to the database.',
+				'group' => 'User',
 				'arguments' => array(
 					'user_id' => array( 
 						'argtype' => 'int',
@@ -85,6 +86,7 @@ class _Users
 			array( 'action', 'profile_update', array(
 				'title' => 'User Profile Has Been Updated',
 				'description' => 'This hook allows you to access data for a user immediately after their database information is updated.',
+				'group' => 'User',
 				'arguments' => array(
 					'user_id' => array( 
 						'argtype' => 'int',
@@ -105,6 +107,7 @@ class _Users
 			array( 'action', 'delete_user', array(
 				'title' => 'User Is Being Deleted',
 				'description' => 'This event occurs just before a user is deleted from the database.',
+				'group' => 'User',
 				'arguments' => array(
 					'user_id' => array(
 						'argtype' => 'int',
@@ -119,6 +122,7 @@ class _Users
 			array( 'action', 'wp_login', array( 
 				'title' => 'User Has Logged In',
 				'description' => 'This event occurs when a user logs into the site.',
+				'group' => 'User',
 				'arguments' => array(
 					'user_login' => array(
 						'argtype' => 'string',
@@ -138,12 +142,14 @@ class _Users
 			array( 'action', 'clear_auth_cookie', array( 
 				'title' => 'User Is Logging Out',
 				'description' => 'This event occurs just before a user has their authentication cleared.',
+				'group' => 'User',
 			)),
 			
 			/* User Meta Added */
 			array( 'action', 'added_user_meta', array(
 				'title' => 'User Meta Has Been Added',
 				'description' => 'This event occurs when user meta data is added for the first time.',
+				'group' => 'User',
 				'arguments' => array(
 					'meta_id' => array( 'argtype' => 'int', 'label' => 'Meta ID', 'description' => 'The ID of the meta data row' ),
 					'user_id' => array( 'argtype' => 'int', 'class' => 'WP_User', 'label' => 'User ID', 'description' => 'The ID of the user that the meta data belongs to' ),
@@ -156,6 +162,7 @@ class _Users
 			array( 'action', 'updated_user_meta', array(
 				'title' => 'User Meta Has Been Updated',
 				'description' => 'This event occurs after user meta data has been successfully updated.',
+				'group' => 'User',
 				'arguments' => array(
 					'meta_id' => array( 'argtype' => 'int', 'label' => 'Meta ID', 'description' => 'The ID of the meta data row' ),
 					'user_id' => array( 'argtype' => 'int', 'class' => 'WP_User', 'label' => 'User ID', 'description' => 'The ID of the user that the meta data belongs to' ),
@@ -168,6 +175,7 @@ class _Users
 			array( 'action', 'deleted_user_meta', array(
 				'title' => 'User Meta Has Been Deleted',
 				'description' => 'This event occurs after user meta data has been deleted.',
+				'group' => 'User',
 				'arguments' => array(
 					'meta_ids' => array( 'argtype' => 'array', 'label' => "Meta IDs", 'description' => 'The IDs of the meta data rows that were deleted' ),
 					'user_id' => array( 'argtype' => 'int', 'class' => 'WP_User', 'label' => 'User ID', 'description' => 'The ID of the user that the meta data belongs to' ),

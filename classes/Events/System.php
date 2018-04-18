@@ -71,42 +71,49 @@ class _System
 			array( 'action', 'setup_theme', array(
 				'title' => 'Theme Is Being Setup (Before)',
 				'description' => 'Fires before the theme is loaded.',
+				'group' => 'Initialization',
 			)),
 			
 			/* Post setup theme */
 			array( 'action', 'after_setup_theme', array(
 				'title' => 'Theme Is Being Setup (After)',
 				'description' => 'Fires after the theme is loaded.',
+				'group' => 'Initialization',
 			)),
 			
 			/* Init */
 			array( 'action', 'init', array(
 				'title' => 'WordPress Is Being Initialized',
 				'description' => 'The init hook is fired just after all plugins have been loaded.',
+				'group' => 'Initialization',
 			)),
 			
 			/* Wordpress Loaded */
 			array( 'action', 'wp_loaded', array( 
 				'title' => 'WordPress Is Loaded',
 				'description' => 'This hook is fired once WP, all plugins, and the theme are fully loaded and instantiated.',
+				'group' => 'Initialization',
 			)),
 			
 			/* Template Redirect */
 			array( 'action', 'template_redirect', array(
 				'title' => 'Page Template Is Being Loaded',
 				'description' => 'This event occurs just before the template for the current page is loaded.',
+				'group' => 'Initialization',
 			)),
 			
 			/* Wordpress Shutdown */
 			array( 'action', 'shutdown', array( 
 				'title' => 'WordPress Is Shutting Down',
 				'description' => 'This event occurs just before PHP shuts down execution.',
+				'group' => 'Shutdown',
 			)),
 			
 			/* Document Title */
 			array( 'filter', 'document_title_parts', array(
 				'title' => 'Document Title Is Being Filtered',
 				'description' => 'The document title is the page title which appears in the browser when a page is viewed.',
+				'group' => 'Output',
 				'arguments' => array(
 					'parts' => array( 
 						'argtype' => 'array',
@@ -128,6 +135,7 @@ class _System
 			array( 'filter', 'wp_mail', array(
 				'title' => 'Email Is Being Sent',
 				'description' => 'The wp_mail filter hook allows you to filter the arguments that are passed to the wp_mail() function.',
+				'group' => 'Email',
 				'arguments' => array(
 					'mail' => array(
 						'argtype' => 'array',

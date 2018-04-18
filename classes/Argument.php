@@ -648,11 +648,7 @@ class _Argument extends ExportableRecord
 					'argument' => $this,
 				); 
 				
-				$evaluate = function( $phpcode ) use ( $variables ) {
-					extract( $variables );								
-					return @eval( $phpcode );
-				};
-				
+				$evaluate = rules_evaluation_closure( $variables );
 				$_options = $evaluate( $phpcode );
 				if ( is_array( $_options ) ) {
 					$config_options = array_replace_recursive( $config_options, $_options );

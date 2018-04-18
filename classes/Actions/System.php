@@ -67,12 +67,18 @@ class _System
 	{
 		$plugin = $this->getPlugin();
 		
+		$system_lang = 'System';
+		$core_lang = 'Core';
+		$special_lang = 'Special';
+		$output_lang = 'Output';
+		
 		rules_define_actions( array(
 			
 			/* Send an email */
 			array( 'rules_send_email', array( 
 				'title' => 'Send An Email',
 				'description' => 'Send an email to a user or users',
+				'group' => $core_lang,
 				'configuration' => array(
 					'form' => function( $form, $values ) {
 						$form->addField( 'rules_email_from_source', 'choice', array( 
@@ -202,8 +208,9 @@ class _System
 			
 			/* Modify the value being filtered */
 			array( 'rules_modify_filtered_value', array(
-				'title' => 'Modify The Filtered Value',
-				'description' => 'Change the value being filtered in a hook.',
+				'title' => 'Modify Filtered Value',
+				'description' => 'Change the value which is being filtered.',
+				'group' => $special_lang,
 				'updates_filter' => true,
 				'arguments' => array(
 					'new_value' => array(
@@ -229,6 +236,7 @@ class _System
 			array( 'rules_redirect', array(
 				'title' => 'Redirect To Page',
 				'description' => 'Issue an HTTP redirect to another page',
+				'group' => $core_lang,
 				'arguments' => array(
 					'status' => array(
 						'label' => 'HTTP Status',
@@ -290,6 +298,7 @@ class _System
 			array( 'rules_display_admin_notice', array(
 				'title' => 'Display Admin Notice',
 				'description' => 'Display a notice in the WP admin at the top of the page.',
+				'group' => $output_lang,
 				'configuration' => array(
 					'form' => function( $form, $values ) {
 						$form->addField( 'rules_notice_type', 'choice', array(
@@ -341,6 +350,7 @@ class _System
 			array( 'rules_update_metadata', array(
 				'title' => 'Update Meta Data',
 				'description' => 'Update the meta data for given object(s) (user, post, comment, or term).',
+				'group' => 'General',
 				'configuration' => array(
 					'form' => function( $form, $values ) {
 						$form->addField( 'rules_meta_update_method', 'choice', array(
@@ -511,6 +521,7 @@ class _System
 			array( 'rules_delete_metadata', array(
 				'title' => 'Delete Meta Data',
 				'description' => 'Delete the meta data for a given object or array of objects (user,post,comment,term).',
+				'group' => 'General',
 				'arguments' => array(
 					'association' => array(
 						'label' => 'Associated Object(s)',
@@ -570,6 +581,7 @@ class _System
 			array( 'rules_unschedule_action', array(
 				'title' => 'Unschedule An Action',
 				'description' => 'Check for and remove a scheduled action by key.',
+				'group' => $system_lang,
 				'arguments' => array(
 					'action_key' => array(
 						'label' => 'Action key to unschedule',
@@ -603,6 +615,7 @@ class _System
 			array( 'rules_execute_php', array(
 				'title' => 'Execute Custom PHP Code',
 				'description' => 'Run a custom block of php code.',
+				'group' => $system_lang,
 				'configuration' => array(
 					'form' => function( $form, $saved_values, $operation ) use ( $plugin ) {
 						$form->addField( 'rules_custom_phpcode', 'textarea', array(
@@ -616,11 +629,7 @@ class _System
 					}
 				),
 				'callback' => function( $saved_values, $event_args, $operation ) {
-					$evaluate = function( $phpcode ) use ( $event_args, $operation ) {
-						extract( $event_args );
-						return @eval( $phpcode );
-					};
-					
+					$evaluate = rules_evaluation_closure( array_merge( $event_args, array( 'operation' => $operation ) ) );
 					return $evaluate( $saved_values[ 'rules_custom_phpcode' ] );
 				},
 			)),

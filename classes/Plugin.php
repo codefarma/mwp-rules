@@ -78,7 +78,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	/**
 	 * @MWP\WordPress\Script( deps={"jquery"} )
 	 */
-	public $selectizeJS = 'assets/js/selectize/js/selectize.min.js';
+	public $selectizeJS = 'assets/js/selectize/js/selectize.js';
 	
 	/**
 	 * @MWP\WordPress\Script( handle="codemirror" )

@@ -67,12 +67,16 @@ class _System
 	{
 		$plugin = $this->getPlugin();
 		
+		$fundamental_lang = 'Fundamental';
+		$system_lang = 'System';
+		
 		rules_register_conditions( array(
 			
 			/* Truth comparison */
 			array( 'rules_truth', array(
 				'title' => 'Check a Truth',
 				'description' => 'Checks if a value is equivalent to a boolean truth.',
+				'group' => $fundamental_lang,
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
 						$compare_options = array(
@@ -131,6 +135,7 @@ class _System
 			array( 'rules_number_comparison', array(
 				'title' => 'Check a Number',
 				'description' => 'Check the value of a number against another.',
+				'group' => $fundamental_lang,
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
 						$compare_options = array(
@@ -215,6 +220,7 @@ class _System
 			array( 'rules_string_comparison', array(
 				'title' => 'Check a String Value',
 				'description' => 'Check the contents of a string.',
+				'group' => $fundamental_lang,
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
 						$compare_options = array(
@@ -287,6 +293,7 @@ class _System
 			array( 'rules_array_comparison', array(
 				'title' => 'Check an Array Value',
 				'description' => 'Check the attributes of an array for specific conditions.',				
+				'group' => $fundamental_lang,
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
 						$compare_options = array(
@@ -371,6 +378,7 @@ class _System
 			array( 'rules_object_comparison', array(
 				'title' => 'Check an Object Value',
 				'description' => 'Inspect an object to compare its class or equality with another object.',
+				'group' => $fundamental_lang,
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
 						$compare_options = array(
@@ -436,6 +444,7 @@ class _System
 			array( 'rules_time_comparison', array(
 				'title' => 'Check a Date Value',
 				'description' => 'Compare a date/time with another date/time.',
+				'group' => $fundamental_lang,
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
 						$date_compare_options = array (
@@ -518,6 +527,7 @@ class _System
 			array( 'rules_data_type_comparison', array(
 				'title' => 'Check a Data Type',
 				'description' => 'Check if a value has a certain data type.',
+				'group' => $fundamental_lang,
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
 						$compare_options = array(
@@ -557,6 +567,7 @@ class _System
 			array( 'rules_check_scheduled_action', array(
 				'title' => 'Check For A Scheduled Action',
 				'description' => 'Check to see if an action with a particular key has been scheduled.',
+				'group' => $system_lang,
 				'arguments' => array(
 					'action_key' => array(
 						'label' => 'Action key to check',
@@ -588,6 +599,7 @@ class _System
 			array( 'rules_check_function_exists', array(
 				'title' => 'Check If Function Exists',
 				'description' => 'Check to see if a particular function name exists',
+				'group' => $system_lang,
 				'arguments' => array(
 					'function_name' => array(
 						'label' => 'Function Name',
@@ -604,6 +616,7 @@ class _System
 			array( 'rules_check_class_exists', array(
 				'title' => 'Check If A Class Exists',
 				'description' => 'Check to see if a particular class name exists',
+				'group' => $system_lang,
 				'arguments' => array(
 					'classname' => array(
 						'label' => 'Class Name',
@@ -620,6 +633,7 @@ class _System
 			array( 'rules_execute_php', array(
 				'title' => 'Execute Custom PHP Code',
 				'description' => 'Run a custom block of php code.',
+				'group' => $system_lang,
 				'configuration' => array(
 					'form' => function( $form, $saved_values, $operation ) use ( $plugin ) {
 						$form->addField( 'rules_custom_phpcode', 'textarea', array(
@@ -633,11 +647,7 @@ class _System
 					}
 				),
 				'callback' => function( $saved_values, $event_args, $operation ) {
-					$evaluate = function( $phpcode ) use ( $event_args, $operation ) {
-						extract( $event_args );
-						return @eval( $phpcode );
-					};
-					
+					$evaluate = rules_evaluation_closure( array_merge( $event_args, array( 'operation' => $operation ) ) );
 					return $evaluate( $saved_values[ 'rules_custom_phpcode' ] );
 				},
 			)),

@@ -67,12 +67,15 @@ class _Users
 	{
 		$plugin = $this->getPlugin();
 
+		$users_lang = __( 'Users', 'mwp-rules' );
+		
 		rules_register_conditions( array(
 		
 			/* User Exists */
 			array( 'rules_user_exists', array(
 				'title' => 'Check If A User Exists',
 				'description' => 'Check if a given user exists in the database.',
+				'group' => $users_lang,
 				'arguments' => array(
 					'users' => array(
 						'label' => 'User',
@@ -97,6 +100,7 @@ class _Users
 			array( 'rules_user_has_capability', array(
 				'title' => 'Check The Capabilities Of A User',
 				'description' => 'Check if a user has a specific capability.',
+				'group' => $users_lang,
 				'configuration' => array(
 					'form' => function( $form, $values ) {
 						$choices = array(
@@ -169,6 +173,7 @@ class _Users
 			array( 'rules_user_has_role', array(
 				'title' => 'Check The Role Of A User',
 				'description' => 'Check if a user has been assigned particular role(s).',
+				'group' => $users_lang,
 				'configuration' => array(
 					'form' => function( $form, $values ) {
 						$choices = array(
@@ -259,8 +264,9 @@ class _Users
 			
 			/* Count Posts By User */
 			array( 'rules_count_user_posts', array(
-				'title' => 'Check The Role Of A User',
-				'description' => 'Check if a user has been assigned particular role(s).',
+				'title' => 'Check User Post Count',
+				'description' => 'Check the number of posts a given user has.',
+				'group' => $users_lang,
 				'configuration' => array(
 					'form' => function( $form, $values ) {
 						$choices = array(
@@ -292,9 +298,11 @@ class _Users
 					'post_types' => array(
 						'label' => 'Post Types',
 						'required' => false,
+						'default' => 'manual',
 						'argtypes' => array(
-							'array' => array( 'description' => 'An array of post types to filter by', 'classes' => array( 'WP_Post_Type' ) ),
+							'array' => array( 'description' => 'An array of post type names to filter by' ),
 							'object' => array( 'description' => 'A post type to filter by', 'classes' => array( 'WP_Post_Type' ) ),
+							'string' => array( 'description' => 'A post type name to filter by' ),
 						),
 						'configuration' => array(
 							'form' => function( $form, $values ) {
@@ -367,6 +375,14 @@ class _Users
 					
 					if ( ! isset( $threshold ) ) {
 						return false;
+					}
+					
+					if ( $post_types instanceof \WP_Post_Type ) {
+						$post_types = array( $post_types->name );
+					}
+					
+					if ( is_array( $post_types ) ) {
+						$post_types = array_map( function( $t ) { return $t instanceof \WP_Post_Type ? $t->name : $t; }, $post_types );
 					}
 					
 					$args = array(

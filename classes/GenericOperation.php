@@ -44,6 +44,10 @@ abstract class _GenericOperation extends ExportableRecord
 		$request = Framework::instance()->getRequest();
 		$operation_label = __( $optype == 'condition' ? 'Condition to apply' : 'Action to take', 'mwp-rules' );
 		
+		$form->addTab( 'operation_details', array( 
+			'title' => __( ucwords( $optype ) . ' Details', 'mwp-rules' ),
+		));
+		
 		/**
 		 * Operation title
 		 */
@@ -62,22 +66,29 @@ abstract class _GenericOperation extends ExportableRecord
 			$operation_definitions = $optype == 'condition' ? $rulesPlugin->getConditions() : $rulesPlugin->getActions();
 			
 			foreach( $operation_definitions as $definition ) {
-				$group = isset( $definition->group ) ? $definition->group : 'Misc';
+				$group = ( isset( $definition->group ) ? $definition->group : __( 'Unclassified', 'mwp-rules' ) ) . ' ' . ucwords( $optype ) . 's';
 				$operation_choices[ $group ][ $definition->title ] = $definition->key;
 			}
 			
 			$form->addField( 'key', 'choice', array(
+				'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
+				'attr' => array( 'placeholder' => __( 'Pick ' . ( $optype == 'action' ? 'an action' : 'a condition' ), 'mwp-rules' ), 'data-bind' => 'jquery: { selectize: {} }' ),
 				'label' => $operation_label,
 				'choices' => $operation_choices,
 				'data' => $operation->key,
-				'required' => true,
+				'required' => false,
+				'constraints' => [ function( $data, $context ) use ( $optype ) {
+					if ( ! $data ) {
+						$context->addViolation( __( 'You must select a ' . $optype . ' for the rule.', 'mwp-rules' ) );
+					}
+				} ],
 			),
 			NULL, 'title', 'before' );
 		
 			$form->addField( 'submit', 'submit', array( 
 				'label' => __( 'Continue', 'mwp-rules' ), 
 				'attr' => array( 'class' => 'btn btn-primary' ),
-				'row_attr' => array( 'class' => 'text-center' ),
+				'row_attr' => array( 'class' => 'text-center', 'style' => 'margin:75px 0' ),
 			));
 			
 			return $form;			
@@ -100,15 +111,24 @@ abstract class _GenericOperation extends ExportableRecord
 		/* Make sure we have a definition to work with */
 		if ( $definition ) 
 		{
+			$has_op_config = ( isset( $definition->configuration['form'] ) and is_callable( $definition->configuration['form'] ) );
+			$has_arg_config = ( isset( $definition->arguments ) and is_array( $definition->arguments ) );
+			
+			if ( $has_op_config or $has_arg_config ) {
+				$form->addTab( 'operation_config', array( 
+					'title' => __( ucwords( $optype ) . ' Config', 'mwp-rules' ),
+				));
+			}
+				
 			/* Add operation level form fields */
-			if ( isset( $definition->configuration['form'] ) and is_callable( $definition->configuration['form'] ) ) {
+			if ( $has_op_config ) {
 				call_user_func( $definition->configuration['form'], $form, $operation->data, $operation );
 			}
 			
 			/**
 			 * Add argument level configurations if this operation takes arguments
 			 */
-			if ( isset( $definition->arguments ) and is_array( $definition->arguments ) )
+			if ( $has_arg_config )
 			{
 				foreach ( $definition->arguments as $arg_name => $arg )
 				{
@@ -241,9 +261,22 @@ abstract class _GenericOperation extends ExportableRecord
 			'label' => __( 'Save ' . ucwords( $optype ), 'mwp-rules' ), 
 			'attr' => array( 'class' => 'btn btn-primary' ),
 			'row_attr' => array( 'class' => 'text-center' ),
-		));
+		), '');
 	}
 	
+	/**
+	 * Process submitted form values 
+	 *
+	 * @param	array			$values				Submitted form values
+	 * @return	void
+	 */
+	protected function processEditForm( $values )
+	{	
+		$this->processConfigForm( $values );
+		$_values = array_merge( $values['operation_details'], isset( $values['operation_advanced'] ) ? $values['operation_advanced'] : array() );
+		parent::processEditForm( $_values );
+	}
+
 	/**
 	 * Process the values from an operation configuration form submission
 	 * 
@@ -252,6 +285,8 @@ abstract class _GenericOperation extends ExportableRecord
 	 */
 	public function processConfigForm( $values )
 	{
+		$values = isset( $values['operation_config'] ) ? $values['operation_config'] : array();
+		
 		foreach( $values as $key => $value ) {
 			if ( substr( $key, 0, 2 ) == '__' ) {
 				unset( $values[$key] );
@@ -268,25 +303,6 @@ abstract class _GenericOperation extends ExportableRecord
 				}
 			}
 		}
-		
-		/* Remove non-custom configuration data */
-		unset( 
-			$values['key'],
-			$values['title'],
-			$values['event_details'],
-			$values['not'],
-			$values['group_compare'],
-			$values['enabled'],
-			$values['else'],
-			$values['schedule_mode'], 
-			$values['schedule_minutes'], 
-			$values['schedule_hours'], 
-			$values['schedule_days'],
-			$values['schedule_months'],
-			$values['schedule_date'],
-			$values['schedule_key'],
-			$values['schedule_customcode']
-		);
 		
 		$this->data = $values;
 	}
@@ -414,11 +430,7 @@ abstract class _GenericOperation extends ExportableRecord
 							 */
 							case 'phpcode':
 							
-								$evaluate = function( $phpcode ) use ( $arg_map ) {
-									extract( $arg_map );								
-									return @eval( $phpcode );
-								};
-								
+								$evaluate = rules_evaluation_closure( $arg_map );
 								$argVal = $evaluate( $this->data[ $argNameKey . '_phpcode' ] );
 								
 								if ( isset( $argVal ) )
@@ -512,12 +524,7 @@ abstract class _GenericOperation extends ExportableRecord
 								/* Only if we haven't already attempted to get the argument from phpcode */
 								if ( $this->data[ $argNameKey . '_source' ] !== 'phpcode' )
 								{
-									$evaluate = function( $phpcode ) use ( $arg_map )
-									{
-										extract( $arg_map );								
-										return @eval( $phpcode );
-									};
-									
+									$evaluate = rules_evaluation_closure( $arg_map );
 									$argVal = $evaluate( $this->data[ $argNameKey . '_phpcode' ] );
 									
 									if ( isset( $argVal ) )
@@ -651,11 +658,7 @@ abstract class _GenericOperation extends ExportableRecord
 								 * On a calculated date
 								 */
 								case 4:
-									$evaluate = function( $phpcode ) use ( $arg_map ) {
-										extract( $arg_map );
-										return @eval( $phpcode );
-									};
-									
+									$evaluate = rules_evaluation_closure( $arg_map );
 									$custom_time = $evaluate( $this->schedule_customcode );
 									
 									if ( is_numeric( $custom_time ) )

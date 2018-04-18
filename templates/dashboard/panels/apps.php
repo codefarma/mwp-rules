@@ -27,7 +27,7 @@ $apps = Rules\App::loadWhere('1');
 	<a href="#" class="btn btn-success btn-xs pull-right">Get Apps</a>
 	<!-- <a style="margin-right:5px;" href="<?php echo $plugin->getAppsController()->getUrl() ?>" class="btn btn-default btn-xs pull-right">Manage Apps</a> -->
 	<h3 class="panel-title">
-		Your Apps
+		Automation Apps
 	</h3>
   </div>
   <div class="panel-body">

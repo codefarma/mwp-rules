@@ -237,7 +237,7 @@ class _App extends ExportableRecord
 			'label' => __( 'Enabled', 'mwp-rules' ),
 			'description' => __( 'Choose whether this app is enabled or not.', 'mwp-rules' ),
 			'value' => 1,
-			'data' => (bool) $this->enabled,
+			'data' => $this->enabled !== NULL ? (bool) $this->enabled : true,
 		), 'app_details' );
 		
 		if ( $this->id() ) {
