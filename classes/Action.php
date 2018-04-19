@@ -141,11 +141,11 @@ class _Action extends GenericOperation
 		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		$action = $this;
 		
-		/* Display details for the app/feature/parent */
+		/* Display details for the app/bundle/parent */
 		$form->addHtml( 'rule_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
 			'rule_item' => 'rule_actions',
 			'rule' => $this->getRule(), 
-			'feature' => $this->getRule() ? $this->getRule()->getFeature() : null, 
+			'bundle' => $this->getRule() ? $this->getRule()->getBundle() : null, 
 			'app' => $this->getRule() ? $this->getRule()->getApp() : null, 
 		]));
 		

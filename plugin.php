@@ -64,7 +64,7 @@ add_action( 'mwp_framework_init', function()
 	
 	/* Assign customized controller classes */
 	App             ::setControllerClass( Controllers\AppsController::class );
-	Feature         ::setControllerClass( Controllers\FeaturesController::class );
+	Bundle         ::setControllerClass( Controllers\BundlesController::class );
 	Rule            ::setControllerClass( Controllers\RulesController::class );
 	Action          ::setControllerClass( Controllers\ActionsController::class );
 	Condition       ::setControllerClass( Controllers\ConditionsController::class );
@@ -74,7 +74,7 @@ add_action( 'mwp_framework_init', function()
 	
 	/* Create controllers and admin pages */
 	App             ::createController('admin', $config['controllers']['rules_apps']);
-	Feature         ::createController('admin', $config['controllers']['rules_features']);
+	Bundle         ::createController('admin', $config['controllers']['rules_bundles']);
 	Rule            ::createController('admin', $config['controllers']['rules_rules']);
 	Condition       ::createController('admin', $config['controllers']['rules_conditions']);
 	Action          ::createController('admin', $config['controllers']['rules_actions']);

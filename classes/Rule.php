@@ -49,7 +49,7 @@ class _Rule extends ExportableRecord
 		'priority',
 		'base_compare',
 		'debug',
-		'feature_id',
+		'bundle_id',
 		'enable_recursion',
 		'recursion_limit',
 		'imported',
@@ -91,20 +91,20 @@ class _Rule extends ExportableRecord
 	public static $parent_col = 'parent_id';
 	
 	/**
-	 * Get the associated feature
+	 * Get the associated bundle
 	 *
-	 * @return	MWP\Rules\Feature|NULL
+	 * @return	MWP\Rules\Bundle|NULL
 	 */
-	public function getFeature()
+	public function getBundle()
 	{
 		$rule = $this;
 		while( $rule->parent() ) {
 			$rule = $rule->parent();
 		}
 		
-		if ( $rule->feature_id ) {
+		if ( $rule->bundle_id ) {
 			try {
-				return Feature::load( $rule->feature_id );
+				return Bundle::load( $rule->bundle_id );
 			} catch( \OutOfRangeException $e ) { }
 		}
 		
@@ -118,8 +118,8 @@ class _Rule extends ExportableRecord
 	 */
 	public function getApp()
 	{
-		if ( $feature = $this->getFeature() ) {
-			return $feature->getApp();
+		if ( $bundle = $this->getBundle() ) {
+			return $bundle->getApp();
 		}
 		
 		return NULL;
@@ -140,8 +140,8 @@ class _Rule extends ExportableRecord
 			return $parent->isActive();
 		}
 		
-		if ( $feature = $this->getFeature() ) {
-			return $feature->isActive();
+		if ( $bundle = $this->getBundle() ) {
+			return $bundle->isActive();
 		}
 		
 		return true;
@@ -218,10 +218,10 @@ class _Rule extends ExportableRecord
 		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		$rule = $this;
 		
-		/* Display details for the app/feature/parent */
+		/* Display details for the app/bundle/parent */
 		$form->addHtml( 'rule_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
 			'rule' => $this, 
-			'feature' => $this->getFeature(), 
+			'bundle' => $this->getBundle(), 
 			'app' => $this->getApp(), 
 		]));
 		
@@ -239,27 +239,27 @@ class _Rule extends ExportableRecord
 		
 		if ( $this->id() and ! $this->parent() ) {
 			
-			$feature_choices = [
+			$bundle_choices = [
 				'Unassigned' => 0,
 			];
 			
 			foreach( App::loadWhere('1') as $app ) {
-				$app_features = [];
-				foreach( $app->getFeatures() as $feature ) {
-					$app_features[ $feature->title ] = $feature->id();
+				$app_bundles = [];
+				foreach( $app->getBundles() as $bundle ) {
+					$app_bundles[ $bundle->title ] = $bundle->id();
 				}
-				$feature_choices[ $app->title ] = $app_features;
+				$bundle_choices[ $app->title ] = $app_bundles;
 			}
 			
-			foreach( Feature::loadWhere( 'feature_app_id=0' ) as $feature ) {
-				$feature_choices[ 'Independent Features' ][ $feature->title ] = $feature->id();
+			foreach( Bundle::loadWhere( 'bundle_app_id=0' ) as $bundle ) {
+				$bundle_choices[ 'Independent Bundles' ][ $bundle->title ] = $bundle->id();
 			}
 			
-			$form->addField( 'feature_id', 'choice', array(
-				'label' => __( 'Associated Feature', 'mwp-rules' ),
-				'choices' => $feature_choices,
+			$form->addField( 'bundle_id', 'choice', array(
+				'label' => __( 'Associated Bundle', 'mwp-rules' ),
+				'choices' => $bundle_choices,
 				'required' => true,
-				'data' => $this->feature_id,
+				'data' => $this->bundle_id,
 			), 
 			'rule_settings' );
 		}
@@ -502,9 +502,9 @@ class _Rule extends ExportableRecord
 		}
 		else {
 			$form->onComplete( function() use ( $rule, $plugin ) {
-				if ( $feature = $rule->getFeature() ) {
-					$controller = $plugin->getFeaturesController( $feature->getApp() );
-					wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $feature->id(), '_tab' => 'feature_rules' ) ) );
+				if ( $bundle = $rule->getBundle() ) {
+					$controller = $plugin->getBundlesController( $bundle->getApp() );
+					wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $bundle->id(), '_tab' => 'bundle_rules' ) ) );
 					exit;
 				}
 			});
@@ -999,10 +999,10 @@ class _Rule extends ExportableRecord
 	 *
 	 * @param	array			$data				The data to import
 	 * @param	int				$parent_id			The parent rule id
-	 * @param	int				$feature_id			The parent feature id
+	 * @param	int				$bundle_id			The parent bundle id
 	 * @return	array
 	 */
-	public static function import( $data, $parent_id=0, $feature_id=0 )
+	public static function import( $data, $parent_id=0, $bundle_id=0 )
 	{
 		$uuid_col = static::$prefix . 'uuid';
 		$results = [];
@@ -1019,7 +1019,7 @@ class _Rule extends ExportableRecord
 			}
 			
 			$rule->parent_id = $parent_id;
-			$rule->feature_id = $feature_id;
+			$rule->bundle_id = $bundle_id;
 			$rule->imported = time();
 			$result = $rule->save();
 			
@@ -1054,7 +1054,7 @@ class _Rule extends ExportableRecord
 				if ( isset( $data['children'] ) and ! empty( $data['children'] ) ) {
 					foreach( $data['children'] as $subrule ) {
 						$imported_rule_uuids[] = $subrule['data']['rule_uuid'];
-						$results = array_merge_recursive( $results, Rule::import( $subrule, $rule->id(), $feature_id ) );
+						$results = array_merge_recursive( $results, Rule::import( $subrule, $rule->id(), $bundle_id ) );
 					}
 				}
 				
@@ -1090,10 +1090,10 @@ class _Rule extends ExportableRecord
 	{
 		$changed = $this->_getChanged();
 		
-		/* Update all subrules when this rule is moved to a new feature */
-		if ( array_key_exists( 'rule_feature_id', $changed ) ) {
+		/* Update all subrules when this rule is moved to a new bundle */
+		if ( array_key_exists( 'rule_bundle_id', $changed ) ) {
 			foreach( $this->children() as $subrule ) {
-				$subrule->feature_id = $this->feature_id;
+				$subrule->bundle_id = $this->bundle_id;
 				$subrule->save();
 			}
 		}

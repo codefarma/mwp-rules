@@ -20,7 +20,7 @@ use MWP\Rules;
 /**
  * ArgumentsController Class
  */
-class _FeaturesController extends ExportableController
+class _BundlesController extends ExportableController
 {
 	/**
 	 * @var	MWP\Rules\App
@@ -69,22 +69,22 @@ class _FeaturesController extends ExportableController
 		return array_replace_recursive( parent::getDefaultConfig(), array(
 			'tableConfig' => array(
 				'bulkActions' => array(
-					'delete' => __( 'Delete Features', 'mwp-rules' ),
-					'export' => __( 'Export Features', 'mwp-rules' ),
+					'delete' => __( 'Delete Bundles', 'mwp-rules' ),
+					'export' => __( 'Export Bundles', 'mwp-rules' ),
 				),
 				'columns' => array(
-					'feature_title'        => __( 'Feature Title', 'mwp-rules' ),
-					'feature_description'  => __( 'Feature Description', 'mwp-rules' ),
-					'feature_enabled'      => __( 'Feature Enabled', 'mwp-rules' ),
-					'overview'             => __( 'Feature Overview', 'mwp-rules' ),
+					'bundle_title'        => __( 'Bundle Title', 'mwp-rules' ),
+					'bundle_description'  => __( 'Bundle Description', 'mwp-rules' ),
+					'bundle_enabled'      => __( 'Bundle Enabled', 'mwp-rules' ),
+					'overview'             => __( 'Bundle Overview', 'mwp-rules' ),
 				),
 				'handlers' => array(
-					'feature_enabled' => function( $row ) {
-						return (bool) $row['feature_enabled'] ? 'Yes' : 'No';
+					'bundle_enabled' => function( $row ) {
+						return (bool) $row['bundle_enabled'] ? 'Yes' : 'No';
 					},
 					'overview' => function( $row ) {
-						$feature = Rules\Feature::load( $row['feature_id'] );
-						return __( 'Rule Count: ', 'mwp-rules' ) . $feature->getRuleCount();
+						$bundle = Rules\Bundle::load( $row['bundle_id'] );
+						return __( 'Rule Count: ', 'mwp-rules' ) . $bundle->getRuleCount();
 					},
 				),
 			),
@@ -120,7 +120,7 @@ class _FeaturesController extends ExportableController
 	public function createDisplayTable( $override_options=array() )
 	{
 		$table = parent::createDisplayTable( $override_options );
-		$table->hardFilters[] = array( 'feature_app_id=%d', $this->getAppId() );
+		$table->hardFilters[] = array( 'bundle_app_id=%d', $this->getAppId() );
 		
 		return $table;
 	}
@@ -143,7 +143,7 @@ class _FeaturesController extends ExportableController
 	public function do_index()
 	{
 		if ( $app = $this->getApp() ) {
-			wp_redirect( Rules\Plugin::instance()->getAppsController()->getUrl( array( 'id' => $app->id(), 'do' => 'edit', '_tab' => 'app_features' ) ) );
+			wp_redirect( Rules\Plugin::instance()->getAppsController()->getUrl( array( 'id' => $app->id(), 'do' => 'edit', '_tab' => 'app_bundles' ) ) );
 		}
 		
 		parent::do_index();
@@ -165,19 +165,19 @@ class _FeaturesController extends ExportableController
 	}
 	
 	/**
-	 * Customize the feature settings
+	 * Customize the bundle settings
 	 *
-	 * @param	MWP\Rules\Feature|NULL		$feature			The feature to customize settings for, or NULL to load by request param
+	 * @param	MWP\Rules\Bundle|NULL		$bundle			The bundle to customize settings for, or NULL to load by request param
 	 * @return	void
 	 */
-	public function do_settings( $feature=NULL )
+	public function do_settings( $bundle=NULL )
 	{
 		$class = $this->recordClass;
 		$controller = $this;
 		
-		if ( ! $feature ) {
+		if ( ! $bundle ) {
 			try {
-				$feature = $class::load( isset( $_REQUEST['id'] ) ? $_REQUEST['id'] : 0 );
+				$bundle = $class::load( isset( $_REQUEST['id'] ) ? $_REQUEST['id'] : 0 );
 			}
 			catch( \OutOfRangeException $e ) {
  				echo $this->error( __( 'The record could not be loaded.', 'mwp-framework' ) . ' Class: ' . $this->recordClass . ' ' . ', ID: ' . ( (int) $_REQUEST['id'] ) );
@@ -185,12 +185,12 @@ class _FeaturesController extends ExportableController
 			}
 		}
 		
-		$form = $feature->getForm( 'settings' );
+		$form = $bundle->getForm( 'settings' );
 		$save_error = NULL;
 		
 		if ( $form->isValidSubmission() ) 
 		{
-			$feature->processForm( $form->getValues(), 'settings' );			
+			$bundle->processForm( $form->getValues(), 'settings' );			
 			if ( isset( $_REQUEST['from'] ) and $_REQUEST['from'] == 'dashboard' ) {
 				$controller = $this->getPlugin()->getDashboardController();
 			}
@@ -201,9 +201,9 @@ class _FeaturesController extends ExportableController
 			});	
 		}
 
-		$output = $this->getPlugin()->getTemplateContent( 'views/management/records/edit', array( 'title' => $feature->_getEditTitle( 'settings' ), 'form' => $form, 'plugin' => $this->getPlugin(), 'controller' => $this, 'record' => $feature, 'error' => $save_error ) );
+		$output = $this->getPlugin()->getTemplateContent( 'views/management/records/edit', array( 'title' => $bundle->_getEditTitle( 'settings' ), 'form' => $form, 'plugin' => $this->getPlugin(), 'controller' => $this, 'record' => $bundle, 'error' => $save_error ) );
 		
-		echo $this->wrap( $feature->_getEditTitle( 'settings' ), $output, 'settings' );
+		echo $this->wrap( $bundle->_getEditTitle( 'settings' ), $output, 'settings' );
 	}
 	
 }

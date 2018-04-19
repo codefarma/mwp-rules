@@ -151,11 +151,11 @@ class _Condition extends GenericOperation
 		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		$condition = $this;
 		
-		/* Display details for the app/feature/parent */
+		/* Display details for the app/bundle/parent */
 		$form->addHtml( 'rule_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
 			'rule_item' => 'rule_conditions',
 			'rule' => $this->getRule(), 
-			'feature' => $this->getRule() ? $this->getRule()->getFeature() : null, 
+			'bundle' => $this->getRule() ? $this->getRule()->getBundle() : null, 
 			'app' => $this->getRule() ? $this->getRule()->getApp() : null, 
 		]));
 		

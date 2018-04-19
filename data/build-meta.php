@@ -169,14 +169,14 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
-                "rule_feature_id": {
+                "rule_bundle_id": {
                     "allow_null": false,
                     "auto_increment": false,
                     "binary": false,
                     "decimals": null,
                     "default": "0",
                     "length": 11,
-                    "name": "rule_feature_id",
+                    "name": "rule_bundle_id",
                     "type": "INT",
                     "unsigned": false,
                     "values": [],
@@ -1304,22 +1304,22 @@ return <<<'JSON'
             }
         },
         {
-            "name": "rules_features",
+            "name": "rules_bundles",
             "columns": {
-                "feature_id": {
+                "bundle_id": {
                     "allow_null": false,
                     "auto_increment": true,
                     "binary": false,
                     "decimals": null,
                     "default": null,
                     "length": 20,
-                    "name": "feature_id",
+                    "name": "bundle_id",
                     "type": "BIGINT",
                     "unsigned": true,
                     "values": [],
                     "zerofill": false
                 },
-                "feature_uuid": {
+                "bundle_uuid": {
                     "allow_null": true,
                     "auto_increment": false,
                     "binary": false,
@@ -1327,13 +1327,13 @@ return <<<'JSON'
                     "decimals": null,
                     "default": null,
                     "length": 25,
-                    "name": "feature_uuid",
+                    "name": "bundle_uuid",
                     "type": "VARCHAR",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
                 },
-                "feature_title": {
+                "bundle_title": {
                     "allow_null": false,
                     "auto_increment": false,
                     "binary": false,
@@ -1341,39 +1341,39 @@ return <<<'JSON'
                     "decimals": null,
                     "default": "",
                     "length": 255,
-                    "name": "feature_title",
+                    "name": "bundle_title",
                     "type": "VARCHAR",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
                 },
-                "feature_weight": {
+                "bundle_weight": {
                     "allow_null": false,
                     "auto_increment": false,
                     "binary": false,
                     "decimals": null,
                     "default": "0",
                     "length": 11,
-                    "name": "feature_weight",
+                    "name": "bundle_weight",
                     "type": "INT",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
                 },
-                "feature_enabled": {
+                "bundle_enabled": {
                     "allow_null": false,
                     "auto_increment": false,
                     "binary": false,
                     "decimals": null,
                     "default": "1",
                     "length": 1,
-                    "name": "feature_enabled",
+                    "name": "bundle_enabled",
                     "type": "INT",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
                 },
-                "feature_description": {
+                "bundle_description": {
                     "allow_null": true,
                     "auto_increment": false,
                     "binary": false,
@@ -1381,33 +1381,33 @@ return <<<'JSON'
                     "decimals": null,
                     "default": "",
                     "length": 1028,
-                    "name": "feature_description",
+                    "name": "bundle_description",
                     "type": "VARCHAR",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
                 },
-                "feature_imported": {
+                "bundle_imported": {
                     "allow_null": false,
                     "auto_increment": false,
                     "binary": false,
                     "decimals": null,
                     "default": "0",
                     "length": 11,
-                    "name": "feature_imported",
+                    "name": "bundle_imported",
                     "type": "INT",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
                 },
-                "feature_app_id": {
+                "bundle_app_id": {
                     "allow_null": false,
                     "auto_increment": false,
                     "binary": false,
                     "decimals": null,
                     "default": "0",
                     "length": 20,
-                    "name": "feature_app_id",
+                    "name": "bundle_app_id",
                     "type": "INT",
                     "unsigned": false,
                     "values": [],
@@ -1422,17 +1422,17 @@ return <<<'JSON'
                         null
                     ],
                     "columns": [
-                        "feature_id"
+                        "bundle_id"
                     ]
                 },
-                "feature_uuid": {
+                "bundle_uuid": {
                     "type": "key",
-                    "name": "feature_uuid",
+                    "name": "bundle_uuid",
                     "length": [
                         null
                     ],
                     "columns": [
-                        "feature_uuid"
+                        "bundle_uuid"
                     ]
                 }
             }

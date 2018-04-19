@@ -32,11 +32,11 @@ return [
 	],
 	
 	/* Rulesets */
-	'rules_features' => [
+	'rules_bundles' => [
 		'adminPage' => [
 			'type' => 'submenu',
 			'parent' => 'mwp-rules',
-			'menu' => __( 'Feature Manager', 'mwp-rules' ),
+			'menu' => __( 'Bundle Manager', 'mwp-rules' ),
 		],
 	],
 

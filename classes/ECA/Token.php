@@ -57,9 +57,9 @@ class _Token
 	protected $history;
 	
 	/**
-	 * @var MWP\Rules\Feature
+	 * @var MWP\Rules\Bundle
 	 */
-	protected $feature;
+	protected $bundle;
 	
 	/**
 	 * @var MWP\Rules\ECA\Event
@@ -72,14 +72,14 @@ class _Token
 	protected $event_args;
 	
 	/**
-	 * Set the associated feature
+	 * Set the associated bundle
 	 *
-	 * @param	MWP\Rules\Feature|NULL		$feature			The feature to associate with token
+	 * @param	MWP\Rules\Bundle|NULL		$bundle			The bundle to associate with token
 	 * @return	void
 	 */
-	public function setFeature( $feature )
+	public function setBundle( $bundle )
 	{
-		$this->feature = $feature;
+		$this->bundle = $bundle;
 	}
 	
 	/**
@@ -304,16 +304,16 @@ class _Token
 				}
 				break;
 				
-			case 'feature':
-				if ( isset( $resources['feature'] ) and $resources['feature'] instanceof Rules\Feature ) {
-					if ( $argument = $resources['feature']->getArgument( $source_key ) ) {
+			case 'bundle':
+				if ( isset( $resources['bundle'] ) and $resources['bundle'] instanceof Rules\Bundle ) {
+					if ( $argument = $resources['bundle']->getArgument( $source_key ) ) {
 						$data['argument'] = $argument->getProvidesDefinition();
 						$data['value'] = $argument->getValue();
 					} else {
-						$data['errors'][] = 'The provided feature does not have the requested argument.';
+						$data['errors'][] = 'The provided bundle does not have the requested argument.';
 					}
 				} else {
-					$data['errors'][] = 'No feature was provided as a resource';
+					$data['errors'][] = 'No bundle was provided as a resource';
 				}
 				break;
 		}

@@ -820,21 +820,21 @@ abstract class _GenericOperation extends ExportableRecord
 	public function getResources( $event_args=[] )
 	{
 		return array(
-			'feature' => $this->getFeature(),
+			'bundle' => $this->getBundle(),
 			'event' => $this->event(),
 			'event_args' => $event_args,
 		);
 	}
 	
 	/**
-	 * Get the associated feature
+	 * Get the associated bundle
 	 *
-	 * @return	Feature|NULL
+	 * @return	Bundle|NULL
 	 */
-	public function getFeature()
+	public function getBundle()
 	{
 		if ( $rule = $this->rule() ) {
-			return $rule->getFeature();
+			return $rule->getBundle();
 		}
 		
 		return NULL;

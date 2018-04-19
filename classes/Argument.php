@@ -100,7 +100,7 @@ class _Argument extends ExportableRecord
 	{
 		return array(
 			'hook' => Hook::class,
-			'feature' => Feature::class,
+			'bundle' => Bundle::class,
 		);		
 	}
 	
@@ -162,7 +162,7 @@ class _Argument extends ExportableRecord
 	 */
 	public function getSingularName()
 	{
-		if ( $this->getParent() instanceof Feature ) {
+		if ( $this->getParent() instanceof Bundle ) {
 			return 'Setting';
 		}
 		
@@ -255,7 +255,7 @@ class _Argument extends ExportableRecord
 		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		$plugin = $this->getPlugin();
 		
-		/* Display details for the app/feature/parent */
+		/* Display details for the app/bundle/parent */
 		$form->addHtml( 'argument_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
 			'argument' => $this, 
 		]));
@@ -420,7 +420,7 @@ class _Argument extends ExportableRecord
 			'title' => __( 'Advanced Config', 'mwp-rules' ),
 		));
 		
-		$default_value_description = $this->getParent() instanceof Feature ? 
+		$default_value_description = $this->getParent() instanceof Bundle ? 
 			__( 'If enabled, you can set a default value to be used for this argument in the absense of a user set value.', 'mwp-rules' ) : 
 			__( 'If enabled, you can customize the default value displayed in the widget when manually configuring it in rule operations.', 'mwp-rules' );
 		
@@ -431,7 +431,7 @@ class _Argument extends ExportableRecord
 			'data' => isset( $data['advanced_options']['widget_use_default'] ) ? (bool) $data['advanced_options']['widget_use_default'] : true,
 		));
 		
-		if ( $this->getParent() instanceof Feature ) {		
+		if ( $this->getParent() instanceof Bundle ) {		
 			$form->addField( 'widget_allow_custom_value', 'checkbox', array(
 				'label' => __( 'User Customizable', 'mwp-rules' ),
 				'description' => __( 'Allow users to edit the value of this setting.', 'mwp-rules' ),
@@ -521,7 +521,7 @@ class _Argument extends ExportableRecord
 		$plugin = $this->getPlugin();
 		$data = $this->data;
 		
-		/* Display details for the app/feature/parent */
+		/* Display details for the app/bundle/parent */
 		$form->addHtml( 'argument_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
 			'argument' => $this, 
 		]));
@@ -640,7 +640,7 @@ class _Argument extends ExportableRecord
 			}
 		}
 		
-		/* Use the advanced php code feature to provide additional options for this widget */
+		/* Use the advanced php code bundle to provide additional options for this widget */
 		if ( isset( $data['advanced_options']['widget_use_advanced'] ) and $data['advanced_options']['widget_use_advanced'] ) {
 			if ( isset( $data['advanced_options']['widget_options_phpcode'] ) and $phpcode = $data['advanced_options']['widget_options_phpcode'] ) {
 				$variables = array(

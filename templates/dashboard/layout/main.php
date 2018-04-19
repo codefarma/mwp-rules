@@ -19,8 +19,8 @@ use MWP\Rules;
 
 $plugin = Rules\Plugin::instance();
 $apps = Rules\App::loadWhere('1');
-$features = Rules\Feature::loadWhere('feature_app_id=0');
-$rules = Rules\Rule::loadWhere('rule_feature_id=0 AND rule_parent_id=0');
+$bundles = Rules\Bundle::loadWhere('bundle_app_id=0');
+$rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0');
 
 ?>
 
@@ -36,7 +36,7 @@ $rules = Rules\Rule::loadWhere('rule_feature_id=0 AND rule_parent_id=0');
 <div class="row">
 	<div class="col-md-8">
 		<?php echo $plugin->getTemplateContent( 'dashboard/panels/rules', [ 'controller' => $controller ] ) ?>
-		<?php echo $plugin->getTemplateContent( 'dashboard/panels/features', [ 'controller' => $controller ] ) ?>
+		<?php echo $plugin->getTemplateContent( 'dashboard/panels/bundles', [ 'controller' => $controller ] ) ?>
 		<?php echo $plugin->getTemplateContent( 'dashboard/panels/apps', [ 'controller' => $controller ] ) ?>
 	</div>
 	<div class="col-md-4">

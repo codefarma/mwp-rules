@@ -392,7 +392,7 @@ class _Hook extends ExportableRecord
 				}
 				
 			} else {
-				$results['errors']['features'][] = $result;
+				$results['errors']['bundles'][] = $result;
 			}
 		}
 		

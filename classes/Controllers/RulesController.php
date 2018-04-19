@@ -24,24 +24,24 @@ class _RulesController extends ExportableController
 {
 	
 	/**
-	 * @var	MWP\Rules\Feature
+	 * @var	MWP\Rules\Bundle
 	 */
-	protected $feature;
+	protected $bundle;
 	
 	/**
 	 * Set the associated rule
 	 */
-	public function setFeature( $feature )
+	public function setBundle( $bundle )
 	{
-		$this->feature = $feature;
+		$this->bundle = $bundle;
 	}
 	
 	/**
 	 * Get the associated rule
 	 */
-	public function getFeature()
+	public function getBundle()
 	{
-		return $this->feature;
+		return $this->bundle;
 	}
 	
 	/**
@@ -49,10 +49,10 @@ class _RulesController extends ExportableController
 	 *
 	 * @return	int
 	 */
-	public function getFeatureId()
+	public function getBundleId()
 	{
-		if ( $feature = $this->getFeature() ) {
-			return $feature->id();
+		if ( $bundle = $this->getBundle() ) {
+			return $bundle->id();
 		}
 		
 		return 0;
@@ -72,7 +72,7 @@ class _RulesController extends ExportableController
 			'tableConfig' => array(
 				'tableTemplate' => 'rules/table',
 				'actionsColumn' => 'rule_enabled',
-				'default_where' => array( 'rule_parent_id=0 AND rule_feature_id=%d', $this->getFeatureId() ),
+				'default_where' => array( 'rule_parent_id=0 AND rule_bundle_id=%d', $this->getBundleId() ),
 				'columns' => array(
 					'rule_title'      => __( 'Rule Summary', 'mwp-rules' ),
 					'rule_event_hook' => __( 'Evaluated When', 'mwp-rules' ),
@@ -189,8 +189,8 @@ class _RulesController extends ExportableController
 	 */
 	public function getUrl( $args=array() )
 	{
-		if ( $this->getFeatureId() ) {
-			$args = array_merge( array( 'feature_id' => $this->getFeatureId(), $args ) );
+		if ( $this->getBundleId() ) {
+			$args = array_merge( array( 'bundle_id' => $this->getBundleId(), $args ) );
 		}
 		
 		return parent::getUrl( $args );
@@ -207,11 +207,11 @@ class _RulesController extends ExportableController
 	{
 		parent::__construct( $recordClass, $options );
 		
-		/* Auto set the feature */
-		if ( isset( $_REQUEST['feature_id'] ) ) {
+		/* Auto set the bundle */
+		if ( isset( $_REQUEST['bundle_id'] ) ) {
 			try {
-				$feature = Rules\Feature::load( $_REQUEST['feature_id'] );
-				$this->setFeature( $feature );
+				$bundle = Rules\Bundle::load( $_REQUEST['bundle_id'] );
+				$this->setBundle( $bundle );
 			} catch( \OutOfRangeException $e ) { }
 		}
 	}
@@ -242,13 +242,13 @@ class _RulesController extends ExportableController
 	{
 		$class = $this->recordClass;
 		$record = new $class;
-		$record->feature_id = $this->getFeatureId();
+		$record->bundle_id = $this->getBundleId();
 		
 		if ( isset( $_REQUEST['parent_id'] ) ) {
 			try {
 				$parent = $class::load( $_REQUEST['parent_id'] );
 				$record->parent_id = $parent->id();
-				$record->feature_id = $parent->feature_id;
+				$record->bundle_id = $parent->bundle_id;
 				$record->event_type = $parent->event_type;
 				$record->event_hook = $parent->event_hook;
 			} 

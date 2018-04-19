@@ -17,9 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 use MWP\Framework\Pattern\ActiveRecord;
 
 /**
- * FeatureSet Class
+ * BundleSet Class
  */
-class _Feature extends ExportableRecord
+class _Bundle extends ExportableRecord
 {
 	
     /**
@@ -30,7 +30,7 @@ class _Feature extends ExportableRecord
     /**
      * @var    string        Table name
      */
-    public static $table = "rules_features";
+    public static $table = "rules_bundles";
 
     /**
      * @var    array        Table columns
@@ -54,7 +54,7 @@ class _Feature extends ExportableRecord
     /**
      * @var    string        Table column prefix
      */
-    public static $prefix = 'feature_';
+    public static $prefix = 'bundle_';
 
     /**
      * @var bool        Separate table per site?
@@ -69,12 +69,12 @@ class _Feature extends ExportableRecord
 	/**
 	 * @var	string
 	 */
-	public static $lang_singular = 'Feature';
+	public static $lang_singular = 'Bundle';
 	
 	/**
 	 * @var	string
 	 */
-	public static $lang_plural = 'Features';
+	public static $lang_plural = 'Bundles';
 	
 	/**
 	 * @var	string
@@ -90,14 +90,14 @@ class _Feature extends ExportableRecord
 	{
 		switch( $type ) {
 			case 'settings':
-				return __( 'Feature Settings', 'mwp-rules' );
+				return __( 'Bundle Settings', 'mwp-rules' );
 		}
 		
 		return parent::_getEditTitle( $type );
 	}
 	
 	/**
-	 * Check if the feature is active
+	 * Check if the bundle is active
 	 *
 	 * @return	bool
 	 */
@@ -169,7 +169,7 @@ class _Feature extends ExportableRecord
 	}
 	
 	/**
-	 * Does this feature have settings?
+	 * Does this bundle have settings?
 	 *
 	 * @return	bool
 	 */
@@ -190,7 +190,7 @@ class _Feature extends ExportableRecord
 		
 		unset( $actions['view'] );
 		
-		$feature_actions = array(
+		$bundle_actions = array(
 			'edit' => '',
 			'settings' => array(
 				'title' => '',
@@ -220,10 +220,10 @@ class _Feature extends ExportableRecord
 		);
 		
 		if ( ! $this->hasSettings() ) {
-			unset( $feature_actions['settings'] );
+			unset( $bundle_actions['settings'] );
 		}
 		
-		return array_replace_recursive( $feature_actions, $actions );
+		return array_replace_recursive( $bundle_actions, $actions );
 	}
 	
 	/**
@@ -236,21 +236,21 @@ class _Feature extends ExportableRecord
 		$plugin = $this->getPlugin();
 		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		
-		/* Display details for the app/feature */
-		$form->addHtml( 'feature_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
+		/* Display details for the app/bundle */
+		$form->addHtml( 'bundle_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
 			'app' => $this->getApp(), 
 		]));
 		
 		if ( $this->title ) {
-			$form->addHtml( 'feature_title', $plugin->getTemplateContent( 'rules/overview/title', [
+			$form->addHtml( 'bundle_title', $plugin->getTemplateContent( 'rules/overview/title', [
 				'icon' => '<i class="glyphicon glyphicon-lamp"></i> ',
-				'label' => 'Feature',
+				'label' => 'Bundle',
 				'title' => $this->title,
 			]));
 		}
 		
-		$form->addTab( 'feature_details', array(
-			'title' => __( 'Feature Details', 'mwp-rules' ),
+		$form->addTab( 'bundle_details', array(
+			'title' => __( 'Bundle Details', 'mwp-rules' ),
 		));
 		
 		if ( $this->id() ) {
@@ -267,32 +267,32 @@ class _Feature extends ExportableRecord
 				'choices' => $app_choices,
 				'required' => true,
 				'data' => $this->app_id,
-			), 'feature_details' );
+			), 'bundle_details' );
 		}
 		
 		$form->addField( 'title', 'text', array(
 			'label' => __( 'Title', 'mwp-rules' ),
 			'data' => $this->title,
 			'required' => true,
-		), 'feature_details' );
+		), 'bundle_details' );
 		
 		$form->addField( 'description', 'text', array(
 			'label' => __( 'Description', 'mwp-rules' ),
 			'data' => $this->description,
 			'required' => false,
-		), 'feature_details' );
+		), 'bundle_details' );
 		
 		$form->addField( 'enabled', 'checkbox', array(
 			'label' => __( 'Enabled', 'mwp-rules' ),
-			'description' => __( 'Choose whether this feature is enabled or not.', 'mwp-rules' ),
+			'description' => __( 'Choose whether this bundle is enabled or not.', 'mwp-rules' ),
 			'value' => 1,
 			'data' => $this->enabled !== NULL ? (bool) $this->enabled : true,
-		), 'feature_details' );
+		), 'bundle_details' );
 		
 		if ( $this->id() ) {
 			
 			$form->addTab( 'arguments', array(
-				'title' => __( 'Feature Settings', 'mwp-rules' ),
+				'title' => __( 'Bundle Settings', 'mwp-rules' ),
 			));
 			
 			$argumentsController = $plugin->getArgumentsController( $this );
@@ -306,49 +306,49 @@ class _Feature extends ExportableRecord
 						'title' => __( 'Add Parameter', 'mwp-rules' ),
 					), 
 				)),
-				'feature' => $this, 
+				'bundle' => $this, 
 				'table' => $argumentsTable, 
 				'controller' => $argumentsController,
 			)),
 			'arguments' );
 			
-			$form->addTab( 'feature_rules', array(
-				'title' => __( 'Feature Rules', 'mwp-rules' ),
+			$form->addTab( 'bundle_rules', array(
+				'title' => __( 'Bundle Rules', 'mwp-rules' ),
 			));
 			
 			$rulesController = $plugin->getRulesController( $this );
 			$rulesTable = $rulesController->createDisplayTable();
 			$rulesTable->bulkActions = array();
-			$rulesTable->prepare_items( array( 'rule_parent_id=0 AND rule_feature_id=%d', $this->id() ) );
+			$rulesTable->prepare_items( array( 'rule_parent_id=0 AND rule_bundle_id=%d', $this->id() ) );
 			
 			$form->addHtml( 'rules_table', $this->getPlugin()->getTemplateContent( 'rules/subrules/table_wrapper', array( 
 				'rule' => null, 
 				'table' => $rulesTable, 
 				'controller' => $rulesController,
 			)),
-			'feature_rules' );
+			'bundle_rules' );
 			
-			/* Redirect to the features tab of the containing app after saving */
-			$feature = $this;
-			$form->onComplete( function() use ( $feature, $plugin ) {
-				if ( $app = $feature->getApp() ) {
+			/* Redirect to the bundles tab of the containing app after saving */
+			$bundle = $this;
+			$form->onComplete( function() use ( $bundle, $plugin ) {
+				if ( $app = $bundle->getApp() ) {
 					$controller = $plugin->getAppsController();
-					wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $app->id(), '_tab' => 'app_features' ) ) );
+					wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $app->id(), '_tab' => 'app_bundles' ) ) );
 					exit;
 				}
 			});
 			
 		} else {
-			/* Redirect to the rules tab of newly created features */
-			$feature = $this;
-			$form->onComplete( function() use ( $feature, $plugin ) {
-				$controller = $plugin->getFeaturesController( $feature->getApp() );
-				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $feature->id(), '_tab' => 'feature_rules' ) ) );
+			/* Redirect to the rules tab of newly created bundles */
+			$bundle = $this;
+			$form->onComplete( function() use ( $bundle, $plugin ) {
+				$controller = $plugin->getBundlesController( $bundle->getApp() );
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $bundle->id(), '_tab' => 'bundle_rules' ) ) );
 				exit;
 			});			
 		}
 		
-		$submit_text = $this->id() ? 'Save Feature' : 'Create Feature';
+		$submit_text = $this->id() ? 'Save Bundle' : 'Create Bundle';
 		$form->addField( 'save', 'submit', [ 'label' => __( $submit_text, 'mwp-rules' ), 'row_prefix' => '<hr>', 'row_attr' => [ 'class' => 'text-center' ] ], '' );
 		
 		return $form;
@@ -362,13 +362,13 @@ class _Feature extends ExportableRecord
 	 */
 	protected function processEditForm( $values )
 	{
-		$_values = $values['feature_details'];
+		$_values = $values['bundle_details'];
 		
 		parent::processEditForm( $_values );
 	}
 	
 	/**
-	 * Build the feature settings form
+	 * Build the bundle settings form
 	 *
 	 * @return	MWP\Framework\Helpers\Form
 	 */
@@ -377,15 +377,15 @@ class _Feature extends ExportableRecord
 		$plugin = $this->getPlugin();
 		$form = static::createForm( 'settings', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		
-		/* Display details for the app/feature */
-		$form->addHtml( 'feature_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
+		/* Display details for the app/bundle */
+		$form->addHtml( 'bundle_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
 			'app' => $this->getApp(), 
 		]));
 		
 		if ( $this->title ) {
-			$form->addHtml( 'feature_title', $plugin->getTemplateContent( 'rules/overview/title', [
+			$form->addHtml( 'bundle_title', $plugin->getTemplateContent( 'rules/overview/title', [
 				'icon' => '<i class="glyphicon glyphicon-lamp"></i> ',
-				'label' => 'Feature',
+				'label' => 'Bundle',
 				'title' => $this->title,
 			]));
 		}
@@ -404,7 +404,7 @@ class _Feature extends ExportableRecord
 	}
 	
 	/**
-	 * Process the feature settings form
+	 * Process the bundle settings form
 	 *
 	 * @param	array			$values				Value from the form submission
 	 * @return	void
@@ -421,23 +421,23 @@ class _Feature extends ExportableRecord
 	}
 	
 	/**
-	 * Get the rules associated with the feature
+	 * Get the rules associated with the bundle
 	 *
 	 * @return	array[Rule]
 	 */
 	public function getRules()
 	{
-		return Rule::loadWhere( array( 'rule_parent_id=0 AND rule_feature_id=%d', $this->id() ) );
+		return Rule::loadWhere( array( 'rule_parent_id=0 AND rule_bundle_id=%d', $this->id() ) );
 	}
 	
 	/**
-	 * Get a count of all the rules associated with this feature
+	 * Get a count of all the rules associated with this bundle
 	 *
 	 * @return	int
 	 */
 	public function getRuleCount()
 	{
-		return Rule::countWhere( array( 'rule_feature_id=%d', $this->id() ) );
+		return Rule::countWhere( array( 'rule_bundle_id=%d', $this->id() ) );
 	}
 	
 	protected $argmap;
@@ -472,7 +472,7 @@ class _Feature extends ExportableRecord
 	 */
 	public function url( $params=array() )
 	{
-		return $this->getPlugin()->getFeaturesController( $this->getApp() )->getUrl( array( 'id' => $this->id(), 'do' => 'edit' ) + $params );
+		return $this->getPlugin()->getBundlesController( $this->getApp() )->getUrl( array( 'id' => $this->id(), 'do' => 'edit' ) + $params );
 	}
 	
 	/**
@@ -492,7 +492,7 @@ class _Feature extends ExportableRecord
 	 * Import data
 	 *
 	 * @param	array			$data				The data to import
-	 * @param	int				$app_id				The app id the feature belongs to
+	 * @param	int				$app_id				The app id the bundle belongs to
 	 * @return	array
 	 */
 	public static function import( $data, $app_id=0 )
@@ -503,53 +503,53 @@ class _Feature extends ExportableRecord
 		if ( isset( $data['data'] ) ) 
 		{
 			$_existing = ( isset( $data['data'][ $uuid_col ] ) and $data['data'][ $uuid_col ] ) ? static::loadWhere( array( $uuid_col . '=%s', $data['data'][ $uuid_col ] ) ) : [];
-			$feature = count( $_existing ) ? array_shift( $_existing ) : new static;
+			$bundle = count( $_existing ) ? array_shift( $_existing ) : new static;
 			
 			/* Set column values */
 			foreach( $data['data'] as $col => $value ) {
 				$col = substr( $col, strlen( static::$prefix ) );
-				$feature->_setDirectly( $col, $value );
+				$bundle->_setDirectly( $col, $value );
 			}
 			
-			$feature->app_id = $app_id;
-			$feature->imported = time();
-			$result = $feature->save();
+			$bundle->app_id = $app_id;
+			$bundle->imported = time();
+			$result = $bundle->save();
 			
 			if ( ! is_wp_error( $result ) ) 
 			{
-				$results['imports']['features'][] = $data;
+				$results['imports']['bundles'][] = $data;
 				
 				$imported_argument_uuids = [];
 				$imported_rule_uuids = [];
 				
-				/* Import feature arguments */
+				/* Import bundle arguments */
 				if ( isset( $data['arguments'] ) and ! empty( $data['arguments'] ) ) {
 					foreach( $data['arguments'] as $argument ) {
 						$imported_argument_uuids[] = $argument['data']['argument_uuid'];
-						$results = array_merge_recursive( $results, Argument::import( $argument, $feature ) );
+						$results = array_merge_recursive( $results, Argument::import( $argument, $bundle ) );
 					}
 				}
 				
-				/* Import feature rules */
+				/* Import bundle rules */
 				if ( isset( $data['rules'] ) and ! empty( $data['rules'] ) ) {
 					foreach( $data['rules'] as $rule ) {
 						$imported_rule_uuids[] = $rule['data']['rule_uuid'];
-						$results = array_merge_recursive( $results, Rule::import( $rule, 0, $feature->id() ) );
+						$results = array_merge_recursive( $results, Rule::import( $rule, 0, $bundle->id() ) );
 					}
 				}
 				
-				/* Cull previously imported arguments which are no longer part of this imported feature */
-				foreach( Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d AND argument_imported > 0 AND argument_uuid NOT IN (\'' . implode("','", $imported_argument_uuids) . '\')', Argument::getParentType( $feature ), $feature->id() ) ) as $argument ) {
+				/* Cull previously imported arguments which are no longer part of this imported bundle */
+				foreach( Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d AND argument_imported > 0 AND argument_uuid NOT IN (\'' . implode("','", $imported_argument_uuids) . '\')', Argument::getParentType( $bundle ), $bundle->id() ) ) as $argument ) {
 					$argument->delete();
 				}
 				
-				/* Cull previously imported subrules which are no longer part of this imported feature */
-				foreach( Rule::loadWhere( array( 'rule_parent_id=0 AND rule_feature_id=%d AND rule_imported > 0 AND rule_uuid NOT IN (\'' . implode("','", $imported_rule_uuids) . '\')', $feature->id() ) ) as $rule ) {
+				/* Cull previously imported subrules which are no longer part of this imported bundle */
+				foreach( Rule::loadWhere( array( 'rule_parent_id=0 AND rule_bundle_id=%d AND rule_imported > 0 AND rule_uuid NOT IN (\'' . implode("','", $imported_rule_uuids) . '\')', $bundle->id() ) ) as $rule ) {
 					$rule->delete();
 				}
 				
 			} else {
-				$results['errors']['features'][] = $result;
+				$results['errors']['bundles'][] = $result;
 			}
 		}
 		

@@ -27,7 +27,7 @@ $apps = Rules\App::loadWhere('1');
 	<a href="#" class="btn btn-success btn-xs pull-right">Get Apps</a>
 	<!-- <a style="margin-right:5px;" href="<?php echo $plugin->getAppsController()->getUrl() ?>" class="btn btn-default btn-xs pull-right">Manage Apps</a> -->
 	<h3 class="panel-title">
-		Automation Apps
+		Automation Apps <small style="opacity: 0.7; font-size:0.75em; margin-left:20px;">Apps are packaged automation bundles.</small>
 	</h3>
   </div>
   <div class="panel-body">
@@ -66,7 +66,7 @@ $apps = Rules\App::loadWhere('1');
 		  </tbody>
 		</table>
 	<?php else: ?>
-		No apps yet.
+		No apps yet. 
 	<?php endif; ?>
   </div>
 </div>

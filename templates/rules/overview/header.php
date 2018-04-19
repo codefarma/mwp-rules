@@ -12,7 +12,7 @@
  *
  * @param	MWP\Rules\Rule		$rule		(optional) The rule to use in the overview
  * @param   MWP\Rules\Argument  $argument   (optional) An argument to use in the overview
- * @param   MWP\Rules\Feature   $feature    (optional) The feature to use in the overview
+ * @param   MWP\Rules\Bundle   $bundle    (optional) The bundle to use in the overview
  * @param   MWP\Rules\App       $app        (optional) The app to use in the overview
  */
 
@@ -24,9 +24,9 @@ use MWP\Rules;
 
 if ( isset( $argument ) ) {
 	if ( $arg_parent = $argument->getParent() ) {
-		if ( $arg_parent instanceof Rules\Feature ) {
-			$feature = $arg_parent;
-			$app = $feature->getApp();
+		if ( $arg_parent instanceof Rules\Bundle ) {
+			$bundle = $arg_parent;
+			$app = $bundle->getApp();
 		}
 		else if ( $arg_parent instanceof Rules\Hook ) {
 			$hook = $arg_parent;
@@ -36,25 +36,25 @@ if ( isset( $argument ) ) {
 
 ?>
 
-<?php if ( isset( $app ) or isset( $feature ) or isset( $hook ) or ( isset( $rule_item ) and $rule_item and $rule ) ) : ?>
+<?php if ( isset( $app ) or isset( $bundle ) or isset( $hook ) or ( isset( $rule_item ) and $rule_item and $rule ) ) : ?>
 	<div class="alert alert-warning overview">
 
 	<?php if ( isset( $app ) ) { ?>
 		<div class="app-title">
-			<span class="subtle"><i class="glyphicon glyphicon-tent"></i> App:</span> <a href="<?php echo $app->url( isset( $feature ) ? [ '_tab' => 'app_features' ] : [] ) ?>"><?php echo esc_html( $app->title ) ?></a>
+			<span class="subtle"><i class="glyphicon glyphicon-tent"></i> App:</span> <a href="<?php echo $app->url( isset( $bundle ) ? [ '_tab' => 'app_bundles' ] : [] ) ?>"><?php echo esc_html( $app->title ) ?></a>
 		</div>
 	<?php } ?>
 
-	<?php if ( isset( $feature ) ) { 
-		$tab = isset( $rule ) ? 'feature_rules' : ( isset( $argument ) ? 'arguments' : null );
+	<?php if ( isset( $bundle ) ) { 
+		$tab = isset( $rule ) ? 'bundle_rules' : ( isset( $argument ) ? 'arguments' : null );
 	?>
-		<div class="feature-title">
-			<span class="subtle"><i class="glyphicon glyphicon-lamp"></i> Feature:</span> <a href="<?php echo $feature->url( isset( $tab ) ? [ '_tab' => $tab ] : [] ) ?>"><?php echo esc_html( $feature->title ) ?></a>
+		<div class="bundle-title">
+			<span class="subtle"><i class="glyphicon glyphicon-lamp"></i> Bundle:</span> <a href="<?php echo $bundle->url( isset( $tab ) ? [ '_tab' => $tab ] : [] ) ?>"><?php echo esc_html( $bundle->title ) ?></a>
 		</div>
 	<?php } ?>
 
 	<?php if ( isset( $hook ) ) { ?>
-		<div class="feature-title">
+		<div class="bundle-title">
 			<span class="subtle"><i class="glyphicon glyphicon-flash"></i> <?php echo $hook->getTypeTitle() ?>:</span> <a href="<?php echo $hook->url([ '_tab' => 'arguments' ]) ?>"><?php echo esc_html( $hook->title ) ?></a> 
 			<code><?php echo esc_html( $hook->hook ) ?></code>
 		</div>

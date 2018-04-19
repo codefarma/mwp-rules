@@ -59,7 +59,7 @@ a.nounderline:hover {
 	vertical-align: middle;
 }
 
-.mwp-rules-form .alert .feature-title {
+.mwp-rules-form .alert .bundle-title {
 	font-size: 1.4em;
 	position: relative;
 	vertical-align: middle;
@@ -71,7 +71,7 @@ a.nounderline:hover {
 	vertical-align: middle;
 }
 
-.mwp-rules-form .app-title + .feature-title {
+.mwp-rules-form .app-title + .bundle-title {
 	margin-top: 15px;
 }
 
@@ -79,7 +79,7 @@ a.nounderline:hover {
 	margin: 0 0 15px 5px;
 }
 
-.mwp-rules-form .feature-title + .rule-title {
+.mwp-rules-form .bundle-title + .rule-title {
 	margin-top: 15px;
 }
 
@@ -87,7 +87,7 @@ a.nounderline:hover {
 	font-size: 0.9em;
 }
 
-.mwp-rules-form .alert .feature-title .glyphicon {
+.mwp-rules-form .alert .bundle-title .glyphicon {
 	
 }
 

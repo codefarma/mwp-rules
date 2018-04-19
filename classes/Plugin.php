@@ -415,10 +415,10 @@ class _Plugin extends \MWP\Framework\Plugin
 	 * 
 	 * @return	ActiveRecordController
 	 */
-	public function getRulesController( $feature=null, $key='admin' )
+	public function getRulesController( $bundle=null, $key='admin' )
 	{
 		$controller = Rule::getController( $key );
-		$controller->setFeature( $feature );
+		$controller->setBundle( $bundle );
 		
 		return $controller;
 	}
@@ -444,13 +444,13 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
-	 * Get the features controller
+	 * Get the bundles controller
 	 * 
 	 * @return	ActiveRecordController
 	 */
-	public function getFeaturesController( $app=null, $key='admin' )
+	public function getBundlesController( $app=null, $key='admin' )
 	{
-		$controller = Feature::getController( $key );
+		$controller = Bundle::getController( $key );
 		$controller->setApp( $app );
 		
 		return $controller;
@@ -1487,7 +1487,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			}
 		}
 		
-		foreach( array( 'apps', 'features' ) as $container_type ) {
+		foreach( array( 'apps', 'bundles' ) as $container_type ) {
 			if ( isset( $data[ $container_type ] ) and ! empty( $data[ $container_type ] ) ) {
 				foreach( $data[ $container_type ] as $container ) {
 					$hooks = $this->getHooksFromExportData( $container, $hooks );
@@ -1519,8 +1519,8 @@ class _Plugin extends \MWP\Framework\Plugin
 			if ( $model instanceof App ) {
 				$package['apps'][] = $model->getExportData();
 			}
-			if ( $model instanceof Feature ) {
-				$package['features'][] = $model->getExportData();
+			if ( $model instanceof Bundle ) {
+				$package['bundles'][] = $model->getExportData();
 			}
 			if ( $model instanceof Rule ) {
 				$package['rules'][] = $model->getExportData();
@@ -1562,9 +1562,9 @@ class _Plugin extends \MWP\Framework\Plugin
 			}
 		}
 		
-		if ( isset( $package['features'] ) ) {
-			foreach( $package['features'] as $feature ) {
-				$results = array_merge_recursive( $results, Feature::import( $feature ) );
+		if ( isset( $package['bundles'] ) ) {
+			foreach( $package['bundles'] as $bundle ) {
+				$results = array_merge_recursive( $results, Bundle::import( $bundle ) );
 			}
 		}
 		

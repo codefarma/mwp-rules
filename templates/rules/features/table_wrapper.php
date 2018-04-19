@@ -11,8 +11,8 @@
  * @param	Plugin		$this		The plugin instance which is loading this template
  *
  * @param	MWP\Rules\App				$app				The associated app
- * @param	ActiveRecordTable			$table				The features table
- * @param	ActiveRecordController		$controller			The features controller
+ * @param	ActiveRecordTable			$table				The bundles table
+ * @param	ActiveRecordController		$controller			The bundles controller
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,10 +21,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
-<div class="features-actions">
+<div class="bundles-actions">
 	<?php echo $controller->getActionsHtml(); ?>
 </div>
 
-<div class="features-table" <?php echo $table->getViewModelAttr() ?>>
+<div class="bundles-table" <?php echo $table->getViewModelAttr() ?>>
 	<?php echo $table->getDisplay() ?>
 </div>

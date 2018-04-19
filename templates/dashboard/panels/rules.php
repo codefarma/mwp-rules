@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use MWP\Rules;
 
 $plugin = Rules\Plugin::instance();
-$rules = Rules\Rule::loadWhere('rule_feature_id=0 AND rule_parent_id=0');
+$rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0');
 
 ?>
 
@@ -78,7 +78,7 @@ $rules = Rules\Rule::loadWhere('rule_feature_id=0 AND rule_parent_id=0');
 		  </tbody>
 		</table>
 	<?php else: ?>
-		You haven't created any automations yet. Begin by <a href="<?php echo $plugin->getRulesController()->getUrl(['do'=>'new']) ?>">starting a new automation rule</a>.
+		No rules yet. <span style="margin-left: 15px">Begin by <a href="<?php echo $plugin->getRulesController()->getUrl(['do'=>'new']) ?>">starting a new rule</a>.</span>
 	<?php endif; ?>
   </div>
 </div>

@@ -46,11 +46,11 @@ use MWP\Rules;
 	</ul>
 <?php endif ?>
 
-<?php if ( isset( $results['imports']['features'] ) ) : ?>
-	<h2>Features: <?php echo count( $results['imports']['features'] ) ?></h2>
+<?php if ( isset( $results['imports']['bundles'] ) ) : ?>
+	<h2>Bundles: <?php echo count( $results['imports']['bundles'] ) ?></h2>
 	<ul>
-	<?php foreach( $results['imports']['features'] as $feature ) : ?>
-		<li><i class="glyphicon glyphicon-triangle-right"></i> <?php echo esc_html( $feature['data']['feature_title'] ) ?></li>
+	<?php foreach( $results['imports']['bundles'] as $bundle ) : ?>
+		<li><i class="glyphicon glyphicon-triangle-right"></i> <?php echo esc_html( $bundle['data']['bundle_title'] ) ?></li>
 	<?php endforeach ?>
 	</ul>
 <?php endif ?>

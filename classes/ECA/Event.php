@@ -244,17 +244,17 @@ class _Event extends BaseDefinition
 		$rulesPlugin        = Rules\Plugin::instance();
 		$global_args 		= $rulesPlugin->getGlobalArguments();
 		$tokens 		    = array();
-		$feature_args       = array();
+		$bundle_args       = array();
 		
-		if ( $rule and ( $feature = $rule->getFeature() ) ) {
-			foreach( $feature->getArguments() as $argument ) {
-				$feature_args[ $argument->varname ] = $argument->getProvidesDefinition();
+		if ( $rule and ( $bundle = $rule->getBundle() ) ) {
+			foreach( $bundle->getArguments() as $argument ) {
+				$bundle_args[ $argument->varname ] = $argument->getProvidesDefinition();
 			}
 		}
 		
 		$arg_groups = array(
 			'event' => $this->arguments ?: array(),
-			'feature' => $feature_args,
+			'bundle' => $bundle_args,
 			'global' => $global_args,
 		);
 		
@@ -266,7 +266,7 @@ class _Event extends BaseDefinition
 					switch( $group ) {
 						case 'event': $tokens[ 'event:' . $arg_name ] = '(' . $argument['argtype'] . ') ' . "The value of the '" . $arg_name . "' argument"; break;
 						case 'global': $tokens[ 'global:' . $arg_name ] = isset( $argument['label'] ) ? '(' . $argument['argtype'] . ') ' . ucfirst( strtolower( $argument['label'] ) ) : "The global '" . $arg_name . "' value"; break;
-						case 'feature': $tokens[ 'feature:' . $arg_name ] = isset( $argument['label'] ) ? '(' . $argument['argtype'] . ') ' . ucfirst( strtolower( $argument['label'] ) ) : "The feature '" . $arg_name . "' setting value"; break;
+						case 'bundle': $tokens[ 'bundle:' . $arg_name ] = isset( $argument['label'] ) ? '(' . $argument['argtype'] . ') ' . ucfirst( strtolower( $argument['label'] ) ) : "The bundle '" . $arg_name . "' setting value"; break;
 					}
 				}
 				

@@ -65,12 +65,12 @@ $tokens = $event->getTokens( NULL, $rule );
 				<?php endforeach; ?>
 			</ul>
 		<?php endif; ?>
-		<?php if ( isset( $rule ) && $feature = $rule->getFeature() ) : ?>
-			<h3>Feature Settings</h3>
+		<?php if ( isset( $rule ) && $bundle = $rule->getBundle() ) : ?>
+			<h3>Bundle Settings</h3>
 			<ul>
-				<?php foreach( $feature->getArguments() as $argument ) : ?>
+				<?php foreach( $bundle->getArguments() as $argument ) : ?>
 					<?php $derivatives = Rules\Plugin::instance()->getDerivativeTokens( $argument->getProvidesDefinition() ); ?>
-					<li data-token="feature:<?php echo $argument->varname ?>" class="<?php if ( count( $derivatives ) ) { echo "has-derivatives"; } ?>"><code>feature:<?php echo $argument->varname ?></code></li>
+					<li data-token="bundle:<?php echo $argument->varname ?>" class="<?php if ( count( $derivatives ) ) { echo "has-derivatives"; } ?>"><code>bundle:<?php echo $argument->varname ?></code></li>
 				<?php endforeach; ?>
 			</ul>
 		<?php endif; ?>	

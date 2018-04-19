@@ -169,7 +169,7 @@ class _ArgumentsController extends ActiveRecordController
 			echo $this->getPlugin()->getTemplateContent( 'component/error', array( 'message' => __( 'The argument requires a parent type and id to be assigned to.', 'mwp-rules' ) ) );
 		}
 		
-		if ( $this->getParent() instanceof Rules\Feature ) {
+		if ( $this->getParent() instanceof Rules\Bundle ) {
 			Rules\Argument::$lang_singular = 'Setting';
 			Rules\Argument::$lang_plural = 'Settings';
 		}

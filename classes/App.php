@@ -114,22 +114,22 @@ class _App extends ExportableRecord
 	/**
 	 * @var	array
 	 */
-	protected $_features;
+	protected $_bundles;
 	
 	/**
-	 * Get the features of this app
+	 * Get the bundles of this app
 	 *
-	 * @return	array[Feature]
+	 * @return	array[Bundle]
 	 */
-	public function getFeatures()
+	public function getBundles()
 	{
-		if ( isset( $this->_features ) ) {
-			return $this->_features;
+		if ( isset( $this->_bundles ) ) {
+			return $this->_bundles;
 		}
 		
-		$this->_features = Feature::loadWhere( array( 'feature_app_id=%d', $this->id() ) );
+		$this->_bundles = Bundle::loadWhere( array( 'bundle_app_id=%d', $this->id() ) );
 		
-		return $this->_features;
+		return $this->_bundles;
 	}
 	
 	/**
@@ -141,9 +141,9 @@ class _App extends ExportableRecord
 	{
 		$has_settings = false;
 		
-		/* If any feature has settings, then the app has settings */
-		foreach( $this->getFeatures() as $feature ) {
-			if ( $feature->hasSettings() ) {
+		/* If any bundle has settings, then the app has settings */
+		foreach( $this->getBundles() as $bundle ) {
+			if ( $bundle->hasSettings() ) {
 				$has_settings = true;
 			}
 		}
@@ -241,27 +241,27 @@ class _App extends ExportableRecord
 		), 'app_details' );
 		
 		if ( $this->id() ) {
-			$form->addTab( 'app_features', array(
-				'title' => __( 'App Features', 'mwp-rules' ),
+			$form->addTab( 'app_bundles', array(
+				'title' => __( 'App Bundles', 'mwp-rules' ),
 			));
 			
-			$featuresController = $plugin->getFeaturesController( $this );
-			$featuresTable = $featuresController->createDisplayTable();
-			$featuresTable->bulkActions = array();
-			$featuresTable->prepare_items();
+			$bundlesController = $plugin->getBundlesController( $this );
+			$bundlesTable = $bundlesController->createDisplayTable();
+			$bundlesTable->bulkActions = array();
+			$bundlesTable->prepare_items();
 			
-			$form->addHtml( 'features_table', $this->getPlugin()->getTemplateContent( 'rules/features/table_wrapper', array( 
+			$form->addHtml( 'bundles_table', $this->getPlugin()->getTemplateContent( 'rules/bundles/table_wrapper', array( 
 				'app' => $this, 
-				'table' => $featuresTable, 
-				'controller' => $featuresController,
+				'table' => $bundlesTable, 
+				'controller' => $bundlesController,
 			)),
-			'app_features' );
+			'app_bundles' );
 			
 		} else {
 			$app = $this;
 			$form->onComplete( function() use ( $app, $plugin ) {
 				$controller = $plugin->getAppsController();
-				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $app->id(), '_tab' => 'app_features' ) ) );
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $app->id(), '_tab' => 'app_bundles' ) ) );
 				exit;
 			});			
 		}
@@ -286,7 +286,7 @@ class _App extends ExportableRecord
 	}
 	
 	/**
-	 * Build the feature settings form
+	 * Build the bundle settings form
 	 *
 	 * @return	MWP\Framework\Helpers\Form
 	 */
@@ -303,11 +303,11 @@ class _App extends ExportableRecord
 			]));
 		}
 		
-		foreach( $this->getFeatures() as $feature ) {
-			if ( $arguments = $feature->getSettableArguments() ) {
-				$form->addField( 'feature_' . $feature->id() . '_settings', 'fieldgroup' );
-				$form->setCurrentContainer( 'feature_' . $feature->id() . '_settings' );
-				$form->addHeading( 'feature_' . $feature->id() . '_heading', $feature->title );
+		foreach( $this->getBundles() as $bundle ) {
+			if ( $arguments = $bundle->getSettableArguments() ) {
+				$form->addField( 'bundle_' . $bundle->id() . '_settings', 'fieldgroup' );
+				$form->setCurrentContainer( 'bundle_' . $bundle->id() . '_settings' );
+				$form->addHeading( 'bundle_' . $bundle->id() . '_heading', $bundle->title );
 				foreach( $arguments as $argument ) {
 					$argument->addFormWidget( $form, $argument->getSavedValues() );
 				}
@@ -323,18 +323,18 @@ class _App extends ExportableRecord
 	}
 	
 	/**
-	 * Process the feature settings form
+	 * Process the bundle settings form
 	 *
 	 * @param	array			$values				Value from the form submission
 	 * @return	void
 	 */
 	public function processSettingsForm( $values )
 	{
-		foreach( $this->getFeatures() as $feature ) {
-			if ( $arguments = $feature->getSettableArguments() ) {
-				$feature_values = $values[ 'feature_' . $feature->id() . '_settings' ];
+		foreach( $this->getBundles() as $bundle ) {
+			if ( $arguments = $bundle->getSettableArguments() ) {
+				$bundle_values = $values[ 'bundle_' . $bundle->id() . '_settings' ];
 				foreach( $arguments as $argument ) {
-					$formValues = $argument->getWidgetFormValues( $feature_values );
+					$formValues = $argument->getWidgetFormValues( $bundle_values );
 					$argument->updateValues( $formValues );
 					$argument->save();
 				}
@@ -361,7 +361,7 @@ class _App extends ExportableRecord
 	public function getExportData()
 	{
 		$export = parent::getExportData();
-		$export['features'] = array_map( function( $feature ) { return $feature->getExportData(); }, $this->getFeatures() );
+		$export['bundles'] = array_map( function( $bundle ) { return $bundle->getExportData(); }, $this->getBundles() );
 		return $export;
 	}
 	
@@ -394,19 +394,19 @@ class _App extends ExportableRecord
 			{
 				$results['imports']['apps'][] = $data;
 				
-				$imported_feature_uuids = [];
+				$imported_bundle_uuids = [];
 				
-				/* Import features */
-				if ( isset( $data['features'] ) and ! empty( $data['features'] ) ) {
-					foreach( $data['features'] as $feature ) {
-						$imported_feature_uuids[] = $feature['data']['feature_uuid'];
-						$results = array_merge_recursive( $results, Feature::import( $feature, $app->id() ) );
+				/* Import bundles */
+				if ( isset( $data['bundles'] ) and ! empty( $data['bundles'] ) ) {
+					foreach( $data['bundles'] as $bundle ) {
+						$imported_bundle_uuids[] = $bundle['data']['bundle_uuid'];
+						$results = array_merge_recursive( $results, Bundle::import( $bundle, $app->id() ) );
 					}
 				}
 				
-				/* Cull previously imported features which are no longer part of this imported app */
-				foreach( Feature::loadWhere( array( 'feature_app_id=%d AND feature_imported > 0 AND feature_uuid NOT IN (\'' . implode("','", $imported_feature_uuids) . '\')', $app->id() ) ) as $feature ) {
-					$feature->delete();
+				/* Cull previously imported bundles which are no longer part of this imported app */
+				foreach( Bundle::loadWhere( array( 'bundle_app_id=%d AND bundle_imported > 0 AND bundle_uuid NOT IN (\'' . implode("','", $imported_bundle_uuids) . '\')', $app->id() ) ) as $bundle ) {
+					$bundle->delete();
 				}
 				
 			} else {
@@ -424,8 +424,8 @@ class _App extends ExportableRecord
 	 */
 	public function delete()
 	{
-		foreach( $this->getFeatures() as $feature ) {
-			$feature->delete();
+		foreach( $this->getBundles() as $bundle ) {
+			$bundle->delete();
 		}
 		
 		return parent::delete();
