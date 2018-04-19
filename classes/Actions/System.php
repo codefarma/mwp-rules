@@ -346,6 +346,45 @@ class _System
 				},
 			)),
 			
+			/* Output HTML */
+			array( 'rules_output_html', array(
+				'title' => 'Output HTML Content',
+				'description' => 'Output some HTML content to the page.',
+				'group' => $output_lang,
+				'arguments' => array(
+					'content' => array(
+						'label' => 'HTML To Output',
+						'default' => 'manual',
+						'required' => true,
+						'argtypes' => array( 
+							'string' => array( 'description' => 'The HTML to output' ),
+						),
+						'configuration' => array(
+							'form' => function( $form, $values ) {
+								$form->addField( 'rules_html_content', 'textarea', array(
+									'row_attr' => array(  'id' => $argNameKey . '_phpcode', 'data-view-model' => 'mwp-rules' ),
+									'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'htmlmixed\' }' ),
+									'label' => __( 'HTML Content', 'mwp-rules' ),
+									'description' => __( 'Enter the html content that you want to output.', 'mwp-rules' ),
+									'data' => isset( $values['rules_html_content'] ) ? $values['rules_html_content'] : '',
+								));
+							},
+							'getArg' => function( $values ) {
+								return isset( $values['rules_html_content'] ) ? $values['rules_html_content'] : '';
+							},
+						),
+					),
+				),
+				'callback' => function( $content ) {
+					if ( is_string( $content ) ) {
+						echo $content;
+						return array( 'success' => true, 'message' => 'Sent Output' );
+					}
+					
+					return array( 'success' => false, 'message' => 'Content was not a string value.' );
+				},
+			)),
+			
 			/* Update Meta Data */
 			array( 'rules_update_metadata', array(
 				'title' => 'Update Meta Data',

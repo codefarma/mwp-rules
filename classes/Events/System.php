@@ -109,9 +109,23 @@ class _System
 				'group' => 'Shutdown',
 			)),
 			
+			/* Wordpress Head Output */
+			array( 'action', 'wp_head', array( 
+				'title' => 'HTML Head Output',
+				'description' => 'This event occurs inside the html head tag.',
+				'group' => 'Output',
+			)),
+			
+			/* Wordpress Foot Output */
+			array( 'action', 'wp_footer', array( 
+				'title' => 'HTML Foot Output',
+				'description' => 'This event occurs before the closing of the html body tag.',
+				'group' => 'Output',
+			)),
+			
 			/* Document Title */
 			array( 'filter', 'document_title_parts', array(
-				'title' => 'Document Title Is Being Filtered',
+				'title' => 'Document Title Is Filtered',
 				'description' => 'The document title is the page title which appears in the browser when a page is viewed.',
 				'group' => 'Output',
 				'arguments' => array(

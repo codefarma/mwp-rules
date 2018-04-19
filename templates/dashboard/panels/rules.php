@@ -78,7 +78,7 @@ $rules = Rules\Rule::loadWhere('rule_feature_id=0 AND rule_parent_id=0');
 		  </tbody>
 		</table>
 	<?php else: ?>
-		You haven't created any automations yet. Begin by <a href="<?php echo $plugin->getRulesController()->getUrl(['do'=>'new']) ?>">starting a new rule</a>.
+		You haven't created any automations yet. Begin by <a href="<?php echo $plugin->getRulesController()->getUrl(['do'=>'new']) ?>">starting a new automation rule</a>.
 	<?php endif; ?>
   </div>
 </div>

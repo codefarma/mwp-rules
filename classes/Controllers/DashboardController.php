@@ -45,7 +45,7 @@ class _DashboardController extends AdminController
 	 */
 	public function do_index()
 	{
-		echo $this->wrap( __( 'Welcome To Rules', 'mwp-rules' ), $this->plugin->getTemplateContent( 'dashboard/layout/main', [
+		echo $this->wrap( __( 'Automation Dashboard', 'mwp-rules' ), $this->plugin->getTemplateContent( 'dashboard/layout/main', [
 			'controller' => $this,
 		]));
 	}
@@ -58,10 +58,12 @@ class _DashboardController extends AdminController
 	public function do_import_package()
 	{
 		$form = $this->plugin->createForm( 'rules_package_import' );
+		
 		$form->addField( 'package', 'file', array(
 			'label' => __( 'Package File', 'mwp-rules' ),
 			'required' => true,
 		));
+		
 		$form->addField( 'submit', 'submit', array(
 			'label' => __( 'Import', 'mwp-rules' ),
 		));
