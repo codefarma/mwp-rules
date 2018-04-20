@@ -355,6 +355,14 @@ abstract class _GenericOperation extends ExportableRecord
 			$i               = 0;
 			$event           = $this->event();
 			$opkey           = $this->getFormKey();
+			$type_map        = array( 
+				'integer' 	=> 'int',
+				'double'	=> 'float',
+				'boolean' 	=> 'bool',
+				'string' 	=> 'string',
+				'array'		=> 'array',
+				'object'	=> 'object',
+			);
 			
 			/* Name and index all the event arguments */
 			if ( isset( $event->arguments ) and count( $event->arguments ) ) {
@@ -402,23 +410,34 @@ abstract class _GenericOperation extends ExportableRecord
 									/**
 									 * Argtypes must be defined to use event arguments
 									 */
-									if ( is_array( $arg[ 'argtypes' ] ) ) {
+									if ( is_array( $arg['argtypes'] ) ) 
+									{	
+										/**
+										 * If we have a mixed type argument, and the operation argument doesn't explicitly 
+										 * accept a mixed type argument, then we wont be able to safely feed it into the operation
+										 * as an argument. So we attempt to identify its specific argument type on a case by case
+										 * basis in hopes that we can still safely feed the argument in to the operation.
+										 */
+										if ( $event_arg_type == 'mixed' and ! in_array( 'mixed', $arg['argtypes'] ) and ! isset( $arg['artypes']['mixed'] ) ) {
+											list( $event_arg, $event_arg_type ) = static::extrapolateMixedArgument( $event_arg, $event_arg_type );
+										}
+										
 										/* Simple definitions with no processing callbacks */
-										if ( in_array( $event_arg_type, $arg[ 'argtypes' ] ) or in_array( 'mixed', $arg[ 'argtypes' ] ) ) {
+										if ( in_array( $event_arg_type, $arg['argtypes'] ) or in_array( 'mixed', $arg['argtypes'] ) ) {
 											$_operation_arg = $event_arg;
 										}
 										
 										/* Complex definitions, check for processing callbacks */
-										else if ( isset( $arg[ 'argtypes' ][ $event_arg_type ] ) ) {
-											if ( isset ( $arg[ 'argtypes' ][ $event_arg_type ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ $event_arg_type ][ 'converter' ] ) ) {
-												$_operation_arg = call_user_func_array( $arg[ 'argtypes' ][ $event_arg_type ][ 'converter' ], array( $event_arg, $this->data ) );
+										else if ( isset( $arg['argtypes'][ $event_arg_type ] ) ) {
+											if ( isset ( $arg['argtypes'][ $event_arg_type ]['converter'] ) and is_callable( $arg['argtypes'][ $event_arg_type ]['converter'] ) ) {
+												$_operation_arg = call_user_func_array( $arg['argtypes'][ $event_arg_type ]['converter'], array( $event_arg, $this->data ) );
 											} else {
 												$_operation_arg = $event_arg;
 											}
 										}
-										else if ( isset( $arg[ 'argtypes' ][ 'mixed' ] ) ) {
-											if ( isset ( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) and is_callable( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ] ) ) {
-												$_operation_arg = call_user_func_array( $arg[ 'argtypes' ][ 'mixed' ][ 'converter' ], array( $event_arg, $this->data ) );
+										else if ( isset( $arg['argtypes']['mixed'] ) ) {
+											if ( isset ( $arg['argtypes']['mixed']['converter'] ) and is_callable( $arg['argtypes']['mixed']['converter'] ) ) {
+												$_operation_arg = call_user_func_array( $arg['argtypes']['mixed']['converter'], array( $event_arg, $this->data ) );
 											} else {
 												$_operation_arg = $event_arg;
 											}
@@ -467,16 +486,6 @@ abstract class _GenericOperation extends ExportableRecord
 								{
 									if ( is_array( $arg[ 'argtypes' ] ) )
 									{
-										$type_map = array
-										( 
-											'integer' 	=> 'int',
-											'double'	=> 'float',
-											'boolean' 	=> 'bool',
-											'string' 	=> 'string',
-											'array'		=> 'array',
-											'object'	=> 'object',
-										);
-										
 										$php_arg_type = $type_map[ gettype( $argVal ) ];
 										
 										/* Simple definitions with no value processing callbacks */
@@ -560,17 +569,7 @@ abstract class _GenericOperation extends ExportableRecord
 									if ( isset( $argVal ) )
 									{
 										if ( is_array( $arg[ 'argtypes' ] ) )
-										{
-											$type_map = array
-											( 
-												'integer' 	=> 'int',
-												'double'	=> 'float',
-												'boolean' 	=> 'bool',
-												'string' 	=> 'string',
-												'array'		=> 'array',
-												'object'	=> 'object',
-											);
-											
+										{											
 											$php_arg_type = $type_map[ gettype( $argVal ) ];
 											
 											/* Simple definitions with no processing callbacks */
@@ -810,6 +809,46 @@ abstract class _GenericOperation extends ExportableRecord
 			$event = $this->rule() ? $this->rule()->event() : NULL;
 			$rulesPlugin->rulesLog( $event, $this->rule(), $this, FALSE, 'Operation aborted. (Missing Definition)', 1 );		
 		}
+	}
+	
+	/**
+	 * Take an argument and return its guessed data type and value
+	 * 
+	 * @param	mixed		$arg			The argument to extrapolate
+	 * @param	string		$arg_type		The default arg type
+	 * @return	array
+	 */
+	public static function extrapolateMixedArgument( $arg, $arg_type='mixed' ) 
+	{
+		$type_map = array( 
+			'integer' 	=> 'int',
+			'double'	=> 'float',
+			'boolean' 	=> 'bool',
+			'string' 	=> 'string',
+			'array'		=> 'array',
+			'object'	=> 'object',
+		);
+		
+		$actual_type = gettype( $arg );
+		$extrapolated_type = $arg_type;
+		$extrapolated_value = $arg;
+		
+		if ( in_array( $actual_type, $type_map ) ) {
+			$extrapolated_type = $type_map[ $actual_type ];
+			if ( $extrapolated_type == 'string' ) {
+				if ( is_numeric( $arg ) ) {
+					if ( preg_match( '/\D/', $arg ) ) {
+						$extrapolated_type = 'float';
+						$extrapolated_value = (float) $arg;
+					} else {
+						$extrapolated_type = 'int';
+						$extrapolated_value = (int) $arg;
+					}
+				}
+			}
+		}
+		
+		return array( $extrapolated_value, $extrapolated_type );
 	}
 	
 	/**

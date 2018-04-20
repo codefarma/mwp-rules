@@ -552,6 +552,6 @@ class _Token
 	public function getHistory()
 	{
 		return $this->history;
-	}
+	}	
 
 }

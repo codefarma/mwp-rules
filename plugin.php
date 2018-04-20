@@ -3,7 +3,7 @@
  * Plugin Name: MWP Rules
  * Plugin URI: https://www.codefarma.com/rules
  * Description: An automation rules engine for WordPress
- * Author: Kevin Carwile
+ * Author: Code Farma
  * Author URI: https://www.codefarma.com
  * Version: 1.0.0
  */

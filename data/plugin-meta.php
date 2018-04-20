@@ -5,7 +5,7 @@ return <<<'JSON'
     "pluginFramework": "mwp",
     "name": "MWP Rules",
     "description": "An automation rules engine for WordPress",
-    "author": "Kevin Carwile",
+    "author": "Code Farma",
     "author_url": "https:\/\/www.codefarma.com",
     "url": "https:\/\/www.codefarma.com\/rules",
     "slug": "mwp-rules",
