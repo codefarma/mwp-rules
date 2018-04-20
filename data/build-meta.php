@@ -169,19 +169,6 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
-                "rule_bundle_id": {
-                    "allow_null": false,
-                    "auto_increment": false,
-                    "binary": false,
-                    "decimals": null,
-                    "default": "0",
-                    "length": 11,
-                    "name": "rule_bundle_id",
-                    "type": "INT",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                },
                 "rule_enable_recursion": {
                     "allow_null": false,
                     "auto_increment": false,
@@ -216,6 +203,19 @@ return <<<'JSON'
                     "default": "0",
                     "length": 11,
                     "name": "rule_imported",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "rule_bundle_id": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "rule_bundle_id",
                     "type": "INT",
                     "unsigned": false,
                     "values": [],
