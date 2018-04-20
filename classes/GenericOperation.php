@@ -144,12 +144,30 @@ abstract class _GenericOperation extends ExportableRecord
 					
 					/* Look for event data that can be used to supply the value for this argument */
 					$usable_event_data = array();
+					$usable_event_data_objects = array();
+					$usable_event_data_optgroups = array();
 					if ( $event = $operation->event() ) {
-						$usable_event_data = $event->getArgumentTokens( $arg, NULL, 2, FALSE, $operation->rule() );
+						$usable_event_data = $event->getArgumentTokens( $arg, NULL, 2, TRUE, $operation->rule() );
 						foreach( $usable_event_data as $token => &$title ) {
-							$title = $token . ' - ' . $title;
+							$parts = explode(':',$token);
+							
+							if ( ! isset( $usable_event_data_objects[ $parts[0] ] ) ) {
+								$usable_event_data_optgroups[ $parts[0] ] = array(
+									'label' => ucwords( __( $parts[0] . ' Arguments', 'mwp-rules' ) ),
+									'value' => $parts[0],
+								);
+							}
+							
+							$usable_event_data_objects[] = array( 'value' => $token, 'text' => $token, 'optgroup' => $parts[0] );
+							$title = $token; // . ' - ' . $title;
 						}
 						$usable_event_data = array_flip( $usable_event_data );
+						$usable_event_data_optgroups = array_values( $usable_event_data_optgroups );
+						
+						$current_event_arg = isset( $operation->data[ $argNameKey . '_eventArg' ] ) ? $operation->data[ $argNameKey . '_eventArg' ] : NULL;
+						if ( isset( $current_event_arg ) and ! in_array( $current_event_arg, array_values( $usable_event_data ) ) ) {
+							$usable_event_data_objects[] = array( 'value' => $current_event_arg, 'text' => $current_event_arg );
+						}
 					}
 					
 					if ( ! empty( $usable_event_data ) ) {
@@ -204,12 +222,24 @@ abstract class _GenericOperation extends ExportableRecord
 					 */
 					if ( ! empty( $usable_event_data ) ) 
 					{
-						$form->addField( $argNameKey . '_eventArg', 'choice', array(
-							'row_attr' => array( 'id' => $argNameKey . '_eventArg' ),
+						$form->addField( $argNameKey . '_eventArg', 'text', array(
+							'row_attr' => array( 'id' => $argNameKey . '_eventArg', 'data-view-model' => 'mwp-rules' ),
+							'attr' => array( 'data-role' => 'token-select', 'data-opkey' => $optype, 'data-opid' => $operation->id(), 'data-bind' => 'jquery: { 
+								selectize: {
+									plugins: [\'restore_on_backspace\'],
+									optgroups: ' . json_encode( $usable_event_data_optgroups ) . ',
+									options: ' . json_encode( $usable_event_data_objects ) . ',
+									persist: true,
+									maxItems: 1,
+									highlight: false,
+									hideSelected: false,
+									create: true
+								}
+							}'),
 							'label' => __( 'Data To Use', 'mwp-rules' ),
-							'choices' => $usable_event_data,
+							//'choices' => $usable_event_data,
 							'required' => true,
-							'data' => isset( $operation->data[ $argNameKey . '_eventArg' ] ) ? $operation->data[ $argNameKey . '_eventArg' ] : NULL,
+							'data' => ( isset( $operation->data[ $argNameKey . '_eventArg' ] ) and $operation->data[ $argNameKey . '_eventArg' ] ) ? $operation->data[ $argNameKey . '_eventArg' ] : reset( $usable_event_data ),
 						));
 					}
 					

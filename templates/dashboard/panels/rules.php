@@ -70,6 +70,7 @@ $rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0');
 						</strong>
 					</a> 
 					<?php if ( count( $actions ) > 1 ) { ?> and more... <?php } ?>
+					<?php if ( count( $rule->children() ) > 0 ) { ?> <strong>+ <?php echo count( $rule->children() ) ?> <a href="<?php echo $rule->url(['_tab'=>'rule_subrules']) ?>">Sub-rules</a></strong><?php } ?>
 				</td>
 				<td class="text-right"><?php echo $rule->enabled ? '<span class="text-success">Enabled</span>' . ( $rule->debug ? ' <a href="' . $rule->url(['_tab'=>'rule_debug_console']) . '" class="nounderline"><span class="text-warning">(debug)</span></a>' : '' ) : '<span class="text-danger">Disabled</span>'; ?></td>
 			</tr>

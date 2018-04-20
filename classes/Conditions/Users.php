@@ -282,11 +282,20 @@ class _Users
 							'choices' => $choices,
 							'required' => true,
 							'expanded' => true,
-							'data' => isset( $values['condition_type'] ) ? $values['condition_type'] : 'any',
+							'data' => isset( $values['condition_type'] ) ? $values['condition_type'] : 'greater',
 						));
 					},
 				),
 				'arguments' => array(
+					'threshold' => array(
+						'label' => 'Count Threshold',
+						'required' => true,
+						'default' => 'manual',
+						'argtypes' => array(
+							'int' => array( 'description' => 'The number of posts at which the threshold should be set.' ),
+						),
+						'configuration' => $plugin->configPreset( 'integer', 'count_threshold', array( 'label' => 'Threshold' ) ),
+					),
 					'user' => array(
 						'label' => 'User',
 						'required' => true,
@@ -354,17 +363,8 @@ class _Users
 							},
 						),
 					),
-					'threshold' => array(
-						'label' => 'Count Threshold',
-						'required' => true,
-						'default' => 'manual',
-						'argtypes' => array(
-							'int' => array( 'description' => 'The number of posts at which the threshold should be set.' ),
-						),
-						'configuration' => $plugin->configPreset( 'integer', 'count_threshold', array( 'label' => 'Threshold' ) ),
-					),
 				),
-				'callback' => function( $user, $post_types, $post_statuses, $threshold, $values ) {
+				'callback' => function( $threshold, $user, $post_types, $post_statuses, $values ) {
 					if ( ! $user instanceof \WP_User or ! $user->ID ) {
 						return false;
 					}

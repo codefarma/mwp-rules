@@ -114,6 +114,7 @@ class _Action extends GenericOperation
 				'params' => array(
 					'do' => 'edit',
 					'id' => $this->id,
+					'_tab' => 'operation_config',
 				),
 			),
 			'delete' => array(

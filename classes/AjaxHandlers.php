@@ -62,7 +62,7 @@ class _AjaxHandlers extends \MWP\Framework\Pattern\Singleton
 	}
 	
 	/**
-	 * Load available studio projects
+	 * Relocate nestable records
 	 *
 	 * @MWP\WordPress\AjaxHandler( action="mwp_rules_relocate_records", for={"users"} )
 	 *
@@ -108,5 +108,17 @@ class _AjaxHandlers extends \MWP\Framework\Pattern\Singleton
 				wp_send_json( array( 'success' => true ) );
 			}
 		}
-	}	
+	}
+	
+	/**
+	 * Load a set of available tokens
+	 *
+	 * @MWP\WordPress\AjaxHandler( action="mwp_rules_get_tokens", for={"users"} )
+	 *
+	 * @return	void
+	 */
+	public function getTokens()
+	{
+		
+	}
 }

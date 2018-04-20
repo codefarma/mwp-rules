@@ -372,7 +372,7 @@ class _Argument extends ExportableRecord
 			'label' => __( 'Required', 'mwp-rules' ),
 			'description' => __( 'Choose if this argument is required to have a value.', 'mwp-rules' ),
 			'value' => 1,
-			'data' => (bool) $this->required,
+			'data' => $this->required !== NULL ? (bool) $this->required : true,
 		),
 		'argument_details' );
 		

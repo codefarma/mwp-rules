@@ -614,7 +614,7 @@ class _System
 			
 			/* Check if a class exists */
 			array( 'rules_check_class_exists', array(
-				'title' => 'Check If A Class Exists',
+				'title' => 'Check If Class Exists',
 				'description' => 'Check to see if a particular class name exists',
 				'group' => $system_lang,
 				'arguments' => array(

@@ -825,6 +825,8 @@ class _Plugin extends \MWP\Framework\Plugin
 			return $this->config_preset_options;
 		}
 		
+		$plugin = $this;
+		
 		$this->config_preset_options = apply_filters( 'rules_config_preset_options', array(
 			'text' => array(
 				'label' => 'Text Field',
@@ -844,12 +846,112 @@ class _Plugin extends \MWP\Framework\Plugin
 			),
 			'choice' => array(
 				'label' => 'Choice Field',
+				'config' => array(
+					'form' => function( $name, $form, $values, $argument ) use ( $plugin ) {
+						$form->addField( $name . '_multiple', 'checkbox', array(
+							'label' => __( 'Allow Multiple Selections', 'mwp-rules' ),
+							'value' => 1,
+							'data' => isset( $values[ $name . '_multiple' ] ) ? $values[ $name . '_multiple' ] : false,
+						));
+						$form->addField( $name . '_expanded', 'checkbox', array(
+							'label' => __( 'Show In Expanded Form', 'mwp-rules' ),
+							'description' => __( 'Expanded form will show a list of radio/checkboxes to select from. Otherwise, a standard select field is shown.', 'mwp-rules' ),
+							'value' => 1,
+							'data' => isset( $values[ $name . '_expanded' ] ) ? $values[ $name . '_expanded' ] : false,
+						));
+						$form->addField( $name . '_options_source', 'choice', array(
+							'label' => __( 'Options Source', 'mwp-rules' ),
+							'data' => isset( $values[ $name . '_options_source' ] ) ? $values[ $name . '_options_source' ] : 'manual',
+							'choices' => array(
+								'Pre-Defined'   => 'manual',
+								'PHP Code'      => 'phpcode',
+								'User Roles'    => 'roles',
+								'Post Types'    => 'post_types',
+								'Post Statuses' => 'post_statuses',
+							),
+							'toggles' => array(
+								'manual' => array( 'show' => array( '#' . $name . '_options_manual' ) ),
+								'phpcode' => array( 'show' => array( '#' . $name . '_options_phpcode' ) ),
+							),
+						));
+						$key_array_preset = $plugin->configPreset( 'key_array', $name . '_options_manual', array(
+							'row_attr' => array( 'id' => $name . '_options_manual' ),
+							'label' => __( 'Choice Values', 'mwp-rules' ),
+						));
+						call_user_func( $key_array_preset['form'], $form, $values, $argument );
+						$form->addField( $name . '_options_phpcode', 'textarea', array(
+							'row_attr' => array(  'id' => $name . '_options_phpcode', 'data-view-model' => 'mwp-rules' ),
+							'label' => __( 'PHP Code', 'mwp-rules' ),
+							'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
+							'data' => isset( $values[ $name . '_options_phpcode' ] ) ? $values[ $name . '_options_phpcode' ] : "// <?php \n\nreturn array();",
+							'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 'return_args' => [ "array - An array of select options, the keys being the option text." ] ) ),
+							'required' => false,
+						));
+					},
+					'getConfig' => function( $name, $values, $argument ) {
+						$options_source = isset( $values[ $name . '_options_source' ] ) ? $values[ $name . '_options_source' ] : NULL;
+						$choices = array();
+						
+						switch( $options_source ) {
+							case 'manual':
+								$preset = $plugin->configPreset( 'key_array', $name . '_options_manual', [] );
+								if ( isset( $preset['getArg'] ) and is_callable( $preset['getArg'] ) ) {
+									$choices = call_user_func( $preset['getArg'], $values, $argument );
+								}
+								break;
+							case 'phpcode':
+								$evaluate = rules_evaluation_closure();
+								if ( isset( $values[ $name . '_options_phpcode' ] ) ) {
+									$choices = $evaluate( $values[ $name . '_options_phpcode' ] );
+								}
+								break;
+							case 'roles':
+								$roles = wp_roles();
+								foreach( $roles->roles as $slug => $role ) {
+									$choices[ $role['name'] ] = $slug;
+								}							
+								break;
+								
+							case 'post_types':
+								foreach( get_post_types( [], 'objects' ) as $post_type ) {
+									$choices[ $post_type->label ] = $post_type->name;
+								}								
+								break;
+								
+							case 'post_statuses': 
+								foreach( get_post_stati( [], 'objects' ) as $name => $status ) {
+									$choices[ $status->label ] = $status->name;
+								}
+								break;
+							
+						}
+						
+						return array( 
+							'choices' => $choices,
+							'multiple' => isset( $values[ $name . '_multiple' ] ) ? (bool) $values[ $name . '_multiple' ] : false,
+							'expanded' => isset( $values[ $name . '_expanded' ] ) ? (bool) $values[ $name . '_expanded' ] : false,
+						);
+					},
+				),
 			),
 			'integer' => array( 
 				'label' => 'Integer Input',
 			),
 			'textarea' => array(
 				'label' => 'Text Area',
+				'config' => array(
+					'form' => function( $name, $form, $values, $argument ) {
+						$form->addField( $name . '_placeholder', 'textarea', array(
+							'label' => __( 'Placeholder', 'mwp-rules' ),
+							'data' => isset( $values[ $name . '_placeholder' ] ) ? $values[ $name . '_placeholder' ] : '',
+						));
+					},
+					'getConfig' => function( $name, $values, $argument ) {
+						return array(
+							'attr' => array( 'placeholder' => isset( $values[ $name . '_placeholder' ] ) ? $values[ $name . '_placeholder' ] : '' ),
+						);
+					},
+				),
 			),
 			'datetime' => array(
 				'label' => 'Date and Time Input',
@@ -1200,7 +1302,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
 							'label' => __( 'Key/Value Pairs', 'mwp-rules' ),
 							'description' => __( 'Enter keyed values one per line, in the format of "key: value".', 'mwp-rules' ),
-							'attr' => array( 'placeholder' => 'key1: value1&#10;key2: value2' ),
+							'attr' => array( 'placeholder' => 'key1: Value 1&#10;key2: Value 2' ),
 							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
 						),
 						$options ));

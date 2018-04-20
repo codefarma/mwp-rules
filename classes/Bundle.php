@@ -292,7 +292,7 @@ class _Bundle extends ExportableRecord
 		if ( $this->id() ) {
 			
 			$form->addTab( 'arguments', array(
-				'title' => __( 'Bundle Settings', 'mwp-rules' ),
+				'title' => __( 'Variable Settings', 'mwp-rules' ),
 			));
 			
 			$argumentsController = $plugin->getArgumentsController( $this );
@@ -313,7 +313,7 @@ class _Bundle extends ExportableRecord
 			'arguments' );
 			
 			$form->addTab( 'bundle_rules', array(
-				'title' => __( 'Bundle Rules', 'mwp-rules' ),
+				'title' => __( 'Rules', 'mwp-rules' ),
 			));
 			
 			$rulesController = $plugin->getRulesController( $this );
@@ -343,7 +343,7 @@ class _Bundle extends ExportableRecord
 			$bundle = $this;
 			$form->onComplete( function() use ( $bundle, $plugin ) {
 				$controller = $plugin->getBundlesController( $bundle->getApp() );
-				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $bundle->id(), '_tab' => 'bundle_rules' ) ) );
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $bundle->id(), '_tab' => 'arguments' ) ) );
 				exit;
 			});			
 		}

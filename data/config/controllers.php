@@ -112,7 +112,7 @@ return [
 		'tableConfig' => [
 			'columns' => [
 				'argument_title' => __( 'Title', 'mwp-rules' ),
-				'argument_varname' => __( 'Variable Name', 'mwp-rules' ),
+				'argument_varname' => __( 'Machine Name', 'mwp-rules' ),
 				'argument_type' => __( 'Type', 'mwp-rules' ),
 				'argument_required' => __( 'Required', 'mwp-rules' ),
 				'argument_widget' => __( 'Widget', 'mwp-rules' ),
@@ -120,7 +120,7 @@ return [
 			],
 			'handlers' => [
 				'argument_varname' => function( $row ) {
-					return '<code>' . '$' . $row['argument_varname'] . '</code>';
+					return '<code>' . $row['argument_varname'] . '</code>';
 				},
 				'argument_required' => function( $row ) {
 					return $row['argument_required'] ? 'Yes' : 'No';
