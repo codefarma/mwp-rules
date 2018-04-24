@@ -135,6 +135,9 @@ class _ArgumentsController extends ActiveRecordController
 	 */
 	public function createDisplayTable( $override_options=array() )
 	{
+		$override_options['constructor']['singular'] = $this->getSingularName();
+		$override_options['constructor']['plural'] = $this->getPluralName();
+		
 		$table = parent::createDisplayTable( $override_options );
 		$table->hardFilters[] = array( 'argument_parent_type=%s AND argument_parent_id=%d', $this->getParentType(), $this->getParentId() );
 		
@@ -151,6 +154,64 @@ class _ArgumentsController extends ActiveRecordController
 		return parent::getUrl( array_merge( array( 'parent_type' => $this->getParentType(), 'parent_id' => $this->getParentId() ), $args ) );
 	}
 
+	/**
+	 * Get action buttons
+	 *
+	 * @return	array
+	 */
+	public function getActions()
+	{
+		$recordClass = $this->recordClass;
+		
+		return array( 
+			'new' => array(
+				'title' => __( $recordClass::$lang_create . ' ' . $this->getSingularName() ),
+				'params' => array( 'do' => 'new' ),
+				'attr' => array( 'class' => 'btn btn-primary' ),
+			)
+		);
+	}
+	
+	/**
+	 * Get the singular name of argument
+	 *
+	 * @return string
+	 */
+	public function getSingularName()
+	{
+		$class = $this->recordClass;
+		
+		if ( $this->getParent() instanceof Rules\Bundle ) {
+			return $class::$lang_singular_bundle;
+		}
+		
+		if ( $this->getParent() instanceof Rules\CustomLog ) {
+			return $class::$lang_singular_log;
+		}
+		
+		return $class::$lang_singular;
+	}
+	
+	/**
+	 * Get the plural name of arguments
+	 *
+	 * @return string
+	 */
+	public function getPluralName()
+	{
+		$class = $this->recordClass;
+		
+		if ( $this->getParent() instanceof Rules\Bundle ) {
+			return $class::$lang_plural_bundle;
+		}
+		
+		if ( $this->getParent() instanceof Rules\CustomLog ) {
+			return $class::$lang_plural_log;
+		}
+		
+		return $class::$lang_plural;
+	}
+	
 	/**
 	 * Create a new active record
 	 * 
@@ -170,8 +231,13 @@ class _ArgumentsController extends ActiveRecordController
 		}
 		
 		if ( $this->getParent() instanceof Rules\Bundle ) {
-			Rules\Argument::$lang_singular = 'Setting';
-			Rules\Argument::$lang_plural = 'Settings';
+			Rules\Argument::$lang_singular = Rules\Argument::$lang_singular_bundle;
+			Rules\Argument::$lang_plural = Rules\Argument::$lang_plural_bundle;
+		}
+		
+		if ( $this->getParent() instanceof Rules\CustomLog ) {
+			Rules\Argument::$lang_singular = Rules\Argument::$lang_singular_log;
+			Rules\Argument::$lang_plural = Rules\Argument::$lang_plural_log;
 		}
 		
 		parent::do_new( $record );

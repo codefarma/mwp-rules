@@ -172,7 +172,7 @@ class _Plugin extends \MWP\Framework\Plugin
 					if ( isset( $info['definition'] ) ) {
 						$definition = $info['definition'];
 						if ( $definition['hook_data']['hook_type'] == 'custom' ) {
-							$definition['title'] = $action_triggered_txt . ' ' . $definition['title'];
+							$definition['title'] = $definition['title'];
 						}
 						$this->describeEvent( $type, $hook, $definition );
 					}
@@ -186,7 +186,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			foreach( $custom_hooks['actions'] as $hook => $info ) {
 				if ( isset( $info['definition'] ) ) {
 					$definition = $info['definition'];
-					$definition['title'] = $custom_action_txt . ' ' . $definition['title'];
+					$definition['title'] = $definition['title'];
 					$definition['callback'] = function() use ( $hook ) {
 						call_user_func_array( 'do_action', array_merge( array( $hook ), func_get_args() ) );
 					};
@@ -214,7 +214,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		
 		if ( ! is_array( $custom_hooks ) ) {
 			$custom_hooks = array( 'events' => array(), 'actions' => array() );
-			foreach( Hook::loadWhere( '1=1' ) as $hook ) {
+			foreach( Hook::loadWhere('1') as $hook ) {
 				switch( $hook->type ) {
 					case 'custom':
 						$custom_hooks['actions'][$hook->hook] = array(
@@ -234,6 +234,16 @@ class _Plugin extends \MWP\Framework\Plugin
 						);
 						break;
 				}
+			}
+			
+			foreach( CustomLog::loadWhere('1') as $log ) {
+				$custom_hooks['events']['action'][ $log->getHookPrefix() . '_create' ] = array(
+					'definition' => $log->getEventDefinition(),
+				);
+				
+				$custom_hooks['actions'][ $log->getHookPrefix() . '_create' ] = array(
+					'definition' => $log->getActionDefinition(),
+				);
 			}
 			
 			$this->setCache( 'custom_hooks', $custom_hooks, TRUE );
@@ -424,6 +434,19 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
+	 * Get the custom logs controller
+	 * 
+	 * @return	ActiveRecordController
+	 */
+	public function getCustomLogsController( $bundle=null, $key='admin' )
+	{
+		$controller = CustomLog::getController( $key );
+		$controller->setBundle( $bundle );
+		
+		return $controller;
+	}
+	
+	/**
 	 * Get the hooks controller
 	 * 
 	 * @return	ActiveRecordController
@@ -503,6 +526,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		
 		return $controller;
 	}
+	
 	/**
 	 * Get the logs controller
 	 * 
@@ -1514,20 +1538,17 @@ class _Plugin extends \MWP\Framework\Plugin
 	public function storeArg( $arg )
 	{
 		/* Walk through arrays recursively to store arguments */
-		if ( is_array( $arg ) )
-		{
+		if ( is_array( $arg ) ) {
 			$arg_array = array();
 			
-			foreach ( $arg as $k => $_arg )
-			{
+			foreach ( $arg as $k => $_arg ) {
 				$arg_array[ $k ] = $this->storeArg( $_arg );
 			}
 			
 			return $arg_array;
 		}
 		
-		if ( ! is_object( $arg ) )
-		{
+		if ( ! is_object( $arg ) ) {
 			return $arg;
 		}
 		
@@ -1545,25 +1566,82 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function restoreArg( $arg )
 	{
-		if ( ! is_array( $arg ) )
-		{
+		if ( ! is_array( $arg ) ) {
 			return $arg;
 		}
 		
 		/* If the array is not a stored object reference, walk through elements recursively to restore values */
-		if ( ! isset ( $arg[ '_obj_class' ] ) )
-		{
+		if ( ! isset ( $arg[ '_obj_class' ] ) ) {
 			$arg_array = array();
 			
-			foreach ( $arg as $k => $_arg )
-			{
+			foreach ( $arg as $k => $_arg ) {
 				$arg_array[ $k ] = $this->restoreArg( $_arg );
 			}
 
 			return $arg_array;
 		}
 		
-		return apply_filters( 'rules_restore_object', NULL, $arg['data'], $arg['_obj_class'] ) ?: (object) $arg['data'];		
+		return apply_filters( 'rules_restore_object', NULL, $arg['data'], $arg['_obj_class'] ) ?: (object) $arg['data'];
+	}
+	
+	/**
+	 * Get the custom logs used in an export
+	 *
+	 * @param	array			$data			The export data
+	 * @return	array
+	 */
+	public function getLogsFromExportData( $data, $logs=[] )
+	{
+		/* Look for rules that use log events */
+		if ( isset( $data['rules'] ) and ! empty( $data['rules'] ) ) {
+			foreach( $data['rules'] as $rule ) {
+				$_type = $rule['data']['rule_event_type'];
+				$_hook = $rule['data']['rule_event_hook'];
+				
+				if ( $_type == 'action' and substr( $_hook, 0, strlen( 'rules_log_' ) ) === 'rules_log_' ) {
+					if ( ! isset( $hooks[ $_type . ':' . $_hook ] ) ) {
+						$pieces = explode( '_', $_hook );
+						if ( isset( $pieces[2] ) and $log_uuid = $pieces[2] ) {
+							if ( ! isset( $logs[ $log_uuid ] ) ) {
+								if ( $_logs = CustomLog::loadWhere( array( 'custom_log_uuid=%s', $log_uuid ) ) ) {
+									$logs[ $log_uuid ] = array_shift( $_logs );
+								}
+							}
+						}
+					}
+				}
+				
+				if ( isset( $rule['actions'] ) and ! empty( $rule['actions'] ) ) {
+					$logs = $this->getLogsFromExportData( $rule, $logs );
+				}
+			}
+		}
+		
+		/* Look for actions that reference logs */
+		if ( isset( $data['actions'] ) and ! empty( $data['actions'] ) ) {
+			foreach( $data['actions'] as $action ) {				
+				if ( substr( $action['data']['action_key'], 0, strlen( 'rules_log_' ) ) === 'rules_log_' ) {
+					$pieces = explode( '_', $action['data']['action_key'] );
+					if ( isset( $pieces[2] ) and $log_uuid = $pieces[2] ) {
+						if ( ! isset( $logs[ $log_uuid ] ) ) {
+							if ( $_logs = CustomLog::loadWhere( array( 'custom_log_uuid=%s', $log_uuid ) ) ) {
+								$logs[ $log_uuid ] = array_shift( $_logs );
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		foreach( array( 'apps', 'bundles' ) as $container_type ) {
+			if ( isset( $data[ $container_type ] ) and ! empty( $data[ $container_type ] ) ) {
+				foreach( $data[ $container_type ] as $container ) {
+					$logs = $this->getLogsFromExportData( $container, $logs );
+				}
+			}
+		}
+		
+		return $logs;
 	}
 	
 	/**
@@ -1574,6 +1652,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function getHooksFromExportData( $data, $hooks=[] )
 	{
+		/* Look for rules that use custom hooks */
 		if ( isset( $data['rules'] ) and ! empty( $data['rules'] ) ) {
 			foreach( $data['rules'] as $rule ) {
 				$_type = $rule['data']['rule_event_type'];
@@ -1586,8 +1665,25 @@ class _Plugin extends \MWP\Framework\Plugin
 						$hooks[ $_type . ':' . $_hook ] = array_shift( $_hooks );
 					}
 				}
+				
+				if ( isset( $rule['actions'] ) and ! empty( $rule['actions'] ) ) {
+					$hooks = $this->getHooksFromExportData( $rule, $hooks );
+				}
 			}
 		}
+		
+		/* Look for actions that reference custom hooks */
+		if ( isset( $data['actions'] ) and ! empty( $data['actions'] ) ) {
+			foreach( $data['actions'] as $action ) {				
+				if ( substr( $action['data']['action_key'], 0, strlen( 'rules/action/' ) ) === 'rules/action/' ) {
+					if ( ! isset( $hooks[ 'action:' . $action['data']['action_key'] ] ) ) {
+						if ( $_hooks = Hook::loadWhere( array( 'hook_hook=%s', $action['data']['action_key'] ) ) ) {
+							$hooks[ 'action:' . $action['data']['action_key'] ] = array_shift( $_hooks );
+						}
+					}
+				}
+			}
+		}		
 		
 		foreach( array( 'apps', 'bundles' ) as $container_type ) {
 			if ( isset( $data[ $container_type ] ) and ! empty( $data[ $container_type ] ) ) {
@@ -1615,24 +1711,41 @@ class _Plugin extends \MWP\Framework\Plugin
 		$package = array(
 			'rules_version' => $this->getVersion(),
 			'hooks' => [],
+			'logs' => [],
 		);
 		
 		foreach( $models as $model ) {
-			if ( $model instanceof App ) {
-				$package['apps'][] = $model->getExportData();
-			}
-			if ( $model instanceof Bundle ) {
-				$package['bundles'][] = $model->getExportData();
-			}
-			if ( $model instanceof Rule ) {
-				$package['rules'][] = $model->getExportData();
-			}
-			if ( $model instanceof Hook ) {
-				$package['hooks'][] = $model->getExportData();
+			if ( $model instanceof ExportableRecord ) {
+				if ( $model instanceof App ) {
+					$package['apps'][] = $model->getExportData();
+				}
+				if ( $model instanceof Bundle ) {
+					$package['bundles'][] = $model->getExportData();
+				}
+				if ( $model instanceof Rule ) {
+					$package['rules'][] = $model->getExportData();
+				}
+				if ( $model instanceof Hook ) {
+					$package['hooks'][] = $model->getExportData();
+				}
+				if ( $model instanceof CustomLog ) {
+					$package['logs'][] = $model->getExportData();
+				}
 			}
 		}
 		
-		$package['hooks'] = array_unique( array_merge( $package['hooks'], array_map( function( $hook ) { return $hook->getExportData(); }, $this->getHooksFromExportData( $package ) ) ) );
+		$package['hooks'] = array_merge( $package['hooks'], array_map( function( $hook ) { return $hook->getExportData(); }, array_values( $this->getHooksFromExportData( $package ) ) ) );
+		$package['logs'] = array_merge( $package['logs'], array_map( function( $log ) { return $log->getExportData(); }, array_values( $this->getLogsFromExportData( $package ) ) ) );
+		
+		/* I like tidy */
+		if ( empty( $package['hooks'] ) ) {
+			unset( $package['hooks'] );
+		}
+		
+		/* Tidy is nice */
+		if ( empty( $package['logs'] ) ) {
+			unset( $package['logs'] );
+		}
 		
 		return $package;
 	}

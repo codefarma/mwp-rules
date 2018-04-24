@@ -68,13 +68,13 @@ return [
 	'rules_hooks' => [
 		'adminPage' => [ 
 			'type' => 'submenu', 
-			'menu' => __( 'Custom Actions', 'mwp-rules' ), 
+			'menu' => __( 'Custom Events', 'mwp-rules' ), 
 			'parent' => 'mwp-rules',
 		],
 		'tableConfig' => [
 			'bulkActions' => array(
-				'delete' => __( 'Delete Hooks', 'mwp-rules' ),
-				'export' => __( 'Export Hooks', 'mwp-rules' ),
+				'delete' => __( 'Delete Events', 'mwp-rules' ),
+				'export' => __( 'Export Events', 'mwp-rules' ),
 			),
 			'columns' => [
 				'hook_type' => __( 'Type', 'mwp-rules' ),
@@ -89,7 +89,7 @@ return [
 	'rules_logs' => [
 		'adminPage' => [ 
 			'type' => 'submenu', 
-			'menu' => __( 'Rules Logs', 'mwp-rules' ), 
+			'menu' => __( 'Log Viewer', 'mwp-rules' ), 
 			'parent' => 'mwp-rules',
 		],
 	],
@@ -149,7 +149,16 @@ return [
 				}
 			],
 		],
-		
+	],
+	
+	/* Rules Custom Logs */
+	'rules_custom_logs' => [
+		'adminPage' => [
+			'title' => __( 'Custom Logs', 'mwp-rules' ),
+			'type' => 'submenu', 
+			'parent' => 'mwp-rules', 
+			'menu' => __( 'Custom Logs', 'mwp-rules' ), 
+		],
 	],
 	
 ];

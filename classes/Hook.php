@@ -70,12 +70,12 @@ class _Hook extends ExportableRecord
 	/**
 	 * @var	string
 	 */
-	public static $lang_singular = 'Hook';
+	public static $lang_singular = 'Event';
 	
 	/**
 	 * @var	string
 	 */
-	public static $lang_plural = 'Hooks';
+	public static $lang_plural = 'Events';
 	
 	/**
 	 * @var	string
@@ -171,6 +171,8 @@ class _Hook extends ExportableRecord
 		$definition = array(
 			'title' => $this->title,
 			'description' => $this->description,
+			'group' => 'Custom',
+			'callback' => array( static::class, 'callback_' . $this->id() ),
 		);
 		
 		foreach( $this->getArguments() as $argument ) {
@@ -212,20 +214,21 @@ class _Hook extends ExportableRecord
 		}
 		
 		$form->addTab( 'hook_details', array(
-			'title' => __( 'Hook Details', 'mwp-rules' ),
+			'title' => __( 'Event Details', 'mwp-rules' ),
 		));
 		
 		if ( ! $this->type ) {
 			$form->addField( 'specification', 'choice', array(
-				'label' => __( 'Hook Type', 'mwp-rules' ),
+				'label' => __( 'Event Type', 'mwp-rules' ),
 				'description' => "<div class='alert alert-info'><ol>" . 
-					"<li>" . __( 'Choose "Unique Custom Action" if you want to create a new custom action that you can trigger using rules.', 'mwp-rules' ) . "</li>" .
-					"<li>" . __( 'Choose "Existing Hook Event" to add an existing hook event triggered by WordPress core or a 3rd party plugin.', 'mwp-rules' ) . "</li>" .
+					"<li>" . __( 'Choose "New Unique Action" if you want to create a new custom action that you can trigger using rules.', 'mwp-rules' ) . "</li>" .
+					"<li>" . __( 'Choose "Existing Event" to add an existing hook event triggered by WordPress core or a 3rd party plugin.', 'mwp-rules' ) . "</li>" .
 				"</ol></div>",
-				'data' => 'automatic',
+				'data' => 'new',
+				'expanded' => true,
 				'choices' => array(
-					'Unique Custom Action' => 'new',
-					'Existing Hook Event' => 'existing',
+					'New Unique Action' => 'new',
+					'Existing Event' => 'existing',
 				),
 				'toggles' => array(
 					'new' => array( 'hide' => array( '#hook_hook', '#hook_type' ) ),
@@ -392,7 +395,7 @@ class _Hook extends ExportableRecord
 				}
 				
 			} else {
-				$results['errors']['bundles'][] = $result;
+				$results['errors']['hooks'][] = $result;
 			}
 		}
 		
@@ -425,4 +428,24 @@ class _Hook extends ExportableRecord
 		Plugin::instance()->clearCustomHooksCache();
 		return parent::delete();
 	}
+	
+	/**
+	 * Magic callback used for serializing for caching purposes
+	 * 
+	 * @return	mixed
+	 */
+	public static function __callStatic( $name, $arguments )
+	{
+		$parts = explode( '_', $name );
+		if ( $parts[0] == 'callback' ) {
+			if ( count( $parts ) == 2 ) {
+				try {
+					if ( $hook = static::load( $parts[1] ) ) {
+						call_user_func_array( 'do_action', array_merge( array( $hook->hook ), $arguments ) );
+					}
+				}
+				catch( \OutOfRangeException $e ) { }
+			}
+		}
+	}	
 }

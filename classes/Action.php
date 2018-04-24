@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use \MWP\Framework\Pattern\ActiveRecord;
+use MWP\Framework\Pattern\ActiveRecord;
 
 /**
  * Action Class
@@ -219,7 +219,7 @@ class _Action extends GenericOperation
 				'choices' => $scheduling_options,
 				'data' => $action->schedule_mode !== NULL ? $action->schedule_mode : ( isset( $action->definition()->default_mode ) ? $action->definition()->default_mode : $schedule_default ),
 				'required' => true,
-				'expanded' => false,
+				'expanded' => true,
 				'toggles' => array(
 					2 => array( 'show' => array( '#schedule_key', '#schedule_minutes', '#schedule_hours', '#schedule_days', '#schedule_months' ) ),
 					3 => array( 'show' => array( '#schedule_key', '#schedule_date' ) ),
@@ -228,6 +228,15 @@ class _Action extends GenericOperation
 				'row_suffix' => '<hr>',
 			));
 		
+			$form->addField( 'schedule_key', 'text', array( 
+				'row_attr' => array( 'id' => 'schedule_key' ),
+				'label' => __( 'Unique Scheduling Keyphrase', 'mwp-rules' ),
+				'data' => $action->schedule_key,
+				'description' => __( 'Optional. Only one action will remain scheduled for any given keyphrase at a time. If an action is rescheduled, any previously scheduled actions with the same keyphrase will be removed. You can use tokens in the keyphrase and they will be replaced.', 'mwp-rules' ),
+				'required' => false,
+				'field_suffix' => '<hr>',
+			));
+			
 			/* Fixed amount of time in the future */
 			$form->addField( 'schedule_minutes', 'integer', array( 'label' => __( 'Minutes', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_minutes' ), 'data' => (int) $action->schedule_minutes ) );
 			$form->addField( 'schedule_hours', 'integer', array( 'label' => __( 'Hours', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_hours' ), 'data' => (int) $action->schedule_hours ) );
@@ -261,13 +270,6 @@ class _Action extends GenericOperation
 				)),
 			));
 			
-			$form->addField( 'schedule_key', 'text', array( 
-				'row_attr' => array( 'id' => 'schedule_key' ),
-				'label' => __( 'Unique Scheduling Keyphrase', 'mwp-rules' ),
-				'data' => $action->schedule_key,
-				'description' => __( 'Optional. Only one action will remain scheduled for any given keyphrase at a time. If an action is rescheduled, any previously scheduled actions with the same keyphrase will be removed.', 'mwp-rules' ),
-				'required' => false,
-			));
 		}
 		
 		if ( ! $action->id ) {

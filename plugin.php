@@ -64,21 +64,23 @@ add_action( 'mwp_framework_init', function()
 	
 	/* Assign customized controller classes */
 	App             ::setControllerClass( Controllers\AppsController::class );
-	Bundle         ::setControllerClass( Controllers\BundlesController::class );
+	Bundle          ::setControllerClass( Controllers\BundlesController::class );
 	Rule            ::setControllerClass( Controllers\RulesController::class );
 	Action          ::setControllerClass( Controllers\ActionsController::class );
 	Condition       ::setControllerClass( Controllers\ConditionsController::class );
 	RuleLog         ::setControllerClass( Controllers\LogsController::class );
 	ScheduledAction ::setControllerClass( Controllers\ScheduleController::class );
 	Argument        ::setControllerClass( Controllers\ArgumentsController::class );
+	CustomLog       ::setControllerClass( Controllers\CustomLogsController::class );
 	
 	/* Create controllers and admin pages */
 	App             ::createController('admin', $config['controllers']['rules_apps']);
-	Bundle         ::createController('admin', $config['controllers']['rules_bundles']);
+	Bundle          ::createController('admin', $config['controllers']['rules_bundles']);
 	Rule            ::createController('admin', $config['controllers']['rules_rules']);
 	Condition       ::createController('admin', $config['controllers']['rules_conditions']);
 	Action          ::createController('admin', $config['controllers']['rules_actions']);
 	Hook            ::createController('admin', $config['controllers']['rules_hooks']);
+	CustomLog       ::createController('admin', $config['controllers']['rules_custom_logs']);
 	Argument        ::createController('admin', $config['controllers']['rules_arguments']);
 	RuleLog         ::createController('admin', $config['controllers']['rules_logs']);
 	ScheduledAction ::createController('admin', $config['controllers']['rules_scheduled_actions']);

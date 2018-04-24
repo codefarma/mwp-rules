@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use \MWP\Framework\Pattern\ActiveRecord;
+use MWP\Framework\Pattern\ActiveRecord;
 
 /**
  * ScheduledAction Class

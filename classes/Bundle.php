@@ -292,7 +292,7 @@ class _Bundle extends ExportableRecord
 		if ( $this->id() ) {
 			
 			$form->addTab( 'arguments', array(
-				'title' => __( 'Variable Settings', 'mwp-rules' ),
+				'title' => __( 'Variables', 'mwp-rules' ),
 			));
 			
 			$argumentsController = $plugin->getArgumentsController( $this );
@@ -303,7 +303,7 @@ class _Bundle extends ExportableRecord
 			$form->addHtml( 'arguments_table', $this->getPlugin()->getTemplateContent( 'rules/arguments/table_wrapper', array( 
 				'actions' => array_replace_recursive( $argumentsController->getActions(), array( 
 					'new' => array( 
-						'title' => __( 'Add Parameter', 'mwp-rules' ),
+						'title' => __( 'Add Variable', 'mwp-rules' ),
 					), 
 				)),
 				'bundle' => $this, 
@@ -327,6 +327,22 @@ class _Bundle extends ExportableRecord
 				'controller' => $rulesController,
 			)),
 			'bundle_rules' );
+			
+			$form->addTab( 'bundle_logs', array(
+				'title' => __( 'Logs', 'mwp-rules' ),
+			));
+			
+			$logsController = $plugin->getCustomLogsController( $this );
+			$logsTable = $logsController->createDisplayTable();
+			$logsTable->bulkActions = array();
+			$logsTable->prepare_items( array( 'custom_log_bundle_id=%d', $this->id() ) );
+			
+			$form->addHtml( 'logs_table', $this->getPlugin()->getTemplateContent( 'rules/logs/table_wrapper', array( 
+				'bundle' => $this, 
+				'table' => $logsTable, 
+				'controller' => $logsController,
+			)),
+			'bundle_logs' );
 			
 			/* Redirect to the bundles tab of the containing app after saving */
 			$bundle = $this;

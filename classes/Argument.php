@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use MWP\Framework\Pattern\ActiveRecord;
+use MWP\Framework\DbHelper;
 
 /**
  * Argument Class
@@ -71,6 +72,11 @@ class _Argument extends ExportableRecord
      */
     public static $plugin_class = 'MWP\Rules\Plugin';
 	
+	public static $lang_singular_bundle = 'Variable';
+	public static $lang_plural_bundle = 'Variables';
+	public static $lang_singular_log = 'Field';
+	public static $lang_plural_log = 'Fields';
+	
 	/**
 	 * @var	string
 	 */
@@ -101,6 +107,7 @@ class _Argument extends ExportableRecord
 		return array(
 			'hook' => Hook::class,
 			'bundle' => Bundle::class,
+			'log' => CustomLog::class,
 		);		
 	}
 	
@@ -162,11 +169,37 @@ class _Argument extends ExportableRecord
 	 */
 	public function getSingularName()
 	{
-		if ( $this->getParent() instanceof Bundle ) {
-			return 'Setting';
+		$parent = $this->getParent();
+		
+		if ( $parent instanceof Bundle ) {
+			return static::$lang_singular_bundle;
+		}
+		
+		if ( $parent instanceof CustomLog ) {
+			return static::$lang_singular_log;
 		}
 		
 		return static::$lang_singular;
+	}
+	
+	/**
+	 * Get the singular name of this type of argument`
+	 *
+	 * @return	string
+	 */
+	public function getPluralName()
+	{
+		$parent = $this->getParent();
+		
+		if ( $parent instanceof Bundle ) {
+			return static::$lang_plural_bundle;
+		}
+		
+		if ( $parent instanceof CustomLog ) {
+			return static::$lang_plural_log;
+		}
+		
+		return static::$lang_plural;
 	}
 	
 	/**
@@ -273,7 +306,7 @@ class _Argument extends ExportableRecord
 		));
 		
 		$form->addField( 'type', 'choice', array(
-			'label' => __( 'Argument Type', 'mwp-rules' ),
+			'label' => __( $this->getSingularName() . ' Data Type', 'mwp-rules' ),
 			'choices' => array(
 				'String' => 'string',
 				'Integer' => 'int',
@@ -282,7 +315,6 @@ class _Argument extends ExportableRecord
 				'Array' => 'array',
 				'Object' => 'object',
 				'Mixed Type' => 'mixed',
-				'Null' => 'null',
 			),
 			'data' => $this->type,
 			'required' => true,
@@ -360,7 +392,7 @@ class _Argument extends ExportableRecord
 		
 		$form->addField( 'class', 'text', array(
 			'label' => __( 'Object Class', 'mwp-rules' ),
-			'description' => __( 'If this argument is an object, or is a scalar value that can be used to load an object, enter the class name of that object here.', 'mwp-rules' ),
+			'description' => __( 'If this data is an object, or is a scalar value that can be used to load an object, enter the class name of that object here.', 'mwp-rules' ),
 			'attr' => array( 'placeholder' => 'WP_User' ),
 			'data' => $this->class,
 			'required' => false,
@@ -370,7 +402,7 @@ class _Argument extends ExportableRecord
 		$form->addField( 'required', 'checkbox', array(
 			'row_prefix' => '<hr>',
 			'label' => __( 'Required', 'mwp-rules' ),
-			'description' => __( 'Choose if this argument is required to have a value.', 'mwp-rules' ),
+			'description' => __( 'Choose if this ' . strtolower( $this->getSingularName() ) . ' is required to have a value.', 'mwp-rules' ),
 			'value' => 1,
 			'data' => $this->required !== NULL ? (bool) $this->required : true,
 		),
@@ -395,7 +427,7 @@ class _Argument extends ExportableRecord
 			'toggles' => $widget_toggles,
 			'data' => $this->widget,
 			'expanded' => false,
-			'description' => __( 'An input widget allows users to manually configure the value of the argument provided in rule configurations.', 'mwp-rules' ),
+			'description' => __( 'An input widget is what is used to allow users to manually configure the value of this ' . strtolower( $this->_getSingularName() ) . '.', 'mwp-rules' ),
 			'required' => true,
 		));
 		
@@ -421,7 +453,7 @@ class _Argument extends ExportableRecord
 		));
 		
 		$default_value_description = $this->getParent() instanceof Bundle ? 
-			__( 'If enabled, you can set a default value to be used for this argument in the absense of a user set value.', 'mwp-rules' ) : 
+			__( 'If enabled, you can set a default value to be used for this ' . strtolower( $this->_getSingularName() ) . ' in the absense of a user customized value.', 'mwp-rules' ) : 
 			__( 'If enabled, you can customize the default value displayed in the widget when manually configuring it in rule operations.', 'mwp-rules' );
 		
 		$form->addField( 'widget_use_default', 'checkbox', array(
@@ -473,7 +505,7 @@ class _Argument extends ExportableRecord
 		});
 		
 		$form->addField( 'save', 'submit', array(
-			'label' => __( 'Save Argument', 'mwp-rules' ),
+			'label' => __( 'Save ' . $this->getSingularName(), 'mwp-rules' ),
 		), '');
 
 		return $form;
@@ -565,6 +597,26 @@ class _Argument extends ExportableRecord
 	}
 	
 	/**
+	 * Build the form to set a default value for this argument
+	 * 
+	 * @return	MWP\Framework\Helpers\Form
+	 */
+	public function buildDeleteForm()
+	{
+		$form = parent::buildDeleteForm();
+		$argument = $this;
+		
+		$form->onComplete( function() use ( $argument ) {
+			if ( $parent = $argument->getParent() ) {
+				wp_redirect( $parent->url(['_tab' => 'arguments']) );
+				exit;
+			}
+		});
+		
+		return $form;
+	}
+	
+	/**
 	 * Add a configuration widget for this argument to a form
 	 * 
 	 * @param	MWP\Framework\Helpers\Form			$form				The form to add to
@@ -628,7 +680,7 @@ class _Argument extends ExportableRecord
 		$config_options = [
 			'label' => $this->title,
 			'description' => $this->description,
-			'required' => $this->required,
+			'required' => $this->getParent() instanceof Bundle && $this->required,
 		];
 		
 		/* Use the getOptions callback to get configured options for this widget */
@@ -711,6 +763,74 @@ class _Argument extends ExportableRecord
 		);
 		
 		return $this->definition;
+	}
+	
+	/**
+	 * Get the argument table column definition
+	 *
+	 * @return	array
+	 */
+	public function getColumnDefinition()
+	{
+		$definition = array(
+			'allow_null' => true,
+			'auto_increment' => false,
+			'binary' => false,
+			'decimals' => null,
+			'default' => null,
+			'length' => 255,
+			'name' => $this->getColumnName(),
+			'type' => 'VARCHAR',
+			'unsigned' => false,
+			'values' => [],
+			'zerofill' => false,
+		);
+		
+		if ( $this->required ) {
+			$definition['allow_null'] = false;
+		}
+		
+		switch( $this->type ) {
+			case 'string':
+				$definition['collation'] = 'utf8mb4_unicode_ci';
+				break;
+			
+			case 'int':
+				$definition['type'] = 'BIGINT';
+				$definition['length'] = 20;
+				break;
+				
+			case 'float':
+				$definition['type'] = 'FLOAT';
+				$definition['length'] = 25;
+				$definition['decimals'] = 10;
+				break;
+				
+			case 'bool':
+				$definition['type'] = 'INT';
+				$definition['length'] = 1;
+				break;
+			
+			case 'mixed':
+			case 'object':
+			case 'array':
+				$definition['type'] = 'MEDIUMTEXT';
+				$definition['length'] = 0;
+				$definition['collation'] = 'utf8mb4_unicode_ci';
+				break;
+		}
+		
+		return $definition;
+	}
+	
+	/**
+	 * Get the name of the data column for this argument
+	 *
+	 * @return	string
+	 */
+	public function getColumnName()
+	{
+		return 'entry_col_' . $this->id();
 	}
 	
 	/**
@@ -925,7 +1045,15 @@ class _Argument extends ExportableRecord
 		}
 		
 		Plugin::instance()->clearCustomHooksCache();
-		return parent::save();
+		$result = parent::save();
+		
+		if ( $this->parent_type == 'log' ) {
+			if ( $log = $this->getParent() ) {
+				$log->save();
+			}
+		}
+		
+		return $result;
 	}
 	
 	/**
@@ -936,7 +1064,16 @@ class _Argument extends ExportableRecord
 	public function delete()
 	{
 		Plugin::instance()->clearCustomHooksCache();
-		return parent::delete();
+		$result = parent::delete();
+		
+		if ( $this->parent_type == 'log' ) {
+			if ( $log = $this->getParent() ) {
+				$dbHelper = DbHelper::instance();
+				$dbHelper->dropColumn( $log->getTableName(), $this->getColumnName() );
+			}
+		}
+		
+		return $result;
 	}
 	
 	/**
