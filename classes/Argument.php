@@ -1077,7 +1077,7 @@ class _Argument extends ExportableRecord
 	}
 	
 	/**
-	 * Magic callback used for serializing for caching purposes
+	 * Magic method used to act as a rules ECA callback
 	 * 
 	 * @see getRecievesDefinition()
 	 * @return	mixed

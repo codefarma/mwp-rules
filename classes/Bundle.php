@@ -262,12 +262,14 @@ class _Bundle extends ExportableRecord
 				$app_choices[ $app->title ] = $app->id();
 			}
 			
-			$form->addField( 'app_id', 'choice', array(
-				'label' => __( 'Associated App', 'mwp-rules' ),
-				'choices' => $app_choices,
-				'required' => true,
-				'data' => $this->app_id,
-			), 'bundle_details' );
+			if ( count( $app_choices ) > 1 ) {
+				$form->addField( 'app_id', 'choice', array(
+					'label' => __( 'Associated App', 'mwp-rules' ),
+					'choices' => $app_choices,
+					'required' => true,
+					'data' => $this->app_id,
+				), 'bundle_details' );
+			}
 		}
 		
 		$form->addField( 'title', 'text', array(
@@ -327,22 +329,6 @@ class _Bundle extends ExportableRecord
 				'controller' => $rulesController,
 			)),
 			'bundle_rules' );
-			
-			$form->addTab( 'bundle_logs', array(
-				'title' => __( 'Logs', 'mwp-rules' ),
-			));
-			
-			$logsController = $plugin->getCustomLogsController( $this );
-			$logsTable = $logsController->createDisplayTable();
-			$logsTable->bulkActions = array();
-			$logsTable->prepare_items( array( 'custom_log_bundle_id=%d', $this->id() ) );
-			
-			$form->addHtml( 'logs_table', $this->getPlugin()->getTemplateContent( 'rules/logs/table_wrapper', array( 
-				'bundle' => $this, 
-				'table' => $logsTable, 
-				'controller' => $logsController,
-			)),
-			'bundle_logs' );
 			
 			/* Redirect to the bundles tab of the containing app after saving */
 			$bundle = $this;

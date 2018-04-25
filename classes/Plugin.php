@@ -187,9 +187,11 @@ class _Plugin extends \MWP\Framework\Plugin
 				if ( isset( $info['definition'] ) ) {
 					$definition = $info['definition'];
 					$definition['title'] = $definition['title'];
-					$definition['callback'] = function() use ( $hook ) {
-						call_user_func_array( 'do_action', array_merge( array( $hook ), func_get_args() ) );
-					};
+					if ( ! isset( $definition['callback'] ) ) {
+						$definition['callback'] = function() use ( $hook ) {
+							call_user_func_array( 'do_action', array_merge( array( $hook ), func_get_args() ) );
+						};
+					}
 					$this->defineAction( $hook, $definition );
 				}
 			}
@@ -438,12 +440,9 @@ class _Plugin extends \MWP\Framework\Plugin
 	 * 
 	 * @return	ActiveRecordController
 	 */
-	public function getCustomLogsController( $bundle=null, $key='admin' )
+	public function getCustomLogsController( $key='admin' )
 	{
-		$controller = CustomLog::getController( $key );
-		$controller->setBundle( $bundle );
-		
-		return $controller;
+		return CustomLog::getController( $key );
 	}
 	
 	/**
@@ -1768,6 +1767,12 @@ class _Plugin extends \MWP\Framework\Plugin
 		if ( isset( $package['hooks'] ) ) {
 			foreach( $package['hooks'] as $hook ) {
 				$results = array_merge_recursive( $results, Hook::import( $hook ) );
+			}
+		}
+		
+		if ( isset( $package['logs'] ) ) {
+			foreach( $package['logs'] as $log ) {
+				$results = array_merge_recursive( $results, CustomLog::import( $log ) );
 			}
 		}
 		

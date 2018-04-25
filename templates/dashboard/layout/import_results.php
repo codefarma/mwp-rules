@@ -37,6 +37,15 @@ use MWP\Rules;
 	</ul>
 <?php endif ?>
 
+<?php if ( isset( $results['imports']['logs'] ) ) : ?>
+	<h2>Custom Logs: <?php echo count( $results['imports']['logs'] ) ?></h2>
+	<ul>
+	<?php foreach( $results['imports']['logs'] as $log ) : ?>
+		<li><i class="glyphicon glyphicon-triangle-right"></i> <?php echo esc_html( $log['data']['custom_log_title'] ) ?></li>
+	<?php endforeach ?>
+	</ul>
+<?php endif ?>
+
 <?php if ( isset( $results['imports']['apps'] ) ) : ?>
 	<h2>Apps: <?php echo count( $results['imports']['apps'] ) ?></h2>
 	<ul>

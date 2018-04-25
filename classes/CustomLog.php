@@ -39,7 +39,6 @@ class _CustomLog extends ExportableRecord
 		'uuid',
         'title',
         'weight',
-		'bundle_id',
 		'description',
 		'enabled',
 		'key',
@@ -91,22 +90,6 @@ class _CustomLog extends ExportableRecord
 	 * @var	string
 	 */
 	public static $sequence_col = 'weight';
-	
-	/**
-	 * Get the associated bundle
-	 *
-	 * @return	MWP\Rules\Bundle|NULL
-	 */
-	public function getBundle()
-	{
-		if ( $this->bundle_id ) {
-			try {
-				return Bundle::load( $this->bundle_id );
-			} catch( \OutOfRangeException $e ) { }
-		}
-		
-		return NULL;
-	}
 	
 	/**
 	 * Get the log arguments
@@ -218,10 +201,7 @@ class _CustomLog extends ExportableRecord
 					'title' => $this->_getViewTitle(),
 					'class' => 'btn btn-sm btn-default',
 				),
-				'params' => array(
-					'do' => 'view',
-					'id' => $this->id(),
-				),
+				'url' => $this->getRecordController()->getUrl(),
 			),
 			'export' => array(
 				'title' => '',
@@ -273,33 +253,6 @@ class _CustomLog extends ExportableRecord
 			'title' => __( 'Log Details', 'mwp-rules' ),
 		));
 		
-		if ( $this->id() ) {
-			
-			$bundle_choices = [
-				'Unassigned' => 0,
-			];
-			
-			foreach( App::loadWhere('1') as $app ) {
-				$app_bundles = [];
-				foreach( $app->getBundles() as $bundle ) {
-					$app_bundles[ $bundle->title ] = $bundle->id();
-				}
-				$bundle_choices[ $app->title ] = $app_bundles;
-			}
-			
-			foreach( Bundle::loadWhere( 'bundle_app_id=0' ) as $bundle ) {
-				$bundle_choices[ 'Independent Bundles' ][ $bundle->title ] = $bundle->id();
-			}
-			
-			$form->addField( 'bundle_id', 'choice', array(
-				'label' => __( 'Associated Bundle', 'mwp-rules' ),
-				'choices' => $bundle_choices,
-				'required' => true,
-				'data' => $this->bundle_id,
-			), 
-			'log_details' );
-		}
-
 		$form->addField( 'title', 'text', array(
 			'label' => __( 'Title', 'mwp-rules' ),
 			'data' => $this->title,
@@ -340,14 +293,6 @@ class _CustomLog extends ExportableRecord
 			'label' => __( 'Save', 'mwp-rules' ),
 		), '');
 		
-		$form->onComplete( function() use ( $log, $plugin ) {
-			if ( $bundle = $log->getBundle() ) {
-				$controller = $plugin->getBundlesController( $bundle->getApp() );
-				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $bundle->id(), '_tab' => 'bundle_logs' ) ) );
-				exit;
-			}
-		});
-			
 		return $form;
 	}
 	
@@ -537,6 +482,78 @@ class _CustomLog extends ExportableRecord
 	}
 	
 	/**
+	 * Create controllers for each custom log
+	 *
+	 * @return
+	 */
+	public static function createRecordControllers()
+	{
+		foreach( static::loadWhere('1') as $log ) {
+			$log->getRecordController();
+		}
+	}
+	
+	/**
+	 * Get log entry record class
+	 *
+	 * @return	string
+	 */
+	public function getRecordClass()
+	{
+		$class = 'MWP\Rules\CustomLogEntry' . $this->id();
+		
+		if ( ! class_exists( $class ) ) {
+			eval( "
+				namespace MWP\Rules;
+				class CustomLogEntry{$this->id()} extends CustomLogEntry {
+					protected static \$multitons = array();
+					public static \$table = \"rules_custom_log_{$this->id()}\";
+					public static \$columns = array(
+						'id',
+						'timestamp',
+						'message',
+					);
+				}			
+			");			
+		}
+		
+		return $class;
+	}
+	
+	/**
+	 * Get the active record controller
+	 *
+	 * @return	ActiveRecordController
+	 */
+	public function getRecordController()
+	{
+		$class = $this->getRecordClass();
+		$controller = $class::getController( 'admin' );
+		
+		if ( ! $controller ) {
+			$controller_config = array(
+				'adminPage' => [ 
+					'type' => 'submenu', 
+				],
+				'tableConfig' => array(
+					'columns' => array(
+						'entry_message' => __( 'Log Message', 'mwp-rules' ),
+					),
+				),
+			);
+			
+			foreach( $this->getArguments() as $argument ) {
+				$class::$columns[] = 'col_' . $argument->id();
+				$controller_config['tableConfig']['columns'][ $class::$prefix . 'col_' . $argument->id() ] = $argument->title;
+			}
+			
+			$controller = $class::createController( 'admin', $controller_config );			
+		}
+		
+		return $controller;
+	}
+	
+	/**
 	 * Save
 	 *
 	 * @return	bool|WP_Error
@@ -561,6 +578,10 @@ class _CustomLog extends ExportableRecord
 	 */
 	public function delete()
 	{
+		foreach( $this->getArguments() as $argument ) {
+			$argument->delete();
+		}
+		
 		$result = parent::delete();
 		
 		Plugin::instance()->clearCustomHooksCache();
@@ -571,7 +592,7 @@ class _CustomLog extends ExportableRecord
 	}
 	
 	/**
-	 * Magic callback used for serializing for caching purposes
+	 * Magic method used to act as a rules ECA callback
 	 * 
 	 * @return	mixed
 	 */
@@ -585,10 +606,30 @@ class _CustomLog extends ExportableRecord
 			if ( count( $parts ) == 3 ) {
 				try {
 					if ( $log = static::load( $parts[1] ) ) {
-						/* @TODO: Create log entry */
-						
-						/* Trigger rules event */
-						call_user_func_array( 'do_action', array_merge( array( $log->getHookPrefix() . '_' . $parts[2] ), $arguments ) );
+						if ( $parts[2] == 'create' ) {
+							$fields = $arguments;
+							$recordClass = $log->getRecordClass();
+							
+							$entry = new $recordClass;
+							$entry->timestamp = time();
+							$entry->message = array_shift( $fields );
+							
+							foreach( $log->getArguments() as $argument ) {
+								$column = 'col_' . $argument->id();
+								$entry->$column = $plugin->storeArg( array_shift( $fields ) );
+							}
+							
+							$result = $entry->save();
+							
+							if ( is_wp_error( $result ) ) {
+								return array( 'success' => false, 'message' => $result->get_error_message(), 'entry' => $entry->dataArray() );
+							}
+							
+							/* Trigger rules event */
+							call_user_func_array( 'do_action', array_merge( array( $log->getHookPrefix() . '_' . $parts[2] ), $arguments ) );
+							
+							return array( 'success' => true, 'message' => 'Log entry created.', 'entry' => $entry->dataArray() );
+						}
 					}
 				}
 				catch( \OutOfRangeException $e ) { }

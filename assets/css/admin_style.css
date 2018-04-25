@@ -16,6 +16,19 @@
 	padding: 15px;
 }
 
+.wrap.management.records.rules > h1 > span {
+	background-color: #f7f8fa;
+}
+
+.rules-dashboard .panel {
+	box-shadow: 1px 1px 15px #eee;
+}
+
+.wrap.rules > .notice,
+.rules-dashboard > .notice {
+	display: none;
+}
+
 a.nounderline:hover {
 	text-decoration: none
 }
@@ -148,7 +161,7 @@ a.nounderline:hover {
 	margin-left: 10px;
 }
 
-.mwp-rules-form .widefat td, .mwp-rules-form .widefat th {
+.mwp-bootstrap .widefat td, .mwp-bootstrap .widefat th {
 	padding: 8px 10px;
 }
 
@@ -181,4 +194,22 @@ a.nounderline:hover {
 	line-height: 1.42857143;
 	background-color: #eee;
 	color: #555;
+}
+
+/* Panels */
+.automation-logs .tab-content .tab-pane {
+	padding: 5px;
+}
+
+.automation-logs .tab-content .tab-pane .table-container {
+	overflow-y: auto;
+	max-height: 300px;
+}
+
+.automation-logs .tab-content .tab-pane table.wp-list-table {
+	border: 0px !important;
+}
+
+.automation-logs .table-controller-actions p {
+	padding: 15px 5px 0;
 }

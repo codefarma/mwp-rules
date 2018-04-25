@@ -430,7 +430,7 @@ class _Hook extends ExportableRecord
 	}
 	
 	/**
-	 * Magic callback used for serializing for caching purposes
+	 * Magic method used to act as a rules ECA callback
 	 * 
 	 * @return	mixed
 	 */

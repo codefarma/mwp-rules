@@ -121,6 +121,7 @@ class _Log extends ActiveRecord
 				'message' => __( 'Status', 'mwp-rules' ),
 				'result' => __( 'Result', 'mwp-rules' ),
 			),
+			'actionsColumn' => '_none_',
 		));
 		
 		$logConditionsTable->displayBottomNavigation = false;
@@ -139,6 +140,7 @@ class _Log extends ActiveRecord
 				'result' => __( 'Result', 'mwp-rules' ),
 				'time' => __( 'Date/Time', 'mwp-rules' ),
 			),
+			'actionsColumn' => '_none_',
 		));
 		
 		$logActionsTable->displayBottomNavigation = false;
@@ -153,7 +155,6 @@ class _Log extends ActiveRecord
 				'rule_id' => __( 'Rule', 'mwp-rules' ),
 				'message' => __( 'Status', 'mwp-rules' ),
 				'result' => __( 'Result', 'mwp-rules' ),
-				'log_actions' => '',
 			),
 		));
 		

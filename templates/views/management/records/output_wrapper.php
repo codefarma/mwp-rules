@@ -23,7 +23,19 @@ use MWP\Rules;
 
 ?>
 
-<div class="wrap management records <?php echo $classes ?>">
-	<h1 class="mwp-bootstrap"><a href="<?php echo Rules\Plugin::instance()->getDashboardController()->getUrl() ?>" class="btn btn-sm btn-default ull-right" style="margin-right: 15px"><i class="glyphicon glyphicon-triangle-left"></i> Back to Dashboard</a><span><?php echo $title ?></span></h1>
+<style>
+#wpcontent {
+	background-image: url(<?php echo Rules\Plugin::instance()->fileUrl('assets/img/gray-texture-bg.jpg') ?>); 
+	background-size: cover;
+}
+</style>
+
+<div class="wrap management records rules <?php echo $classes ?>">
+	<h1 class="mwp-bootstrap">
+		<a href="<?php echo Rules\Plugin::instance()->getDashboardController()->getUrl() ?>" class="btn btn-sm btn-default pull-right" style="margin-right: 15px">
+			<i class="glyphicon glyphicon-triangle-left"></i> Back to Dashboard
+		</a>
+		<span><?php echo $title ?></span>
+	</h1>
 	<?php echo $output ?>
 </div>

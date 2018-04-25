@@ -45,7 +45,7 @@ class _DashboardController extends AdminController
 	 */
 	public function do_index()
 	{
-		echo $this->wrap( __( 'Rules Dashboard', 'mwp-rules' ), $this->plugin->getTemplateContent( 'dashboard/layout/main', [
+		echo $this->wrap( __( 'Automation Rules for WordPress', 'mwp-rules' ), $this->plugin->getTemplateContent( 'dashboard/layout/main', [
 			'controller' => $this,
 		]));
 	}

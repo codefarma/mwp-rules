@@ -74,9 +74,9 @@ add_action( 'mwp_framework_init', function()
 	CustomLog       ::setControllerClass( Controllers\CustomLogsController::class );
 	
 	/* Create controllers and admin pages */
-	App             ::createController('admin', $config['controllers']['rules_apps']);
-	Bundle          ::createController('admin', $config['controllers']['rules_bundles']);
+	//App             ::createController('admin', $config['controllers']['rules_apps']);
 	Rule            ::createController('admin', $config['controllers']['rules_rules']);
+	Bundle          ::createController('admin', $config['controllers']['rules_bundles']);
 	Condition       ::createController('admin', $config['controllers']['rules_conditions']);
 	Action          ::createController('admin', $config['controllers']['rules_actions']);
 	Hook            ::createController('admin', $config['controllers']['rules_hooks']);
@@ -84,6 +84,7 @@ add_action( 'mwp_framework_init', function()
 	Argument        ::createController('admin', $config['controllers']['rules_arguments']);
 	RuleLog         ::createController('admin', $config['controllers']['rules_logs']);
 	ScheduledAction ::createController('admin', $config['controllers']['rules_scheduled_actions']);
+	CustomLog       ::createRecordControllers();
 	
 	/* Global functions */
 	include_once( 'includes/rules.core.functions.php' );

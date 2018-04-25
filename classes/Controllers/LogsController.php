@@ -45,7 +45,6 @@ class _LogsController extends ActiveRecordController
 					'message' => __( 'Status', 'mwp-rules' ),
 					'result' => __( 'Result', 'mwp-rules' ),
 					'time' => __( 'Date/Time', 'mwp-rules' ),
-					'log_actions' => '',
 				),
 				'handlers' => array(
 					'log_source' => function( $row ) {
@@ -137,7 +136,6 @@ class _LogsController extends ActiveRecordController
 	public function createDisplayTable( $override_options=array() )
 	{
 		$table = parent::createDisplayTable( $override_options );
-		$table->actionsColumn = 'log_actions';
 		$table->removeTableClass( 'fixed' );
 
 		return $table;
@@ -155,7 +153,7 @@ class _LogsController extends ActiveRecordController
 	}
 	
 	/**
-	 * Create a new active record
+	 * View an active record
 	 * 
 	 * @param	ActiveRecord			$record				The active record id
 	 * @return	void

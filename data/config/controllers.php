@@ -89,8 +89,8 @@ return [
 	'rules_logs' => [
 		'adminPage' => [ 
 			'type' => 'submenu', 
-			'menu' => __( 'Log Viewer', 'mwp-rules' ), 
-			'parent' => 'mwp-rules',
+			//'menu' => __( 'Log Viewer', 'mwp-rules' ), 
+			//'parent' => 'mwp-rules',
 		],
 	],
 	
