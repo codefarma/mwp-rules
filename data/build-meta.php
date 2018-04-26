@@ -1588,6 +1588,289 @@ return <<<'JSON'
                     ]
                 }
             }
+        },
+        {
+            "name": "rules_custom_logs",
+            "columns": {
+                "custom_log_id": {
+                    "allow_null": false,
+                    "auto_increment": true,
+                    "binary": false,
+                    "decimals": null,
+                    "default": null,
+                    "length": 20,
+                    "name": "custom_log_id",
+                    "type": "BIGINT",
+                    "unsigned": true,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_uuid": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 25,
+                    "name": "custom_log_uuid",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_title": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": "",
+                    "length": 56,
+                    "name": "custom_log_title",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_weight": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 5,
+                    "name": "custom_log_weight",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_description": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 0,
+                    "name": "custom_log_description",
+                    "type": "TEXT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_enabled": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "1",
+                    "length": 1,
+                    "name": "custom_log_enabled",
+                    "type": "TINYINT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_key": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 255,
+                    "name": "custom_log_key",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_class": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": "",
+                    "length": 256,
+                    "name": "custom_log_class",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_max_logs": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "custom_log_max_logs",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_entity_max": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "custom_log_entity_max",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_max_age": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "custom_log_max_age",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_limit": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "25",
+                    "length": 5,
+                    "name": "custom_log_limit",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_display_empty": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 1,
+                    "name": "custom_log_display_empty",
+                    "type": "TINYINT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_sortby": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": "id",
+                    "length": 256,
+                    "name": "custom_log_sortby",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_sortdir": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": "desc",
+                    "length": 4,
+                    "name": "custom_log_sortdir",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_display_time": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "1",
+                    "length": 1,
+                    "name": "custom_log_display_time",
+                    "type": "TINYINT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_lang_time": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 56,
+                    "name": "custom_log_lang_time",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_lang_message": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 128,
+                    "name": "custom_log_lang_message",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "custom_log_imported": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "custom_log_imported",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                }
+            },
+            "indexes": {
+                "PRIMARY": {
+                    "type": "primary",
+                    "name": "PRIMARY",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "custom_log_id"
+                    ]
+                },
+                "custom_log_uuid": {
+                    "type": "key",
+                    "name": "custom_log_uuid",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "custom_log_uuid"
+                    ]
+                }
+            }
         }
     ]
 }
