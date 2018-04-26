@@ -3,8 +3,11 @@ builds
 .git
 .gitignore
 .svn
+.travis.yml
+eca-list.txt
 composer.json
 composer.lock
+phpcs.ruleset.xml
 phpunit.xml.dist
 tests
 bin

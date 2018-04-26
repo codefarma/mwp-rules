@@ -38,8 +38,7 @@ $tokens = $event->getTokens( NULL, $rule );
 	</div>
 	<div class="tokens-list">
 		<div style="margin:3px 0;">
-			<i class="glyphicon glyphicon-info-sign"></i> You can type the names of replacement tokens (including the brackets) into text entry fields on this form and they will be replaced by their associated data when the rule is executed.<br>
-			<i class="glyphicon glyphicon-arrow-right"></i> Alternative token format: Replace the brackets with tildes ( ~ ) ( Example: ~token:name~ ) for use in places where brackets are problematic (such as urls).
+			<i class="glyphicon glyphicon-info-sign"></i> You can type the names of replacement tokens (including the braces) into text entry fields on this form and they will be replaced by their associated data when the rule is executed.<br>
 		</div>
 		
 		<ul>
