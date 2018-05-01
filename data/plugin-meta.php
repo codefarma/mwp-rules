@@ -3,8 +3,8 @@ return <<<'JSON'
 {
     "type": "plugin",
     "pluginFramework": "mwp",
-    "name": "MWP Rules",
-    "description": "An automation rules engine for WordPress",
+    "name": "Automation Rules",
+    "description": "Automate new features and processes for any WordPress site through the use of simple \"rules\".",
     "author": "Code Farma",
     "author_url": "https:\/\/www.codefarma.com",
     "url": "https:\/\/www.codefarma.com\/rules",

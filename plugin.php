@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: MWP Rules
+ * Plugin Name: Automation Rules
  * Plugin URI: https://www.codefarma.com/rules
- * Description: An automation rules engine for WordPress
+ * Description: Automate new features and processes for any WordPress site through the use of simple "rules".
  * Author: Code Farma
  * Author URI: https://www.codefarma.com
  * Version: 1.0.0
