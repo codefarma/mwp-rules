@@ -33,7 +33,7 @@ include_once 'includes/plugin-bootstrap.php';
 add_action( 'mwp_framework_init', function() 
 {
 	/* Prepare Settings */
-	Plugin::instance()->addSettings( Settings::instance() );
+	//Plugin::instance()->addSettings( Settings::instance() );
 	
 	/* Attach callbacks to WordPress */
 	Framework::instance()
