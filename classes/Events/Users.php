@@ -138,6 +138,20 @@ class _Users
 				),
 			)),
 			
+			/* User Login Failed */
+			array( 'action', 'wp_login_failed', array( 
+				'title' => 'Login Attempt Has Failed',
+				'description' => 'This event occurs when a user has failed a login attempt.',
+				'group' => 'User',
+				'arguments' => array(
+					'username' => array(
+						'argtype' => 'string',
+						'label' => 'Login Name or Email',
+						'description' => 'The login name or email used in the login attempt',
+					),
+				),
+			)),
+			
 			/* User Logging Out */
 			array( 'action', 'clear_auth_cookie', array( 
 				'title' => 'User Is Logging Out',

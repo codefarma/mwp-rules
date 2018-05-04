@@ -9,11 +9,13 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Automation Rules allows you to build your own new features, and automate plugin behaviors through the use of simple "rules".
+Automation allows you to build new features on the fly and automate plugins using simple "rules".
  
 == Description ==
  
-You can use "rules" to tell your site what to do when events occur. An individual rule consists of an event, some conditions to check, and one or more actions to take. For example:
+Automation allows you to build new features on the fly and automate plugins using simple "rules".
+
+Use "rules" to assign what happens on your site when certain events occur. An individual rule consists of an event, some conditions to check, and one or more actions to take. For example:
 
 **Rule 1.**
 

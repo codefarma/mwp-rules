@@ -537,8 +537,14 @@ class _CustomLog extends ExportableRecord
 				],
 				'tableConfig' => array(
 					'columns' => array(
+						'entry_timestamp' => __( 'Date/Time', 'mwp-rules' ),
 						'entry_message' => __( 'Log Message', 'mwp-rules' ),
 					),
+				),
+				'handlers' => array(
+					'entry_timestamp' => function( $row ) {
+						return get_date_from_gmt( date( 'Y-m-d H:i:s', $row['entry_timestamp'] ), 'F j, Y H:i:s' );
+					},
 				),
 			);
 			
@@ -547,7 +553,7 @@ class _CustomLog extends ExportableRecord
 				$controller_config['tableConfig']['columns'][ $class::$prefix . 'col_' . $argument->id() ] = $argument->title;
 			}
 			
-			$controller = $class::createController( 'admin', $controller_config );			
+			$controller = $class::createController( 'admin', apply_filters( 'rules_custom_log_controller_config', $controller_config, $this ) );			
 		}
 		
 		return $controller;
