@@ -109,10 +109,22 @@ class _CustomLog extends ExportableRecord
 	public function getEventDefinition()
 	{
 		$definition = array(
-			'title' => 'Entry Logged: ' . $this->title,
-			'description' => 'A log entry has been logged to: ' . $this->title,
+			'title' => 'Entry Logged For: ' . $this->title,
+			'description' => 'A log entry has been logged to the log: ' . $this->title,
 			'group' => 'Custom Log',
 			'arguments' => array(
+				'log' => array(
+					'argtype' => 'object',
+					'class' => 'MWP\Rules\CustomLog',
+					'label' => 'Custom Log',
+					'description' => 'The custom log being logged to',
+				),
+				'entry' => array(
+					'argtype' => 'object',
+					'class' => $this->getRecordClass(),
+					'label' => 'Log Entry',
+					'description' => 'The log entry which was just logged',
+				),
 				'message' => array(
 					'argtype' => 'string',
 					'label' => 'Log Message',
@@ -632,7 +644,7 @@ class _CustomLog extends ExportableRecord
 							}
 							
 							/* Trigger rules event */
-							call_user_func_array( 'do_action', array_merge( array( $log->getHookPrefix() . '_' . $parts[2] ), $arguments ) );
+							call_user_func_array( 'do_action', array_merge( array( $log->getHookPrefix() . '_' . $parts[2] ), array_merge( array( $log, $entry ), $arguments ) ) );
 							
 							return array( 'success' => true, 'message' => 'Log entry created.', 'entry' => $entry->dataArray() );
 						}
