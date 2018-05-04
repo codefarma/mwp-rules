@@ -88,6 +88,13 @@ class _System
 				'group' => 'Initialization',
 			)),
 			
+			/* Admin Init */
+			array( 'action', 'admin_init', array(
+				'title' => 'WordPress Admin Is Being Initialized',
+				'description' => 'The admin init hook is fired when pages are loaded in the WP Admin.',
+				'group' => 'Initialization',
+			)),
+			
 			/* Wordpress Loaded */
 			array( 'action', 'wp_loaded', array( 
 				'title' => 'WordPress Is Loaded',
@@ -109,17 +116,31 @@ class _System
 				'group' => 'Shutdown',
 			)),
 			
-			/* Wordpress Head Output */
+			/* Wordpress Header Output */
 			array( 'action', 'wp_head', array( 
-				'title' => 'HTML Head Output',
-				'description' => 'This event occurs inside the html head tag.',
+				'title' => 'HTML Header Output (Front Side)',
+				'description' => 'This event occurs inside the html head tag on the front end.',
 				'group' => 'Output',
 			)),
 			
-			/* Wordpress Foot Output */
+			/* Wordpress Header Output */
+			array( 'action', 'admin_head', array( 
+				'title' => 'HTML Header Output (Admin Side)',
+				'description' => 'This event occurs inside the html head tag on the admin end.',
+				'group' => 'Output',
+			)),
+			
+			/* Wordpress Footer Output */
 			array( 'action', 'wp_footer', array( 
-				'title' => 'HTML Foot Output',
-				'description' => 'This event occurs before the closing of the html body tag.',
+				'title' => 'HTML Footer Output (Front Side)',
+				'description' => 'This event occurs before the closing of the html body tag on the front end.',
+				'group' => 'Output',
+			)),
+			
+			/* Wordpress Footer Output */
+			array( 'action', 'admin_footer', array( 
+				'title' => 'HTML Footer Output (Admin Side)',
+				'description' => 'This event occurs before the closing of the html body tag on the admin end.',
 				'group' => 'Output',
 			)),
 			
