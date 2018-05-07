@@ -26,7 +26,7 @@ $rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0');
   <div class="panel-heading">
 	<a href="<?php echo $plugin->getRulesController()->getUrl() ?>" class="btn btn-default btn-xs pull-right">Manage Rules</a>
 	<h3 class="panel-title">
-		Your Automations
+		Your Automations <small style="opacity: 0.7; font-size:0.75em; margin-left:20px;"><a target="_blank" href="https://www.codefarma.com/docs/rules-user"><i class="glyphicon glyphicon-question-sign"></i> User Guide</a></small>
 	</h3>
   </div>
   <div class="panel-body">

@@ -29,22 +29,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</ul>
 <?php endif ?>
 
-<?php if ( isset( $variables ) and ! empty( $variables ) ) : ?>
+<?php if ( ( isset( $variables ) and ! empty( $variables ) ) or ( isset( $event ) and ! empty( $event ) ) or ( isset( $operation ) and ! empty( $operation ) ) ) : ?>
 	<hr>
 	<p class="text-success">
 		The following variables are available to your php code:
 	</p>
+	<?php if ( isset( $variables ) and ! empty( $variables ) ) { ?>
 	<ul>
-		<?php foreach ( $variables as $var_description ) : ?>
+		<?php foreach ( $variables as $var_description ) { ?>
 		<li><?php echo $var_description ?></li>
-		<?php endforeach ?>
+		<?php } ?>
 	</ul>
+	<?php } ?>
+	<?php if ( isset( $event ) and ! empty( $event ) ) : ?>
+		<?php echo $event->getDisplayArgInfo() ?>
+	<?php endif ?>
+	<?php if ( isset( $operation ) and ! empty( $operation ) ) : ?>
+		<hr>
+		<ul>
+			<li><code>$operation</code> (object) - This <?php echo $operation instanceof MWP\Rules\Condition ? 'condition' : ( $operation instanceof MWP\Rules\Action ? 'action' : 'operation' ) ?></li>
+			<li><code>$token_value</code> (function) - Retrieve token values: <pre style="display: inline-block; padding: 0px 3px; vertical-align: -16px;">$user_id = $token_value('global:current_user:id')</pre></li>
+		</ul>
+	<?php endif ?>
 <?php endif ?>
 
-<?php if ( isset( $event ) and ! empty( $event ) ) : ?>
-	<hr>
-	<p class="text-success">
-		The following variables are available to your php code:
-	</p>
-	<?php echo $event->getDisplayArgInfo() ?>
-<?php endif ?>

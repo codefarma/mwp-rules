@@ -23,11 +23,11 @@ $plugin = Rules\Plugin::instance();
 
 <div class="panel panel-info">
   <div class="panel-heading">
-	<a href="#" class="btn btn-success btn-xs pull-right">Get Expansions</a> 
+	<a href="https://www.codefarma.com/products/rules-expansions/" target="_blank" class="btn btn-success btn-xs pull-right">Get Expansions</a> 
 	<h3 class="panel-title">Expansion Packs</h3>
   </div>
   <div class="panel-body">
 	No expansions currently installed.
   </div>
-</div>		
+</div>
 
