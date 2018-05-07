@@ -355,14 +355,7 @@ abstract class _GenericOperation extends ExportableRecord
 			$i               = 0;
 			$event           = $this->event();
 			$opkey           = $this->getFormKey();
-			$type_map        = array( 
-				'integer' 	=> 'int',
-				'double'	=> 'float',
-				'boolean' 	=> 'bool',
-				'string' 	=> 'string',
-				'array'		=> 'array',
-				'object'	=> 'object',
-			);
+			$operation       = $this; 
 			
 			/* Name and index all the event arguments */
 			if ( isset( $event->arguments ) and count( $event->arguments ) ) {
@@ -371,6 +364,15 @@ abstract class _GenericOperation extends ExportableRecord
 					$event_arg_index[ $event_arg_name ] = $i++;
 				}
 			}
+			
+			$token_value_getter = function( $tokenized_key ) use ( $operation, $arg_map ) {
+				$token = Token::createFromResources( $tokenized_key, $operation->getResources( $arg_map ) );
+				try {
+					return $token->getTokenValue();
+				} catch( \ErrorException $e ) { }
+				
+				return NULL;
+			};
 			
 			try
 			{
@@ -479,14 +481,14 @@ abstract class _GenericOperation extends ExportableRecord
 							 */
 							case 'phpcode':
 							
-								$evaluate = rules_evaluation_closure( $arg_map );
+								$evaluate = rules_evaluation_closure( array_merge( array( 'operation' => $this, 'token_value' => $token_value_getter ), $arg_map ) );
 								$argVal = $evaluate( $this->data[ $argNameKey . '_phpcode' ] );
 								
 								if ( isset( $argVal ) )
 								{
 									if ( is_array( $arg[ 'argtypes' ] ) )
-									{
-										$php_arg_type = $type_map[ gettype( $argVal ) ];
+									{										
+										list( $argVal, $php_arg_type ) = static::extrapolateMixedArgument( $argVal );
 										
 										/* Simple definitions with no value processing callbacks */
 										if ( in_array( $php_arg_type, $arg[ 'argtypes' ] ) or in_array( 'mixed', $arg[ 'argtypes' ] ) ) {
@@ -563,14 +565,14 @@ abstract class _GenericOperation extends ExportableRecord
 								/* Only if we haven't already attempted to get the argument from phpcode */
 								if ( $this->data[ $argNameKey . '_source' ] !== 'phpcode' )
 								{
-									$evaluate = rules_evaluation_closure( $arg_map );
+									$evaluate = rules_evaluation_closure( array_merge( array( 'operation' => $this, 'token_value' => $token_value_getter ), $arg_map ) );
 									$argVal = $evaluate( $this->data[ $argNameKey . '_phpcode' ] );
 									
 									if ( isset( $argVal ) )
 									{
 										if ( is_array( $arg[ 'argtypes' ] ) )
 										{											
-											$php_arg_type = $type_map[ gettype( $argVal ) ];
+											list( $argVal, $php_arg_type ) = static::extrapolateMixedArgument( $argVal );
 											
 											/* Simple definitions with no processing callbacks */
 											if ( in_array( $php_arg_type, $arg[ 'argtypes' ] ) or in_array( 'mixed', $arg[ 'argtypes' ] ) ) {
@@ -687,7 +689,7 @@ abstract class _GenericOperation extends ExportableRecord
 								 * On a calculated date
 								 */
 								case 4:
-									$evaluate = rules_evaluation_closure( $arg_map );
+									$evaluate = rules_evaluation_closure( array_merge( array( 'operation' => $this, 'token_value' => $token_value_getter ), $arg_map ) );
 									$custom_time = $evaluate( $this->schedule_customcode );
 									
 									if ( is_numeric( $custom_time ) )
@@ -833,7 +835,7 @@ abstract class _GenericOperation extends ExportableRecord
 		$extrapolated_type = $arg_type;
 		$extrapolated_value = $arg;
 		
-		if ( in_array( $actual_type, $type_map ) ) {
+		if ( in_array( $actual_type, array_keys( $type_map ) ) ) {
 			$extrapolated_type = $type_map[ $actual_type ];
 			if ( $extrapolated_type == 'string' ) {
 				if ( is_numeric( $arg ) ) {
