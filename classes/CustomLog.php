@@ -92,13 +92,41 @@ class _CustomLog extends ExportableRecord
 	public static $sequence_col = 'weight';
 	
 	/**
+	 * @var array
+	 */
+	protected $_arguments;
+	
+	/**
 	 * Get the log arguments
 	 *
 	 * @return	array
 	 */
 	public function getArguments()
 	{
-		return Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', Argument::getParentType( $this ), $this->id() ), 'argument_weight ASC' );
+		if ( isset( $this->_arguments ) ) {
+			return $this->_arguments;
+		}
+		
+		$this->_arguments = Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', Argument::getParentType( $this ), $this->id() ), 'argument_weight ASC' );
+		
+		return $this->_arguments;
+	}
+	
+	/**
+	 * Get a specific argument
+	 *
+	 * @param	string			$varname			The argument varname
+	 * @return	Argument|NULL
+	 */
+	public function getArgument( $varname ) 
+	{
+		foreach( $this->getArguments() as $argument ) {
+			if ( $argument->varname === $varname ) {
+				return $argument;
+			}
+		}
+		
+		return NULL;
 	}
 	
 	/**
@@ -545,18 +573,19 @@ class _CustomLog extends ExportableRecord
 		if ( ! $controller ) {
 			$controller_config = array(
 				'adminPage' => [ 
-					'type' => 'submenu', 
+					'type' => 'submenu',
+					'title' => $this->title . ': ' . $class::$lang_plural,
 				],
 				'tableConfig' => array(
 					'columns' => array(
 						'entry_timestamp' => __( 'Date/Time', 'mwp-rules' ),
 						'entry_message' => __( 'Log Message', 'mwp-rules' ),
 					),
-				),
-				'handlers' => array(
-					'entry_timestamp' => function( $row ) {
-						return get_date_from_gmt( date( 'Y-m-d H:i:s', $row['entry_timestamp'] ), 'F j, Y H:i:s' );
-					},
+					'handlers' => array(
+						'entry_timestamp' => function( $row ) {
+							return get_date_from_gmt( date( 'Y-m-d H:i:s', $row['entry_timestamp'] ), 'F j, Y H:i:s' );
+						},
+					),
 				),
 			);
 			

@@ -152,6 +152,34 @@ class _Bundle extends ExportableRecord
 	}
 	
 	/**
+	 * @var array
+	 */
+	protected $argmap;
+	
+	/**
+	 * Get an argument by varname
+	 *
+	 * @param	string			$varname			The argument varname
+	 * @return	Argument|NULL
+	 */
+	public function getArgument( $varname )
+	{
+		$varname = strtolower( $varname );
+		
+		if ( ! isset( $this->argmap ) ) {
+			foreach( $this->getArguments() as $argument ) {
+				$this->argmap[ strtolower( $argument->varname ) ] = $argument;
+			}
+		}
+		
+		if ( isset( $this->argmap[ $varname ] ) ) {
+			return $this->argmap[ $varname ];
+		}
+		
+		return NULL;
+	}
+	
+	/**
 	 * Get customizable arguments
 	 *
 	 * @return	array
@@ -440,30 +468,6 @@ class _Bundle extends ExportableRecord
 	public function getRuleCount()
 	{
 		return Rule::countWhere( array( 'rule_bundle_id=%d', $this->id() ) );
-	}
-	
-	protected $argmap;
-	
-	/**
-	 * Get an argument by varname
-	 *
-	 * @return	Argument|NULL
-	 */
-	public function getArgument( $varname )
-	{
-		$varname = strtolower( $varname );
-		
-		if ( ! isset( $this->argmap ) ) {
-			foreach( $this->getArguments() as $argument ) {
-				$this->argmap[ strtolower( $argument->varname ) ] = $argument;
-			}
-		}
-		
-		if ( isset( $this->argmap[ $varname ] ) ) {
-			return $this->argmap[ $varname ];
-		}
-		
-		return NULL;
 	}
 	
 	/**

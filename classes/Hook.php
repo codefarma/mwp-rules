@@ -131,13 +131,41 @@ class _Hook extends ExportableRecord
 	}
 	
 	/**
+	 * @var	array
+	 */
+	protected $_arguments;
+	
+	/**
 	 * Get the hook arguments
 	 *
 	 * @return	array
 	 */
 	public function getArguments()
 	{
-		return Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', Argument::getParentType( $this ), $this->id() ), 'argument_weight ASC' );
+		if ( isset( $this->_arguments ) ) {
+			return $this->_arguments;
+		}
+		
+		$this->_arguments = Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', Argument::getParentType( $this ), $this->id() ), 'argument_weight ASC' );
+		
+		return $this->_arguments;
+	}
+	
+	/**
+	 * Get a specific argument
+	 *
+	 * @param	string			$varname			The argument varname
+	 * @return	Argument|NULL
+	 */
+	public function getArgument( $varname ) 
+	{
+		foreach( $this->getArguments() as $argument ) {
+			if ( $argument->varname === $varname ) {
+				return $argument;
+			}
+		}
+		
+		return NULL;
 	}
 	
 	/**
