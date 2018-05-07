@@ -236,9 +236,9 @@ if ( ! function_exists( 'rules_define_actions' ) ) {
 
 if ( ! function_exists( 'rules_create_closure' ) ) {
 	
-	function rules_evaluation_closure( $args=[] ) {
-		$evaluator = function( $_phpcode ) use ( $args ) {
-			extract( $args, EXTR_SKIP );
+	function rules_evaluation_closure( $_args=[] ) {
+		$evaluator = function( $_phpcode ) use ( $_args ) {
+			extract( $_args, EXTR_SKIP );
 			return @eval( $_phpcode );
 		};
 		return $evaluator;

@@ -885,6 +885,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$form->addField( $name . '_options_source', 'choice', array(
 							'label' => __( 'Options Source', 'mwp-rules' ),
 							'data' => isset( $values[ $name . '_options_source' ] ) ? $values[ $name . '_options_source' ] : 'manual',
+							'required' => true,
 							'choices' => array(
 								'Pre-Defined'   => 'manual',
 								'PHP Code'      => 'phpcode',
@@ -907,7 +908,7 @@ class _Plugin extends \MWP\Framework\Plugin
 							'label' => __( 'PHP Code', 'mwp-rules' ),
 							'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
 							'data' => isset( $values[ $name . '_options_phpcode' ] ) ? $values[ $name . '_options_phpcode' ] : "// <?php \n\nreturn array();",
-							'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 'return_args' => [ "array - An array of select options, the keys being the option text." ] ) ),
+							'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 'return_args' => [ "<code>array</code>: An array of select options, the keys being the option text." ] ) ),
 							'required' => false,
 						));
 					},
