@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Event: Admin Initialized
+- Event: Admin Header
+- Event: Admin Footer
+- Event: Login Attempt Failed
+- Date/time now displays by default on log entries table
+- Added internal api methods to get specific arguments from hooks, logs, and bundles
+- Added a `$token_value` variable which contains a function that can be used to get token values inside rule configuration custom php code.
+
+### Changed
+
+- "Log entry created" events now recieve the log and entry as arguments
+- Added css styles to suppress notice and update messages on rules admin pages
+
+### Fixed
+
+- Completed the incomplete 'update filter value' action
+
+## [1.0.0] - 2018-04-28
+
+- First public release 
+
 ## [0.9.2] - 2018-02-28
 
 ### Added
