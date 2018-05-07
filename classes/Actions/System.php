@@ -214,16 +214,13 @@ class _System
 				'updates_filter' => true,
 				'arguments' => array(
 					'new_value' => array(
+						'label' => 'Updated Value',
 						'required' => true,
 						'default' => 'manual',
 						'argtypes' => array(
 							'mixed' => array( 'description' => 'The new value' ),
 						),
-						'configuration' => array(
-							'form' => function( $form, $saved_values, $operation ) {
-								
-							}
-						),
+						'configuration' => $plugin->configPreset( 'text', 'new_value', [ 'label' => 'Updated Value' ] )
 					),
 				),
 				'callback' => function( $new_value, $saved_values, $event_args, $operation ) {
