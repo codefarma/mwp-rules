@@ -295,7 +295,7 @@ class _Rule extends ExportableRecord
 				
 				foreach( array( 'action', 'filter' ) as $type ) {
 					foreach( $plugin->getEvents( $type ) as $event ) {
-						$group = ( $event->group ?: 'Unclassified' ) . ' ' . ucwords( $type ) . 's';
+						$group = ( $event->group ?: 'Unclassified' ) . ' ' . ( $type == 'action' ? 'Event' : ucwords( $type ) ) . 's';
 						$event_choices[ $group ][ $event->title ] = $event->type . '/' . $event->hook;
 					}
 				}

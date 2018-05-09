@@ -111,6 +111,49 @@ class _AjaxHandlers extends \MWP\Framework\Pattern\Singleton
 	}
 	
 	/**
+	 * Enable/Disable Things
+	 * 
+	 * @MWP\WordPress\AjaxHandler( action="mwp_rules_toggle_enabled", for={"users"} )
+	 * 
+	 * @return	void
+	 */
+	public function toggleEnabled()
+	{
+		check_ajax_referer( 'mwp-ajax-nonce', 'nonce' );
+		
+		if ( current_user_can( 'administrator' ) ) 
+		{
+			$type    = $_REQUEST['type'];
+			$type_id = $_REQUEST['id'];
+			
+			$classes = array(
+				'app'       => 'MWP\Rules\App',
+				'bundle'    => 'MWP\Rules\Bundle',
+				'rule'      => 'MWP\Rules\Rule',
+				'condition' => 'MWP\Rules\Condition',
+				'action'    => 'MWP\Rules\Action',
+			);
+			
+			if ( isset( $classes[ $type ] ) ) {
+				$class = $classes[ $type ];
+				try {
+					$record = $class::load( $type_id );
+					$record->enabled = ( $record->enabled ? 0 : 1 );
+					$record->save();
+					
+					wp_send_json( array( 'success' => true, 'status' => $record->enabled ) );
+				} 
+				catch( \OutOfRangeException $e ) {
+					wp_send_json( array( 'success' => false, 'message' => 'Record not found.' ) );
+				}
+			}
+		}
+		
+		wp_send_json( array( 'success' => false, 'message' => 'Invalid request.' ) );
+	}
+	
+	
+	/**
 	 * Load a set of available tokens
 	 *
 	 * @MWP\WordPress\AjaxHandler( action="mwp_rules_get_tokens", for={"users"} )

@@ -22,7 +22,7 @@ $rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0');
 
 ?>
 
-<div class="panel panel-info">
+<div class="panel panel-info" data-view-model="mwp-rules">
   <div class="panel-heading">
 	<a href="<?php echo $plugin->getRulesController()->getUrl() ?>" class="btn btn-default btn-xs pull-right">Manage Rules</a>
 	<h3 class="panel-title">
@@ -72,7 +72,12 @@ $rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0');
 					<?php if ( count( $actions ) > 1 ) { ?> and more... <?php } ?>
 					<?php if ( count( $rule->children() ) > 0 ) { ?> <strong>+ <?php echo count( $rule->children() ) ?> <a href="<?php echo $rule->url(['_tab'=>'rule_subrules']) ?>">Sub-rules</a></strong><?php } ?>
 				</td>
-				<td class="text-right"><?php echo $rule->enabled ? '<span class="text-success">Enabled</span>' . ( $rule->debug ? ' <a href="' . $rule->url(['_tab'=>'rule_debug_console']) . '" class="nounderline"><span class="text-warning">(debug)</span></a>' : '' ) : '<span class="text-danger">Disabled</span>'; ?></td>
+				<td class="text-right">
+					<span class="label label-<?php echo $rule->enabled ? 'success' : 'danger' ?> rules-pointer" data-rules-enabled-toggle="rule" data-rules-id="<?php echo $rule->id() ?>">
+						<?php echo $rule->enabled ? 'ENABLED' : 'DISABLED' ?>
+					</span> 
+					<?php echo ( $rule->debug ? ' <a href="' . $rule->url(['_tab'=>'rule_debug_console']) . '" class="nounderline"><span class="text-warning">(debug)</span></a>' : '' ) ?>
+				</td>
 			</tr>
 			</tr>
 		  <?php endforeach; ?>

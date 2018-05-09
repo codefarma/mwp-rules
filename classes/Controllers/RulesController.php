@@ -116,8 +116,8 @@ class _RulesController extends ExportableController
 						
 						$status = '<div class="mwp-bootstrap" style="margin-bottom:10px">';
 						$status .= $event ? ( $record['rule_enabled'] ? 
-							'<span class="label label-success">ENABLED</span>' : 
-							'<span class="label label-danger">DISABLED</span>' ) : 
+							'<span data-rules-enabled-toggle="rule" data-rules-id="' . $rule->id() . '" class="label label-success rules-pointer">ENABLED</span>' : 
+							'<span data-rules-enabled-toggle="rule" data-rules-id="' . $rule->id() . '" class="label label-danger rules-pointer">DISABLED</span>' ) : 
 							'<span class="label label-warning">INOPERABLE</span>';
 							
 						if ( $record['rule_debug'] ) {
@@ -145,7 +145,7 @@ class _RulesController extends ExportableController
 						return '<div class="mwp-bootstrap">' . 
 							$event_title . '<br>' . 
 							( $event ? $event->description . '<br>' : '' ) .
-							'<span class="text-info">via:</span> <code>' . ( $record['rule_event_type'] == 'filter' ? 'add_filter(\'' : 'add_action(\'' ) . $record['rule_event_hook'] . '\')</code> ' . 
+							'<span class="text-info">via:</span> <code>' . ( $record['rule_event_type'] == 'filter' ? 'filter: ' : 'action: ' ) . $record['rule_event_hook'] . '</code> ' . 
 						'</div>';
 						
 					},

@@ -54,8 +54,45 @@
 			// ajax actions can be made to the ajaxurl, which is automatically provided to your controller
 			var ajaxurl = this.local.ajaxurl;
 			
+			this.setupEnabledToggles();
+			
 			// set the properties on your view model which can be observed by your html templates
 			this.viewModel = {};
+		},
+		
+		/**
+		 * Setup the listener for toggling things enabled/disabled
+		 *
+		 * @return	void
+		 */
+		setupEnabledToggles: function()
+		{
+			$(document).on( 'click', '[data-rules-enabled-toggle]', function() {
+				var el = $(this);
+				
+				if ( ! el.hasClass('working') ) {
+					var type = el.data('rules-enabled-toggle');
+					var id = el.data('rules-id');
+					
+					$.post( mwp.local.ajaxurl, {
+						action: 'mwp_rules_toggle_enabled',
+						type: type,
+						id: id,
+						nonce: mwp.local.ajaxnonce
+					}).done( function( response ) {
+						if ( response.success ) {
+							if ( response.status ) {
+								el.removeClass('label-danger').addClass('label-success').text('ENABLED');
+							} else {
+								el.removeClass('label-success').addClass('label-danger').text('DISABLED');
+							}
+						}
+						el.removeClass('working');
+					});
+					
+					el.addClass('working').html( '<i class="glyphicon glyphicon-refresh glyphicon-spin"></i> ' + el.text() );
+				}
+			});
 		},
 		
 		/**

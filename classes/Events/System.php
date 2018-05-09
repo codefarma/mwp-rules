@@ -90,7 +90,7 @@ class _System
 			
 			/* Admin Init */
 			array( 'action', 'admin_init', array(
-				'title' => 'WordPress Admin Is Being Initialized',
+				'title' => 'WordPress Is Being Initialized (Admin Only)',
 				'description' => 'The admin init hook is fired when pages are loaded in the WP Admin.',
 				'group' => 'Initialization',
 			)),

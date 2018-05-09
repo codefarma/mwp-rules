@@ -429,6 +429,7 @@ class _Argument extends ExportableRecord
 			'expanded' => false,
 			'description' => __( 'An input widget is what is used to allow users to manually configure the value of this ' . strtolower( $this->_getSingularName() ) . '.', 'mwp-rules' ),
 			'required' => true,
+			'constraints' => function() {},
 		));
 		
 		$data = $this->data;

@@ -59,7 +59,11 @@ $apps = Rules\App::loadWhere('1');
 					None
 					<?php } ?>
 				</td>
-				<td class="text-right"><?php echo $app->enabled ? '<span class="text-success">Enabled</span>' : '<span class="text-danger">Disabled</span>'; ?></td>
+				<td class="text-right">
+					<span class="label label-<?php echo $app->enabled ? 'success' : 'danger' ?> rules-pointer" data-rules-enabled-toggle="app" data-rules-id="<?php echo $app->id() ?>">
+						<?php echo $app->enabled ? 'ENABLED' : 'DISABLED' ?>
+					</span> 
+				</td>
 			</tr>
 			</tr>
 		  <?php endforeach; ?>

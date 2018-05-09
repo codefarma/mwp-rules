@@ -7,6 +7,31 @@
  * @author     Kevin Carwile
  * @since      0.0.0
  */
+ 
+.glyphicon-spin {
+    -webkit-animation: spin 2000ms infinite linear;
+    animation: spin 2000ms infinite linear;
+}
+@-webkit-keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+    }
+}
+@keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+    }
+}
 
 #mwp_rules_rule_form .tab-pane .wp-list-table {
 	box-shadow: 1px 1px 8px #bbb;
@@ -31,6 +56,10 @@
 
 a.nounderline:hover {
 	text-decoration: none
+}
+
+.rules-pointer {
+	cursor: pointer;
 }
 
 .mwp-rules-form .field-description {
@@ -212,4 +241,13 @@ a.nounderline:hover {
 
 .automation-logs .table-controller-actions p {
 	padding: 15px 5px 0;
+}
+
+/* Tables */
+.rule_event_hook code {
+	overflow: hidden;
+	display: inline-block;
+	text-overflow: ellipsis;
+	height: 23px;
+	vertical-align: -7px;
 }

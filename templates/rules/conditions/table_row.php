@@ -43,9 +43,9 @@ $controller = $table->getController();
 		<?php if ( count( $subconditions ) ) : ?>
 			<span class="label label-info"><?php if ( $condition->compareMode() == 'and' ) : ?>AND ALL SUBCONDITIONS<?php else: ?>OR ANY SUBCONDITION<?php endif ?></span>
 		<?php endif ?>
-		<?php if ( ! $condition->enabled ) : ?>
-			<span class="label label-danger">Disabled</span>
-		<?php endif ?>
+		<span style="margin-left: 15px" class="label label-<?php echo $condition->enabled ? 'success' : 'danger' ?> rules-pointer" data-rules-enabled-toggle="condition" data-rules-id="<?php echo $condition->id() ?>">
+			<?php echo $condition->enabled ? 'ENABLED' : 'DISABLED' ?>
+		</span>
 		<p>
 			<i class="glyphicon glyphicon-triangle-right"></i> Using: <span class="text-success"><?php echo $definition ? $definition->title : 'Unregistered condition' ?></span> 
 			<?php if ( $condition->not ) : ?>

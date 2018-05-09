@@ -234,7 +234,7 @@ if ( ! function_exists( 'rules_define_actions' ) ) {
 	
 }
 
-if ( ! function_exists( 'rules_create_closure' ) ) {
+if ( ! function_exists( 'rules_evaluation_closure' ) ) {
 	
 	function rules_evaluation_closure( $_args=[] ) {
 		$evaluator = function( $_phpcode ) use ( $_args ) {

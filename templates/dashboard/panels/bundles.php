@@ -25,7 +25,7 @@ $bundles = Rules\Bundle::loadWhere('bundle_app_id=0');
 <div class="panel panel-info">
   <div class="panel-heading">
 	<a href="<?php echo $plugin->getBundlesController()->getUrl() ?>" class="btn btn-default btn-xs pull-right">Manage Bundles</a> 
-	<a href="https://www.codefarma.com/products/automation-bundles" target="_blank" class="btn btn-success btn-xs pull-right" style="margin-right: 5px">Browse Bundles</a>
+	<a href="https://www.codefarma.com/products/automation-bundles" target="_blank" class="btn btn-primary btn-xs pull-right" style="margin-right: 5px">Browse Bundles</a>
 	<h3 class="panel-title">
 		Automation Bundles <small style="opacity: 0.7; font-size:0.75em; margin-left:20px;">Bundles are rules that are grouped into a unit.</small>
 	</h3>
@@ -46,7 +46,7 @@ $bundles = Rules\Bundle::loadWhere('bundle_app_id=0');
 		  <?php foreach( $bundles as $bundle ) : ?>
 			<tr>
 				<td><a href="<?php echo $plugin->getBundlesController()->getUrl(['do'=>'edit','id'=>$bundle->id()]) ?>"><?php echo esc_html( $bundle->title ) ?></a></td>
-				<td><?php echo $bundle->getRuleCount() ?></td>
+				<td><a href="<?php echo $plugin->getBundlesController()->getUrl(['do'=>'edit','id'=>$bundle->id(),'_tab'=>'bundle_rules']) ?>"><?php echo $bundle->getRuleCount() ?></a></td>
 				<td>
 					<i class="glyphicon glyphicon-download"></i> 
 					<a href="<?php echo $plugin->getBundlesController()->getUrl(['do'=>'export','id'=>$bundle->id()]) ?>">Download</a>
@@ -59,7 +59,11 @@ $bundles = Rules\Bundle::loadWhere('bundle_app_id=0');
 					None
 					<?php } ?>
 				</td>
-				<td class="text-right"><?php echo $bundle->enabled ? '<span class="text-success">Enabled</span>' : '<span class="text-danger">Disabled</span>'; ?></td>
+				<td class="text-right">
+					<span class="label label-<?php echo $bundle->enabled ? 'success' : 'danger' ?> rules-pointer" data-rules-enabled-toggle="bundle" data-rules-id="<?php echo $bundle->id() ?>">
+						<?php echo $bundle->enabled ? 'ENABLED' : 'DISABLED' ?>
+					</span> 
+				</td>
 			</tr>
 			</tr>
 		  <?php endforeach; ?>

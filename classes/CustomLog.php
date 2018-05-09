@@ -513,6 +513,8 @@ class _CustomLog extends ExportableRecord
 					$argument->delete();
 				}
 				
+				$log->updateSchema();
+				
 			} else {
 				$results['errors']['logs'][] = $result;
 			}
