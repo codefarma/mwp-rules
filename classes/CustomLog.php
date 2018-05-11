@@ -99,11 +99,12 @@ class _CustomLog extends ExportableRecord
 	/**
 	 * Get the log arguments
 	 *
+	 * @param	bool		$reload				Reload the arguments
 	 * @return	array
 	 */
-	public function getArguments()
+	public function getArguments( $reload=FALSE )
 	{
-		if ( isset( $this->_arguments ) ) {
+		if ( ! $reload and isset( $this->_arguments ) ) {
 			return $this->_arguments;
 		}
 		
@@ -439,7 +440,7 @@ class _CustomLog extends ExportableRecord
 				),
 			);
 			
-			foreach( $this->getArguments() as $argument ) {
+			foreach( $this->getArguments( true ) as $argument ) {
 				$table['columns'][ $argument->getColumnName() ] = $argument->getColumnDefinition();
 			}
 			
@@ -512,8 +513,6 @@ class _CustomLog extends ExportableRecord
 				foreach( Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d AND argument_imported > 0 AND argument_uuid NOT IN (\'' . implode("','", $imported_argument_uuids) . '\')', Argument::getParentType( $log ), $log->id() ) ) as $argument ) {
 					$argument->delete();
 				}
-				
-				$log->updateSchema();
 				
 			} else {
 				$results['errors']['logs'][] = $result;
@@ -592,8 +591,12 @@ class _CustomLog extends ExportableRecord
 			);
 			
 			foreach( $this->getArguments() as $argument ) {
-				$class::$columns[] = 'col_' . $argument->id();
-				$controller_config['tableConfig']['columns'][ $class::$prefix . 'col_' . $argument->id() ] = $argument->title;
+				if ( in_array( $argument->type, array( 'mixed', 'array', 'object' ) ) ) {
+					$class::$columns[ 'col_' . $argument->id() ] = array( 'format' => 'JSON' );
+				} else {
+					$class::$columns[] = 'col_' . $argument->id();
+					$controller_config['tableConfig']['columns'][ $class::$prefix . 'col_' . $argument->id() ] = $argument->title;
+				}
 			}
 			
 			$controller = $class::createController( 'admin', apply_filters( 'rules_custom_log_controller_config', $controller_config, $this ) );			
