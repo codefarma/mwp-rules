@@ -24,7 +24,7 @@ use MWP\Rules;
 	<?php if ( ! isset( $_REQUEST['do'] ) ) : 
 		wp_enqueue_style( 'indie_flower_font', 'https://fonts.googleapis.com/css?family=Abel|Do+Hyeon|Indie+Flower' );	
 	?>
-		<h2 style="font-family: 'Abel'; font-size:40px; line-height: 50px; text-align: center;">
+		<h2 style="font-family: 'Abel'; font-size:40px; line-height: 50px; text-align: center; margin-top:50px; margin-bottom: 30px;">
 			Automation <span style="background-image:url('<?php echo Rules\Plugin::instance()->fileUrl( 'assets/img/rules.png' ) ?>'); color: transparent; background-position: -3px 2px;">Rules</span> for WordPress
 		</h2>
 	<?php else : ?>

@@ -24,9 +24,13 @@ use MWP\Rules;
 ?>
 
 <style>
-#wpcontent {
+html {
 	background-image: url(<?php echo Rules\Plugin::instance()->fileUrl('assets/img/gray-texture-bg.jpg') ?>); 
 	background-size: cover;
+	background-attachment: fixed;
+}
+body {
+	background-color: transparent;
 }
 </style>
 
