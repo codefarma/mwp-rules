@@ -132,6 +132,17 @@ class _Action extends GenericOperation
 	}
 	
 	/**
+	 * Get the controller
+	 *
+	 * @param	string		$key			The controller key
+	 * @return	ActiveRecordController
+	 */
+	public function _getController( $key='admin' )
+	{
+		return $this->getPlugin()->getActionsController( $this->getRule(), $key );
+	}
+	
+	/**
 	 * Build an editing form
 	 *
 	 * @return	MWP\Framework\Helpers\Form
@@ -274,7 +285,7 @@ class _Action extends GenericOperation
 		
 		if ( ! $action->id ) {
 			$form->onComplete( function() use ( $action, $plugin ) {
-				$controller = $plugin->getActionsController();
+				$controller = $plugin->getActionsController( $action->getRule() );
 				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $action->id(), '_tab' => 'operation_config' ) ) );
 				exit;
 			});
@@ -392,7 +403,7 @@ class _Action extends GenericOperation
 	 */
 	public function url( $params=array() )
 	{
-		return $this->getPlugin()->getActionsController()->getUrl( array_merge( array( 'id' => $this->id, 'do' => 'edit', 'rule_id' => $this->rule_id ), $params ) );
+		return $this->getPlugin()->getActionsController( $this->getRule() )->getUrl( array_merge( array( 'id' => $this->id, 'do' => 'edit' ), $params ) );
 	}
 	
 	/**

@@ -126,6 +126,17 @@ class _Rule extends ExportableRecord
 	}
 	
 	/**
+	 * Get the controller
+	 *
+	 * @param	string		$key			The controller key
+	 * @return	ActiveRecordController
+	 */
+	public function _getController( $key='admin' )
+	{
+		return $this->getPlugin()->getRulesController( $this->getBundle(), $key );
+	}
+	
+	/**
 	 * Check if the rule is active
 	 *
 	 * @return	bool
@@ -323,7 +334,7 @@ class _Rule extends ExportableRecord
 			));
 			
 			$form->onComplete( function() use ( $rule, $plugin ) {
-				$controller = $plugin->getRulesController();
+				$controller = $plugin->getRulesController( $rule->getBundle() );
 				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_conditions' ) ) );
 				exit;
 			});
@@ -448,7 +459,7 @@ class _Rule extends ExportableRecord
 			'title' => __( 'Sub-rules', 'mwp-rules' ),
 		));
 		
-		$rulesController = $plugin->getRulesController();
+		$rulesController = $plugin->getRulesController( $this->getBundle() );
 		$rulesTable = $rulesController->createDisplayTable();
 		$rulesTable->bulkActions = array();
 		unset( $rulesTable->columns['rule_event_hook'] );
@@ -495,7 +506,7 @@ class _Rule extends ExportableRecord
 		/* If the rule is a sub-rule, redirect to the parent rules tab after saving */
 		if ( $parent = $rule->parent() ) {
 			$form->onComplete( function() use ( $parent, $plugin ) {
-				$controller = $plugin->getRulesController();
+				$controller = $plugin->getRulesController( $parent->getBundle() );
 				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $parent->id(), '_tab' => 'rule_subrules' ) ) );
 				exit;
 			});
@@ -977,7 +988,7 @@ class _Rule extends ExportableRecord
 	 */
 	public function url( $params=array() )
 	{
-		return $this->getPlugin()->getRulesController()->getUrl( array_replace_recursive( array( 'id' => $this->id(), 'do' => 'edit' ), $params ) );
+		return $this->getPlugin()->getRulesController( $this->getBundle() )->getUrl( array_replace_recursive( array( 'id' => $this->id(), 'do' => 'edit', $params ) ) );
 	}
 	
 	/**

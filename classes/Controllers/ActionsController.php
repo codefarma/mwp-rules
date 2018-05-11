@@ -44,6 +44,14 @@ class _ActionsController extends ActiveRecordController
 	}
 	
 	/**
+	 * Get the parent
+	 */
+	public function getParent()
+	{
+		return $this->getRule();
+	}
+	
+	/**
 	 * Default controller configuration
 	 *
 	 * @return	array

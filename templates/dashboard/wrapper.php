@@ -20,16 +20,10 @@ use MWP\Rules;
 
 ?>
 
+<?php echo Rules\Plugin::instance()->getTemplateContent( 'snippets/styles/texture_bg' ) ?>
+<?php echo Rules\Plugin::instance()->getTemplateContent( 'snippets/screen_header', [ 'title' => $title ] ) ?>
+
 <div class="mwp-bootstrap rules-dashboard wrap rules">
-	<?php if ( ! isset( $_REQUEST['do'] ) ) : 
-		wp_enqueue_style( 'indie_flower_font', 'https://fonts.googleapis.com/css?family=Abel|Do+Hyeon|Indie+Flower' );	
-	?>
-		<h2 style="font-family: 'Abel'; font-size:40px; line-height: 50px; text-align: center; margin-top:50px; margin-bottom: 30px;">
-			Automation <span style="background-image:url('<?php echo Rules\Plugin::instance()->fileUrl( 'assets/img/rules.png' ) ?>'); color: transparent; background-position: -3px 2px;">Rules</span> for WordPress
-		</h2>
-	<?php else : ?>
-		<h2><?php echo $title ?></h2>	
-	<?php endif; ?>
-	<hr>
+	<h2 style="display:none;"></h2>		
 	<?php echo $content ?>
 </div>

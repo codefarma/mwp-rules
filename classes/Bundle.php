@@ -67,6 +67,11 @@ class _Bundle extends ExportableRecord
     public static $plugin_class = 'MWP\Rules\Plugin';
 	
 	/**
+	 * @var string
+	 */
+	public static $lang_edit = 'Manage';
+	
+	/**
 	 * @var	string
 	 */
 	public static $lang_singular = 'Bundle';
@@ -204,6 +209,17 @@ class _Bundle extends ExportableRecord
 	public function hasSettings()
 	{
 		return count( $this->getSettableArguments() ) > 0;
+	}
+	
+	/**
+	 * Get the controller
+	 *
+	 * @param	string		$key			The controller key
+	 * @return	ActiveRecordController
+	 */
+	public function _getController( $key='admin' )
+	{
+		return $this->getPlugin()->getBundlesController( $this->getApp(), $key );
 	}
 	
 	/**

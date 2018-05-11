@@ -44,6 +44,14 @@ class _BundlesController extends ExportableController
 	}
 	
 	/**
+	 * Get the parent
+	 */
+	public function getParent()
+	{
+		return $this->getApp();
+	}
+	
+	/**
 	 * Get the associated app id
 	 *
 	 * @return	int
@@ -203,7 +211,7 @@ class _BundlesController extends ExportableController
 
 		$output = $this->getPlugin()->getTemplateContent( 'views/management/records/edit', array( 'title' => $bundle->_getEditTitle( 'settings' ), 'form' => $form, 'plugin' => $this->getPlugin(), 'controller' => $this, 'record' => $bundle, 'error' => $save_error ) );
 		
-		echo $this->wrap( $bundle->_getEditTitle( 'settings' ), $output, 'settings' );
+		echo $this->wrap( $bundle->_getEditTitle( 'settings' ), $output, [ 'classes' => 'settings' ] );
 	}
 	
 }

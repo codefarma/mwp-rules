@@ -45,7 +45,7 @@ class _DashboardController extends AdminController
 	 */
 	public function do_index()
 	{
-		echo $this->wrap( __( 'Automation Rules for WordPress', 'mwp-rules' ), $this->plugin->getTemplateContent( 'dashboard/layout/main', [
+		echo $this->wrap( __( 'Automation Rules', 'mwp-rules' ), $this->plugin->getTemplateContent( 'dashboard/layout/main', [
 			'controller' => $this,
 		]));
 	}
@@ -59,12 +59,17 @@ class _DashboardController extends AdminController
 	{
 		$form = $this->plugin->createForm( 'rules_package_import' );
 		
+		$form->addHeading( 'package_heading', 'Import Packaged Automations' );
+		
 		$form->addField( 'package', 'file', array(
+			'row_attr' => [ 'style' => 'margin: 45px 0' ],
 			'label' => __( 'Package File', 'mwp-rules' ),
+			'description' => __( 'Select the file to upload.', 'mwp-rules' ),
 			'required' => true,
 		));
 		
 		$form->addField( 'submit', 'submit', array(
+			'row_attr' => [ 'class' => 'text-center' ],
 			'label' => __( 'Import', 'mwp-rules' ),
 		));
 		

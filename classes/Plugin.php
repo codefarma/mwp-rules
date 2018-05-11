@@ -485,11 +485,8 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function getConditionsController( $rule=null, $key='admin' )
 	{
-		if ( $controller = Condition::getController( $key ) ) {
-			if ( $rule ) {
-				$controller->setRule( $rule );
-			}
-		}
+		$controller = Condition::getController( $key );
+		$controller->setRule( $rule );	
 		
 		return $controller;
 	}
@@ -501,11 +498,8 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function getActionsController( $rule=null, $key='admin' )
 	{
-		if ( $controller = Action::getController( $key ) ) {
-			if ( $rule ) {
-				$controller->setRule( $rule );
-			}
-		}
+		$controller = Action::getController( $key );
+		$controller->setRule( $rule );
 		
 		return $controller;
 	}
@@ -517,11 +511,8 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function getArgumentsController( $parent=null, $key='admin' )
 	{
-		if ( $controller = Argument::getController( $key ) ) {
-			if ( $parent ) {
-				$controller->setParent( $parent );
-			}
-		}
+		$controller = Argument::getController( $key );
+		$controller->setParent( $parent );
 		
 		return $controller;
 	}

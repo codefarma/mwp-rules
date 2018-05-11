@@ -77,9 +77,9 @@ return [
 				'export' => __( 'Export Events', 'mwp-rules' ),
 			),
 			'columns' => [
-				'hook_type' => __( 'Type', 'mwp-rules' ),
 				'hook_hook' => __( 'Hook', 'mwp-rules' ),
 				'hook_title' => __( 'Title', 'mwp-rules' ),
+				'hook_type' => __( 'Type', 'mwp-rules' ),
 				'hook_description' => __( 'Description', 'mwp-rules' ),
 			],
 		],

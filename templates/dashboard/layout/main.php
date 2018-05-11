@@ -24,17 +24,6 @@ $rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0');
 
 ?>
 
-<style>
-html {
-	background-image: url(<?php echo Rules\Plugin::instance()->fileUrl('assets/img/gray-texture-bg.jpg') ?>); 
-	background-size: cover;
-	background-attachment: fixed;
-}
-body {
-	background-color: transparent;
-}
-</style>
-
 <div class="row">
 	<div class="col-xs-12 text-right">
 		<a href="<?php echo $plugin->getRulesController()->getUrl(['do'=>'new']) ?>" class="btn btn-primary pull-left"><i class="glyphicon glyphicon-log-in" style="margin-right: 5px"></i> <?php _e( 'Start A New Rule', 'mwp-rules' ) ?></a>

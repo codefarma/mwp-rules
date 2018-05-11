@@ -128,6 +128,19 @@ class _ArgumentsController extends ActiveRecordController
 	}
 	
 	/**
+	 * Initialize
+	 */
+	public function init()
+	{
+		$id = isset( $_REQUEST['id'] ) ? $_REQUEST['id'] : NULL;
+		$action = isset( $_REQUEST['do'] ) ? $_REQUEST['do'] : NULL;
+		if ( ! $id and ( ! $action or $action == 'index' ) and $parent = $this->getParent() ) {
+			wp_redirect( $parent->_getController()->getUrl( array( 'id' => $parent->id(), 'do' => 'edit', '_tab' => 'arguments' ) ) );
+			exit;
+		}
+	}
+	
+	/**
 	 * Get the active record display table
 	 *
 	 * @param	array			$override_options			Default override options
@@ -285,7 +298,7 @@ class _ArgumentsController extends ActiveRecordController
 
 		$output = $this->getPlugin()->getTemplateContent( 'views/management/records/edit', array( 'form' => $form, 'plugin' => $this->getPlugin(), 'controller' => $this, 'record' => $record, 'error' => $save_error ) );
 		
-		echo $this->wrap( __( 'Set Default Value', 'mwp-rules' ), $output, 'edit' );
+		echo $this->wrap( __( 'Set Default Value', 'mwp-rules' ), $output, [ 'classes' => 'edit' ] );
 	}	
 	
 	/**

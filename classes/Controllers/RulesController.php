@@ -45,6 +45,14 @@ class _RulesController extends ExportableController
 	}
 	
 	/**
+	 * Get the parent
+	 */
+	public function getParent()
+	{
+		return $this->getBundle();
+	}
+	
+	/**
 	 * Get the associated app id
 	 *
 	 * @return	int
@@ -56,6 +64,39 @@ class _RulesController extends ExportableController
 		}
 		
 		return 0;
+	}
+	
+	/**
+	 * Constructor
+	 *
+	 * @param	string		$recordClass			The active record class
+	 * @param	array		$options				Optional configuration options
+	 * @return	void
+	 */
+	public function __construct( $recordClass, $options=array() )
+	{
+		parent::__construct( $recordClass, $options );
+		
+		/* Auto set the bundle */
+		if ( isset( $_REQUEST['bundle_id'] ) ) {
+			try {
+				$bundle = Rules\Bundle::load( $_REQUEST['bundle_id'] );
+				$this->setBundle( $bundle );
+			} catch( \OutOfRangeException $e ) { }
+		}
+	}
+	
+	/**
+	 * Initialize
+	 */
+	public function init()
+	{
+		$rule_id = isset( $_REQUEST['id'] ) ? $_REQUEST['id'] : NULL;
+		$action = isset( $_REQUEST['do'] ) ? $_REQUEST['do'] : NULL;
+		if ( ! $rule_id and ( ! $action or $action == 'index' ) and $bundle = $this->getBundle() ) {
+			wp_redirect( Rules\Plugin::instance()->getBundlesController( $bundle->getApp() )->getUrl( array( 'id' => $bundle->id(), 'do' => 'edit', '_tab' => 'bundle_rules' ) ) );
+			exit;
+		}
 	}
 	
 	/**
@@ -93,13 +134,13 @@ class _RulesController extends ExportableController
 				'handlers' => array(
 					'rule_title' => function( $record )
 					{
-						$rule = \MWP\Rules\Rule::load( $record['rule_id'] );
+						$rule = Rules\Rule::load( $record['rule_id'] );
 						$event = $rule->event();
 						
-						$condition_count = \MWP\Rules\Condition::countWhere( array( 'condition_rule_id=%d', $rule->id ) );
+						$condition_count = Rules\Condition::countWhere( array( 'condition_rule_id=%d', $rule->id ) );
 						$action_count = count( $rule->actions() );
 						
-						$controller = \MWP\Rules\Plugin::instance()->getRulesController();
+						$controller = Rules\Plugin::instance()->getRulesController( $rule->getBundle() );
 						$conditionsUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_conditions' ) );
 						$actionsUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_actions' ) );
 						
@@ -111,7 +152,7 @@ class _RulesController extends ExportableController
 					},
 					'rule_enabled' => function( $record ) 
 					{
-						$rule = \MWP\Rules\Rule::load( $record['rule_id'] );
+						$rule = Rules\Rule::load( $record['rule_id'] );
 						$event = $rule->event();
 						
 						$status = '<div class="mwp-bootstrap" style="margin-bottom:10px">';
@@ -159,9 +200,9 @@ class _RulesController extends ExportableController
 							return $total;
 						};
 						
-						$rule = \MWP\Rules\Rule::load( $record['rule_id' ] );					
+						$rule = Rules\Rule::load( $record['rule_id' ] );					
 						$subrule_count = $recursiveRuleCount( $rule );
-						$controller = \MWP\Rules\Plugin::instance()->getRulesController();
+						$controller = Rules\Plugin::instance()->getRulesController( $rule->getBundle() );
 						$subrulesUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_subrules' ) );
 						
 						$output = '<div class="mwp-bootstrap">';
@@ -196,26 +237,6 @@ class _RulesController extends ExportableController
 		return parent::getUrl( $args );
 	}
 
-	/**
-	 * Constructor
-	 *
-	 * @param	string		$recordClass			The active record class
-	 * @param	array		$options				Optional configuration options
-	 * @return	void
-	 */
-	public function __construct( $recordClass, $options=array() )
-	{
-		parent::__construct( $recordClass, $options );
-		
-		/* Auto set the bundle */
-		if ( isset( $_REQUEST['bundle_id'] ) ) {
-			try {
-				$bundle = Rules\Bundle::load( $_REQUEST['bundle_id'] );
-				$this->setBundle( $bundle );
-			} catch( \OutOfRangeException $e ) { }
-		}
-	}
-	
 	/**
 	 * Get action buttons
 	 *

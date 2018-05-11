@@ -169,6 +169,17 @@ class _Hook extends ExportableRecord
 	}
 	
 	/**
+	 * Get the controller
+	 *
+	 * @param	string		$key			The controller key
+	 * @return	ActiveRecordController
+	 */
+	public function _getController( $key='admin' )
+	{
+		return $this->getPlugin()->getHooksController( $key );
+	}
+	
+	/**
 	 * Get the event definition
 	 *
 	 * @return	array

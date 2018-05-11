@@ -90,7 +90,7 @@ class _AppsController extends ExportableController
 
 		$output = $this->getPlugin()->getTemplateContent( 'views/management/records/edit', array( 'title' => $app->_getEditTitle( 'settings' ), 'form' => $form, 'plugin' => $this->getPlugin(), 'controller' => $this, 'record' => $app, 'error' => $save_error ) );
 		
-		echo $this->wrap( $app->_getEditTitle( 'settings' ), $output, 'settings' );
+		echo $this->wrap( $app->_getEditTitle( 'settings' ), $output, [ 'classes' => 'settings' ] );
 	}
 	
 }

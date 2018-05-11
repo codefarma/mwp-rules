@@ -7,7 +7,111 @@
  * @author     Kevin Carwile
  * @since      0.0.0
  */
- 
+@import url('https://fonts.googleapis.com/css?family=Muli:300,400');
+
+/* Dashboard Header */
+
+.rules-header.color-overlay::after {
+	filter: invert(0%);
+	z-index: 2;
+	display: block;
+}
+.rules-header.color-overlay::after, 
+.rules-header.color-overlay::before {
+	width: 100%;
+	height: 100%;
+	top: 0px;
+	left: 0px;
+	position: absolute;
+	z-index: 1;
+	display: inline-block;
+	content: " ";
+}
+.rules-header .inner-header-description {
+	text-align: center !important;
+}
+.rules-header .inner-header-description {
+	padding-top: 2%;
+	padding-bottom: 5%;
+}
+.rules-header .inner-header-description, .header-description {
+	position: relative;
+	z-index: 50;
+}
+.rules-header .inner-header-description .hero-title {
+	font-family: Muli, Helvetica, Arial, sans-serif;
+	font-weight: 300;
+	font-style: normal;
+	font-size: 3.9em;
+	line-height: 114%;
+	letter-spacing: 0.9px;
+	text-transform: none;
+	color: #ffffff;
+}
+.rules-header .inner-header-links {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	color: #fff;
+	z-index: 99;
+}
+.rules-header .inner-header-links a,
+.rules-header .inner-header-links a:hover {
+	color: #fff;
+}
+
+@media screen and ( max-width:780px ) {
+	.rules-header .inner-header-description {
+		padding-top: 6%;
+		padding-bottom: 20%;
+	}
+	.rules-header .inner-header-description .hero-title {
+		font-size: 3em;
+	}
+}
+.rules-header .gridContainer {
+	width: 90%;
+}
+.rules-header .gridContainer {
+	box-sizing: border-box;
+	max-width: 1232px;
+	margin: 0 auto;
+	padding-right: 15px;
+	padding-left: 15px;
+}
+.rules-header .header-separator-bottom {
+	position: absolute;
+	bottom: -1px;
+	left: 0px;
+	width: 100%;
+}
+.rules-header .header-separator {
+	position: absolute;
+	width: 100%;
+	max-width: 100%;
+	bottom: -2px;
+	overflow: hidden;
+	z-index: 45;
+}
+.rules-header svg {
+	max-height: 100%;
+}
+.rules-header .header-separator svg {
+	display: block;
+	width: calc(100% + 1.3px);
+}
+.rules-header .header-separator svg {
+	height: 77px !important;
+}
+.rules-header .svg-white-bg {
+	/* fill: rgb(255,255,255) !important; */
+}
+.rules-header .svg-accent {
+	stroke: rgb(168,198,251) !important;
+}
+
+/* General */
+
 .glyphicon-spin {
     -webkit-animation: spin 2000ms infinite linear;
     animation: spin 2000ms infinite linear;

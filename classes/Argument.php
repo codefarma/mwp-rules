@@ -163,6 +163,17 @@ class _Argument extends ExportableRecord
 	}
 	
 	/**
+	 * Get the controller
+	 *
+	 * @param	string		$key			The controller key
+	 * @return	ActiveRecordController
+	 */
+	public function _getController( $key='admin' )
+	{
+		return $this->getPlugin()->getArgumentsController( $this->getParent(), $key );
+	}
+	
+	/**
 	 * Get the singular name of this type of argument`
 	 *
 	 * @return	string
