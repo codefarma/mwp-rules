@@ -779,7 +779,7 @@ class _Argument extends ExportableRecord
 			'binary' => false,
 			'decimals' => null,
 			'default' => null,
-			'length' => 255,
+			'length' => 1028,
 			'name' => $this->getColumnName(),
 			'type' => 'VARCHAR',
 			'unsigned' => false,
