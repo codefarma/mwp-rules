@@ -25,7 +25,6 @@ $bundles = Rules\Bundle::loadWhere('bundle_app_id=0');
 <div class="panel panel-info">
   <div class="panel-heading">
 	<a href="<?php echo $plugin->getBundlesController()->getUrl() ?>" class="btn btn-default btn-xs pull-right">Manage Bundles</a> 
-	<a href="https://www.codefarma.com/products/automation-bundles" target="_blank" class="btn btn-primary btn-xs pull-right" style="margin-right: 5px">Browse Bundles</a>
 	<h3 class="panel-title">
 		Automation Bundles <small style="opacity: 0.7; font-size:0.75em; margin-left:20px;">Bundles are rules that are grouped into a unit.</small>
 	</h3>

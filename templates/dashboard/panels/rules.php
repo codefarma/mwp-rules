@@ -25,6 +25,7 @@ $rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0');
 <div class="panel panel-info" data-view-model="mwp-rules">
   <div class="panel-heading">
 	<a href="<?php echo $plugin->getRulesController()->getUrl() ?>" class="btn btn-default btn-xs pull-right">Manage Rules</a>
+	<a href="https://www.codefarma.com/products/automations" target="_blank" class="btn btn-primary btn-xs pull-right" style="margin-right: 5px">Find Automations</a>
 	<h3 class="panel-title">
 		Your Automations <small style="opacity: 0.7; font-size:0.75em; margin-left:20px;"><a target="_blank" href="https://www.codefarma.com/docs/rules-user"><i class="glyphicon glyphicon-question-sign"></i> User Guide</a></small>
 	</h3>

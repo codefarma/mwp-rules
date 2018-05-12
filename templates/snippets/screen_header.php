@@ -39,8 +39,8 @@ use MWP\Rules;
 	margin: 0;
 	font-size: 2em;
 }
-.notice, .update, .updated, .update-nag {
-	display: none;
+.notice, .update, .updated, .update-nag, .error {
+	display: none !important;
 }
 </style>
 
