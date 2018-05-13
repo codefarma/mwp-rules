@@ -36,8 +36,8 @@ class _CustomLogsController extends ExportableController
 		(
 			'tableConfig' => array(
 				'bulkActions' => array(
-					'delete' => __( 'Delete Logs', 'mwp-rules' ),
-					'export' => __( 'Export Logs', 'mwp-rules' ),
+					'delete' => __( 'Delete Custom Logs', 'mwp-rules' ),
+					'export' => __( 'Export Custom Logs', 'mwp-rules' ),
 				),
 				'columns' => array(
 					'custom_log_title' => __( 'Title', 'mwp-rules' ),
@@ -55,7 +55,7 @@ class _CustomLogsController extends ExportableController
 	{
 		return array( 
 			'new' => array(
-				'title' => __( 'Create New Log', 'mwp-rules' ),
+				'title' => __( 'Create New Custom Log', 'mwp-rules' ),
 				'params' => array( 'do' => 'new' ),
 				'attr' => array( 'class' => 'btn btn-primary' ),
 			)

@@ -41,6 +41,7 @@ class _CustomLog extends ExportableRecord
         'weight',
 		'description',
 		'enabled',
+		'data' => array( 'format' => 'JSON' ),
 		'key',
 		'class',
 		'max_logs',
@@ -79,12 +80,12 @@ class _CustomLog extends ExportableRecord
 	/**
 	 * @var	string
 	 */
-	public static $lang_singular = 'Log';
+	public static $lang_singular = 'Custom Log';
 	
 	/**
 	 * @var	string
 	 */
-	public static $lang_plural = 'Logs';
+	public static $lang_plural = 'Custom Logs';
 	
 	/**
 	 * @var	string
@@ -317,6 +318,56 @@ class _CustomLog extends ExportableRecord
 			'required' => false,
 		), 'log_details' );
 		
+		$form->addTab( 'log_display', array(
+			'title' => __( 'Display Options', 'mwp-rules' ),
+		));
+		
+		$message_lang = isset( $this->data['message_lang'] ) ? $this->data['message_lang'] : 'Message';
+		$form->addField( 'message_lang', 'text', array(
+			'label' => __( 'Message Column Name', 'mwp-rules' ),
+			'description' => __( 'Customize the name of the message column as shown on the log table.', 'mwp-rules' ),
+			'attr' => [ 'placeholder' => 'Message' ],
+			'data' => $message_lang,
+			'required' => true,
+		));
+		
+		$visibility_choices = array(
+			'Date/Time' => 'timestamp',
+			$message_lang => 'message',
+		);
+		
+		foreach( $this->getArguments() as $argument ) {
+			$visibility_choices[ $argument->title ] = $argument->getColumnName();
+		}
+		
+		$form->addField( 'field_visibility', 'choice', array(
+			'label' => __( 'Show Table Columns', 'mwp-rules' ),
+			'choices' => $visibility_choices,
+			'data' => isset( $this->data['field_visibility'] ) ? $this->data['field_visibility'] : array( 'timestamp', 'message' ),
+			'description' => __( 'Choose the fields that should display as columns when viewing the log entries table.', 'mwp-rules' ),
+			'multiple' => true,
+			'expanded' => true,
+			'required' => true,
+		));
+		
+		$form->addTab( 'log_maintenance', array(
+			'title' => __( 'Retention Options', 'mwp-rules' ),
+		));
+		
+		$form->addField( 'max_logs', 'integer', array(
+			'label' => __( 'Max Total Entries', 'mwp-rules' ),
+			'attr' => [ 'min' => '0', 'step' => 1 ],
+			'description' => __( 'Enter the maximum amount of entries to retain for this log. Once this threshold is reached, older logs will be deleted to make room for newer logs. Set to 0 to disable.', 'mwp-rules' ),
+			'data' => $this->max_logs ?: 0,
+		));
+		
+		$form->addField( 'max_age', 'integer', array(
+			'label' => __( 'Max Entry Age', 'mwp-rules' ),
+			'attr' => [ 'min' => '0', 'step' => 1 ],
+			'description' => __( 'Enter the maximum amount of days to retain entries for this log. Once logs have reached the threshold age, they will be deleted. Set to 0 to disable.', 'mwp-rules' ),
+			'data' => $this->max_age ?: 0,
+		));
+		
 		if ( $this->id() ) {
 			$form->addTab( 'arguments', array(
 				'title' => __( 'Custom Fields', 'mwp-rules' ),
@@ -324,15 +375,17 @@ class _CustomLog extends ExportableRecord
 			
 			$argumentsController = $plugin->getArgumentsController( $this );
 			$argumentsTable = $argumentsController->createDisplayTable();
+			unset( $argumentsTable->columns['default_value'] );
 			$argumentsTable->bulkActions = array();
 			$argumentsTable->prepare_items();
+			
 			
 			$form->addHtml( 'arguments_table', $this->getPlugin()->getTemplateContent( 'rules/arguments/table_wrapper', array( 
 				'log' => $this, 
 				'table' => $argumentsTable, 
 				'controller' => $argumentsController,
-			)),
-			'arguments' );
+			)));
+			
 		} else {
 			$form->onComplete( function() use ( $log, $plugin ) {
 				$controller = $plugin->getCustomLogsController();
@@ -356,7 +409,9 @@ class _CustomLog extends ExportableRecord
 	 */
 	protected function processEditForm( $values )
 	{
-		$_values = $values['log_details'];
+		$_values = array_merge( $values['log_details'], $values['log_maintenance'] );
+		
+		$this->data = $values['log_display'];
 		
 		parent::processEditForm( $_values );
 	}
@@ -581,6 +636,9 @@ class _CustomLog extends ExportableRecord
 	{
 		$class = $this->getRecordClass();
 		$controller = $class::getController( 'admin' );
+		$log = $this;
+		
+		$message_lang = ( isset( $this->data['message_lang'] ) and $this->data['message_lang'] ) ? $this->data['message_lang'] : 'Message';
 		
 		if ( ! $controller ) {
 			$controller_config = array(
@@ -591,7 +649,7 @@ class _CustomLog extends ExportableRecord
 				'tableConfig' => array(
 					'columns' => array(
 						'entry_timestamp' => __( 'Date/Time', 'mwp-rules' ),
-						'entry_message' => __( 'Log Message', 'mwp-rules' ),
+						'entry_message' => __( $message_lang, 'mwp-rules' ),
 					),
 					'handlers' => array(
 						'entry_timestamp' => function( $row ) {
@@ -601,13 +659,44 @@ class _CustomLog extends ExportableRecord
 				),
 			);
 			
-			foreach( $this->getArguments() as $argument ) {
+			$display_columns = ( isset( $this->data['field_visibility'] ) and ! empty( $this->data['field_visibility'] ) ) ? $this->data['field_visibility'] : array( 'timestamp', 'message' );
+			
+			foreach( $this->getArguments() as $argument ) 
+			{
 				if ( in_array( $argument->type, array( 'mixed', 'array', 'object' ) ) ) {
 					$class::$columns[ 'col_' . $argument->id() ] = array( 'format' => 'JSON' );
 				} else {
 					$class::$columns[] = 'col_' . $argument->id();
-					$controller_config['tableConfig']['columns'][ $class::$prefix . 'col_' . $argument->id() ] = $argument->title;
 				}
+				
+				$column_name = $argument->getColumnName();
+				
+				if ( in_array( $column_name, $display_columns ) ) {
+					$controller_config['tableConfig']['columns'][ $class::$prefix . 'col_' . $argument->id() ] = $argument->title;
+					$controller_config['tableConfig']['handlers'][ $column_name ] = function( $row ) use ( $argument, $column_name, $log ) {
+						if ( isset( $argument->data['advanced_options']['argument_handle_display'] ) and $argument->data['advanced_options']['argument_handle_display'] ) {
+							$args = array(
+								'column_value' => $row[ $column_name ],
+								'column_name' => $column_name,
+								'row' => $row,
+								'log' => $log,
+								'argument' => $argument,
+							);
+							$evaluate = rules_evaluation_closure( $args );
+							return $evaluate( $argument->data['advanced_options']['argument_display_phpcode'] );
+						}
+						
+						return $argument->getDisplayValue( $row[ $column_name ] );
+					};
+				}
+			}
+			
+			if ( ! in_array( 'message', $display_columns ) ) {
+				unset( $controller_config['tableConfig']['columns']['entry_message'] );
+			}
+			
+			if ( ! in_array( 'timestamp', $display_columns ) and count( $controller_config['tableConfig']['columns'] ) > 1 ) {
+				unset( $controller_config['tableConfig']['columns']['entry_timestamp'] );
 			}
 			
 			$controller = $class::createController( 'admin', apply_filters( 'rules_custom_log_controller_config', $controller_config, $this ) );			

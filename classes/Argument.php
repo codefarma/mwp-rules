@@ -464,29 +464,30 @@ class _Argument extends ExportableRecord
 			'title' => __( 'Advanced Config', 'mwp-rules' ),
 		));
 		
-		$default_value_description = $this->getParent() instanceof Bundle ? 
-			__( 'If enabled, you can set a default value to be used for this ' . strtolower( $this->_getSingularName() ) . ' in the absense of a user customized value.', 'mwp-rules' ) : 
-			__( 'If enabled, you can customize the default value displayed in the widget when manually configuring it in rule operations.', 'mwp-rules' );
+		if ( $this->getParent() instanceof Bundle ) 
+		{		
+			$default_value_description = $this->getParent() instanceof Bundle ? 
+				__( 'If enabled, you can set a default value to be used for this ' . strtolower( $this->_getSingularName() ) . ' in the absense of a user customized value.', 'mwp-rules' ) : 
+				__( 'If enabled, you can customize the default value displayed in the widget when manually configuring it in rule operations.', 'mwp-rules' );
+			
+			$form->addField( 'widget_use_default', 'checkbox', array(
+				'label' => __( 'Use Default Value', 'mwp-rules' ),
+				'description' => $default_value_description,
+				'value' => 1,
+				'data' => isset( $data['advanced_options']['widget_use_default'] ) ? (bool) $data['advanced_options']['widget_use_default'] : true,
+			));
 		
-		$form->addField( 'widget_use_default', 'checkbox', array(
-			'label' => __( 'Use Default Value', 'mwp-rules' ),
-			'description' => $default_value_description,
-			'value' => 1,
-			'data' => isset( $data['advanced_options']['widget_use_default'] ) ? (bool) $data['advanced_options']['widget_use_default'] : true,
-		));
-		
-		if ( $this->getParent() instanceof Bundle ) {		
 			$form->addField( 'widget_allow_custom_value', 'checkbox', array(
+				'row_suffix' => '<hr>',
 				'label' => __( 'User Customizable', 'mwp-rules' ),
-				'description' => __( 'Allow users to edit the value of this setting.', 'mwp-rules' ),
+				'description' => __( 'Allow users to customize the value of this setting.', 'mwp-rules' ),
 				'value' => 1,
 				'data' => isset( $data['advanced_options']['widget_allow_custom_value'] ) ? (bool) $data['advanced_options']['widget_allow_custom_value'] : true,
 			));
 		}
 		
 		$form->addField( 'widget_use_advanced', 'checkbox', array(
-			'row_prefix' => '<hr>',
-			'label' => __( 'Custom Widget Config', 'mwp-rules' ),
+			'label' => __( 'Custom Widget Options', 'mwp-rules' ),
 			'description' => __( 'You can provide additional options to configure the input widget using custom PHP code.', 'mwp-rules' ),
 			'value' => 1,
 			'data' => isset( $data['advanced_options']['widget_use_advanced'] ) ? (bool) $data['advanced_options']['widget_use_advanced'] : false,
@@ -507,6 +508,36 @@ class _Argument extends ExportableRecord
 			)),
 			'required' => false,
 		));
+		
+		if ( $this->getParent() instanceof CustomLog ) 
+		{
+			$form->addField( 'argument_handle_display', 'checkbox', array(
+				'row_prefix' => '<hr>',
+				'label' => __( 'Custom Display Handler', 'mwp-rules' ),
+				'description' => __( 'You can customize the display of the logged value for this field using custom PHP code.', 'mwp-rules' ),
+				'value' => 1,
+				'data' => isset( $data['advanced_options']['argument_handle_display'] ) ? (bool) $data['advanced_options']['argument_handle_display'] : false,
+				'toggles' => array( 1 => array( 'show' => array( '#argument_display_phpcode' ) ) ),
+			));
+			
+			$form->addField( 'argument_display_phpcode', 'textarea', array(
+				'row_attr' => array(  'id' => 'argument_display_phpcode', 'data-view-model' => 'mwp-rules' ),
+				'label' => __( 'PHP Code', 'mwp-rules' ),
+				'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
+				'data' => isset( $data['advanced_options'][ 'argument_display_phpcode' ] ) ? $data['advanced_options'][ 'argument_display_phpcode' ] : "// <?php \n\nreturn \$column_value;\n",
+				'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 
+					'return_args' => array( '<code>string</code>: A string representation of the column value to be displayed in the log table' ),
+					'variables' => array( 
+						'<code>$column_value</code> (mixed) - The stored column value for the field being displayed',
+						'<code>$column_name</code> (string) - The column name for the field being displayed',
+						'<code>$row</code> (array) - All of the log entry column values of the row',
+						'<code>$log</code> (object) (MWP\Rules\CustomLog) - The log which the entry belongs to',
+						'<code>$argument</code> (object) (MWP\Rules\Argument) - The field which is being displayed',
+					),
+				)),
+				'required' => false,
+			));			
+		}
 		
 		$argument = $this;
 		$form->onComplete( function() use ( $argument ) {
@@ -843,6 +874,35 @@ class _Argument extends ExportableRecord
 	public function getColumnName()
 	{
 		return 'entry_col_' . $this->id();
+	}
+	
+	/**
+	 * Get the display value for use in display tables
+	 *
+	 * @param	mixed			$value				The argument value
+	 * @return	string
+	 */
+	public function getDisplayValue( $value )
+	{
+		$type = gettype( $value );
+		switch( $type ) {
+			case 'string':
+			case 'integer':
+			case 'double':
+				return (string) $value;
+			
+			case 'boolean':
+				return $value ? 'true' : 'false';
+				
+			case 'array':
+				return 'Array[Length: ' . count( $value ) . ']';
+				
+			case 'object':
+				return 'Object[' . get_class( $value ) . ']';
+				
+			case 'NULL':
+				return 'None';
+		}
 	}
 	
 	/**
