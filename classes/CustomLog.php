@@ -143,6 +143,26 @@ class _CustomLog extends ExportableRecord
 	}
 	
 	/**
+	 * Get the max logs 
+	 *
+	 * @return	int
+	 */
+	public function getMaxLogs()
+	{
+		return $this->max_logs > 0 ? $this->max_logs : 0;
+	}
+	
+	/**
+	 * Get the max log age
+	 *
+	 * @return	int
+	 */
+	public function getMaxAge()
+	{
+		return $this->max_age > 0 ? $this->max_age : 0;
+	}
+	
+	/**
 	 * Get the event definition
 	 *
 	 * @return	array
@@ -614,6 +634,7 @@ class _CustomLog extends ExportableRecord
 				namespace MWP\Rules;
 				class CustomLogEntry{$this->id()} extends CustomLogEntry {
 					protected static \$multitons = array();
+					protected \$log_id = {$this->id()};
 					public static \$table = \"rules_custom_log_{$this->id()}\";
 					public static \$columns = array(
 						'id',
@@ -706,6 +727,35 @@ class _CustomLog extends ExportableRecord
 	}
 	
 	/**
+	 * Check if maintenance on the log is needed and schedule it
+	 *
+	 * @return	void
+	 */
+	public function checkAndScheduleMaintenance()
+	{
+		/* Check if maintenance is already queued */
+		if ( Framework\Task::countTasks( 'rules_log_maintenance', 'custom_log_' . $this->id() ) ) {
+			return;
+		}
+		
+		$recordClass = $this->getRecordClass();
+		
+		if ( $this->getMaxAge() > 0 ) {
+			if ( $recordClass::countWhere( array( 'entry_timestamp<=%d', time() - ( $this->getMaxAge() * 24 * 60 * 60 ) ) ) ) {
+				Framework\Task::queueTask([ 'action' => 'rules_log_maintenance', 'tag' => 'custom_log_' . $this->id() ], [ 'log_id' => $this->id() ]);
+				return;
+			}
+		}
+		
+		if ( $this->getMaxLogs() > 0 ) {
+			if ( $recordClass::countWhere('1') > $this->getMaxLogs() ) {
+				Framework\Task::queueTask([ 'action' => 'rules_log_maintenance', 'tag' => 'custom_log_' . $this->id() ], [ 'log_id' => $this->id() ]);
+				return;
+			}
+		}
+	}
+	
+	/**
 	 * Save
 	 *
 	 * @return	bool|WP_Error
@@ -717,7 +767,9 @@ class _CustomLog extends ExportableRecord
 		}
 		
 		$result = parent::save();
+		
 		$this->updateSchema();
+		$this->checkAndScheduleMaintenance();
 		Plugin::instance()->clearCustomHooksCache();
 		
 		return $result;
@@ -768,7 +820,7 @@ class _CustomLog extends ExportableRecord
 							
 							foreach( $log->getArguments() as $argument ) {
 								$column = 'col_' . $argument->id();
-								$entry->$column = $plugin->storeArg( array_shift( $fields ) );
+								$entry->$column = array_shift( $fields );
 							}
 							
 							$result = $entry->save();

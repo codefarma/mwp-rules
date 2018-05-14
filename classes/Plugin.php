@@ -259,6 +259,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	 *
 	 * @MWP\WordPress\Action( for="mwp_rules_run_scheduled_actions" )
 	 *
+	 * @param	Task		$task				The running task
 	 * @return	void
 	 */
 	public function runScheduledActions( $task )
@@ -275,6 +276,53 @@ class _Plugin extends \MWP\Framework\Plugin
 		}
 		
 		$_next_action->execute();
+	}
+	
+	/**
+	 * Run log maintenance
+	 *
+	 * @MWP\WordPress\Action( for="rules_log_maintenance" )
+	 *
+	 * @param	Task		$task				The running task
+	 * @return	void
+	 */
+	public function runLogMaintenance( $task )
+	{
+		try {
+			$log = CustomLog::load( $task->getData( 'log_id' ) );
+		}
+		catch( \OutOfRangeException $e ) {
+			$task->log( 'Custom log no longer exists.' );
+			return $task->complete();
+		}
+		
+		$recordClass = $log->getRecordClass();
+		
+		if ( $log->getMaxAge() > 0 ) {
+			$where = array( 'entry_timestamp<=%d', time() - ( $log->getMaxAge() * 24 * 60 * 60 ) );
+			if ( $entry = reset( $recordClass::loadWhere( $where, 'entry_timestamp ASC', 1 ) ) ) {
+				$entry->delete();
+				$task->log( 'Deleted entry #' . $entry->id() );
+				$remaining = $recordClass::countWhere( $where );
+				$task->setStatus( $remaining . ' expired entries left to delete' );
+				return;
+			}
+		}
+		
+		if ( $log->getMaxLogs() > 0 ) {
+			$total_logs = $recordClass::countWhere('1');
+			if ( $total_logs > $log->getMaxLogs() ) {
+				if ( $entry = reset( $recordClass::loadWhere('1', 'entry_timestamp ASC', 1 ) ) ) {
+					$entry->delete();
+					$task->log( 'Deleted entry #' . $entry->id() );
+					$remaining = $total_logs - 1 - $log->getMaxLogs();
+					$task->setStatus( $remaining . ' overflow entries left to delete' );
+					return;
+				}
+			}
+		}
+		
+		return $task->complete();
 	}
 	
 	/**
