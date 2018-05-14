@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.0.1] - 2018-05-14
+
 ### Added
 
 - Event: Admin Initialized
@@ -15,11 +17,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Date/time now displays by default on log entries table
 - Added internal api methods to get specific arguments from hooks, logs, and bundles
 - Added a `$token_value` variable which contains a function that can be used to get token values inside rule configuration custom php code.
+- Added quick enable/disable labels to bundles, rules, conditions, and actions
+- Added custom log field visibility options
+- Added custom log retention maintenance settings
 
 ### Changed
 
 - "Log entry created" events now recieve the log and entry as arguments
 - Added css styles to suppress notice and update messages on rules admin pages
+- String database column size increased from 255 to 1028
+
 
 ### Fixed
 
