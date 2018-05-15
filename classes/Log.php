@@ -91,9 +91,6 @@ class _Log extends ActiveRecord
 			'view' => array(
 				'title' => __( static::$lang_view . ' ' . static::$lang_singular, 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-zoom-in',
-				'attr' => array(
-					'class' => 'btn btn-sm btn-default',
-				),
 				'params' => array(
 					'do' => 'view',
 					'id' => $this->id,

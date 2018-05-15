@@ -105,6 +105,7 @@ class _Hook extends ExportableRecord
 	public function _getEditTitle( $type=NULL )
 	{
 		$singular = $this->type == 'custom' ? 'Custom Action' : ucfirst( $this->type );
+		$singular = 'Event';
 		return __( static::$lang_edit . ' ' . $singular );
 	}
 	
@@ -116,6 +117,7 @@ class _Hook extends ExportableRecord
 	public function _getViewTitle()
 	{
 		$singular = $this->type == 'custom' ? 'Custom Action' : ucfirst( $this->type );
+		$singular = 'Event';
 		return __( static::$lang_view . ' ' . $singular );
 	}
 	
@@ -127,6 +129,7 @@ class _Hook extends ExportableRecord
 	public function _getDeleteTitle()
 	{
 		$singular = $this->type == 'custom' ? 'Custom Action' : ucfirst( $this->type );
+		$singular = 'Event';
 		return __( static::$lang_delete . ' ' . $singular );
 	}
 	
@@ -179,6 +182,35 @@ class _Hook extends ExportableRecord
 		return $this->getPlugin()->getHooksController( $key );
 	}
 	
+	/**
+	 * Get controller actions
+	 *
+	 * @return	array
+	 */
+	public function getControllerActions()
+	{
+		$data = $this->data;
+		$actions = parent::getControllerActions();
+		
+		unset( $actions['view'] );
+		
+		$hook_actions = array(
+			'edit' => '',
+			'manage_arguments' => array(
+				'title' => __( 'Manage Arguments', 'mwp-rules' ),
+				'icon' => 'glyphicon glyphicon-console',
+				'params' => array(
+					'do' => 'edit',
+					'_tab' => 'arguments',
+					'id' => $this->id(),
+				),
+			),
+			'delete' => ''
+		);
+		
+		return array_replace_recursive( $hook_actions, $actions );
+	}
+
 	/**
 	 * Get the event definition
 	 *

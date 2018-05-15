@@ -81,18 +81,38 @@ class _BundlesController extends ExportableController
 					'export' => __( 'Export Bundles', 'mwp-rules' ),
 				),
 				'columns' => array(
-					'bundle_title'        => __( 'Bundle Title', 'mwp-rules' ),
-					'bundle_description'  => __( 'Bundle Description', 'mwp-rules' ),
-					'bundle_enabled'      => __( 'Bundle Enabled', 'mwp-rules' ),
-					'overview'             => __( 'Bundle Overview', 'mwp-rules' ),
+					'bundle_title'   => __( 'Bundle', 'mwp-rules' ),
+					'overview'       => __( 'Overview', 'mwp-rules' ),
+					'bundle_enabled' => __( 'Status', 'mwp-rules' ),
+					'_row_actions'   => '',
+					'drag_handle'    => '',
 				),
 				'handlers' => array(
-					'bundle_enabled' => function( $row ) {
-						return (bool) $row['bundle_enabled'] ? 'Yes' : 'No';
+					'drag_handle' => function( $row ) {
+						return '<div class="draggable-handle mwp-bootstrap"><i class="glyphicon glyphicon-menu-hamburger"></i></div>';
+					},
+					'bundle_title' => function( $row ) {
+						return '<div>' . 
+							'<h3 style="margin:0 0 4px 0;">' . esc_html( $row['bundle_title'] ) . '</h3>' .
+							'<div>' . esc_html( $row['bundle_description'] ) . '</div>' .
+						'</div>';
 					},
 					'overview' => function( $row ) {
 						$bundle = Rules\Bundle::load( $row['bundle_id'] );
-						return __( 'Rule Count: ', 'mwp-rules' ) . $bundle->getRuleCount();
+						$active_count = $bundle->getRuleCount( $enabled_only=TRUE );
+						$total_count = $bundle->getRuleCount();
+						
+						return '<div class="mwp-bootstrap">' . 
+							'<i class="glyphicon glyphicon-triangle-right" style="font-size:0.7em"></i> <a href="' . $bundle->url(['_tab'=>'bundle_rules']) . '">' . $active_count . ' active rules</a> ' . 
+							( $active_count < $total_count ? "({$total_count} total)" : "" ) .
+						'</div>';
+					},
+					'bundle_enabled' => function( $row ) {
+						return '<div class="mwp-bootstrap">' . ( 
+							$row['bundle_enabled'] ? 
+							'<span data-rules-enabled-toggle="bundle" data-rules-id="' . $row['bundle_id'] . '" class="label label-success rules-pointer">ENABLED</span>' : 
+							'<span data-rules-enabled-toggle="bundle" data-rules-id="' . $row['bundle_id'] . '" class="label label-danger rules-pointer">DISABLED</span>' ) .
+						'</div>';
 					},
 				),
 			),
@@ -128,6 +148,7 @@ class _BundlesController extends ExportableController
 	public function createDisplayTable( $override_options=array() )
 	{
 		$table = parent::createDisplayTable( $override_options );
+		$table->removeTableClass( 'fixed' );
 		$table->hardFilters[] = array( 'bundle_app_id=%d', $this->getAppId() );
 		
 		return $table;

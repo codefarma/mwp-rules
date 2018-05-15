@@ -268,12 +268,8 @@ class _Argument extends ExportableRecord
 		$argument_actions = array(
 			'edit' => '',
 			'set_default' => array(
-				'title' => '',
+				'title' => __( 'Set Default Value', 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-edit',
-				'attr' => array( 
-					'title' => __( 'Set Default Value', 'mwp-rules' ),
-					'class' => 'btn btn-xs btn-default',
-				),
 				'params' => array(
 					'do' => 'set_default',
 					'id' => $this->id(),
@@ -286,7 +282,13 @@ class _Argument extends ExportableRecord
 			unset( $argument_actions['set_default'] );
 		}
 		
-		return array_replace_recursive( $argument_actions, $actions );
+		$actions = array_replace_recursive( $argument_actions, $actions );
+		
+		if ( count( $actions ) < 3 ) {
+			unset( $actions['delete']['separator'] );
+		}
+		
+		return $actions;
 	}
 	
 	/**

@@ -104,34 +104,29 @@ class _Condition extends GenericOperation
 	public function getControllerActions()
 	{
 		return array(
-			'add' => array(
-				'icon' => 'glyphicon glyphicon-plus',
-				'attr' => array(
-					'class' => 'btn btn-sm btn-default',
-					'title' => __( 'Add New Subcondition', 'mwp-rules' ),
-				),
-				'params' => array(
-					'do' => 'new',
-					'parent_id' => $this->id,
-				)
-			),
 			'edit' => array(
+				'title' => __( 'Configure Condition', 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-wrench',
-				'attr' => array(
-					'class' => 'btn btn-sm btn-default',
-					'title' => __( 'Configure Condition', 'mwp-rules' ),
-				),
 				'params' => array(
 					'do' => 'edit',
 					'id' => $this->id,
 					'_tab' => 'operation_config',
 				),
 			),
+			'add' => array(
+				'title' => __( 'Add New Subcondition', 'mwp-rules' ),
+				'icon' => 'glyphicon glyphicon-plus',
+				'params' => array(
+					'do' => 'new',
+					'parent_id' => $this->id,
+				)
+			),
 			'delete' => array(
+				'separator' => true,
+				'title' => __( 'Delete Condition', 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-trash',
 				'attr' => array( 
-					'class' => 'btn btn-sm btn-default',
-					'title' => __( 'Delete Condition', 'mwp-rules' ),
+					'class' => 'text-danger',
 				),
 				'params' => array(
 					'do' => 'delete',

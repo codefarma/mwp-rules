@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	class: <?php echo esc_attr( json_encode( $table->activeRecordClass ) ) ?>,
 	options: { 
 		handle: 'div', 
-		items: 'li', 
+		items: 'li.operation-row', 
 		toleranceElement: '> div'
 	} 
 }">

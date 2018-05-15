@@ -41,7 +41,14 @@ class _CustomLogsController extends ExportableController
 				),
 				'columns' => array(
 					'custom_log_title' => __( 'Title', 'mwp-rules' ),
+					'_row_actions'   => '',
+					'drag_handle'    => '',
 				),
+				'handlers' => [
+					'drag_handle' => function( $row ) {
+						return '<div class="draggable-handle mwp-bootstrap"><i class="glyphicon glyphicon-menu-hamburger"></i></div>';
+					},
+				],
 			),
 		));
 	}

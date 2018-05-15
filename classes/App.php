@@ -175,26 +175,18 @@ class _App extends ExportableRecord
 		unset( $actions['view'] );
 		
 		$app_actions = array(
-			'edit' => '',
 			'settings' => array(
-				'title' => '',
+				'title' => __( 'Update Settings', 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-cog',
-				'attr' => array( 
-					'title' => __( 'Edit Settings', 'mwp-rules' ),
-					'class' => 'btn btn-xs btn-default',
-				),
 				'params' => array(
 					'do' => 'settings',
 					'id' => $this->id(),
 				),
 			),
+			'edit' => '',
 			'export' => array(
-				'title' => '',
+				'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-export',
-				'attr' => array( 
-					'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
-					'class' => 'btn btn-xs btn-default',
-				),
 				'params' => array(
 					'do' => 'export',
 					'id' => $this->id(),

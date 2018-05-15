@@ -106,6 +106,64 @@ class _ArgumentsController extends ActiveRecordController
 	}
 	
 	/**
+	 * Default controller configuration
+	 *
+	 * @return	array
+	 */
+	public function getDefaultConfig()
+	{
+		$plugin = $this->getPlugin();
+		
+		return array_replace_recursive( parent::getDefaultConfig(), array(
+			'tableConfig' => [
+				'columns' => [
+					'argument_title' => __( 'Title', 'mwp-rules' ),
+					'argument_varname' => __( 'Machine Name', 'mwp-rules' ),
+					'argument_type' => __( 'Type', 'mwp-rules' ),
+					'argument_widget' => __( 'Input Widget', 'mwp-rules' ),
+					'default_value' => __( 'Default Value', 'mwp-rules' ),
+					'argument_required' => __( 'Required', 'mwp-rules' ),
+					'_row_actions'   => '',
+					'drag_handle'    => '',
+				],
+				'handlers' => [
+					'drag_handle' => function( $row ) {
+						return '<div class="draggable-handle mwp-bootstrap"><i class="glyphicon glyphicon-menu-hamburger"></i></div>';
+					},
+					'argument_varname' => function( $row ) {
+						return '<code>' . $row['argument_varname'] . '</code>';
+					},
+					'argument_required' => function( $row ) {
+						return $row['argument_required'] ? 'Yes' : 'No';
+					},
+					'argument_widget' => function( $row ) {
+						$argument = Rules\Argument::load( $row['argument_id'] );
+						return '<a href="' . $argument->url([ '_tab' => 'widget_config' ]) . '">' . ( $argument->widget ?: 'None' ) . '</a>';
+					},
+					'default_value' => function( $row ) {
+						$argument = Rules\Argument::load( $row['argument_id'] );
+						$default_values = $argument->getSavedValues( 'default' );
+						
+						if ( ! $argument->usesDefault() ) {
+							return '--';
+						}
+						
+						if ( ! is_array( $default_values ) or count( $default_values ) == 1 ) {
+							$default_values = (array) $default_values;
+							$value = array_shift( $default_values );
+							if ( ! is_array( $value ) or is_object( $value ) ) {
+								return '<a href="' . $argument->url([ 'do' => 'set_default' ]) . '">' . ( $value ? esc_html( (string) $value ) : '--' ) . '</a>';
+							}
+						}
+						
+						return '<a href="' . $argument->url([ 'do' => 'set_default' ]) . '">Complex Data</a>';
+					}
+				],
+			],
+		));
+	}
+	
+	/**
 	 * Constructor
 	 *
 	 * @param	string		$recordClass			The active record class
@@ -153,6 +211,11 @@ class _ArgumentsController extends ActiveRecordController
 		
 		$table = parent::createDisplayTable( $override_options );
 		$table->hardFilters[] = array( 'argument_parent_type=%s AND argument_parent_id=%d', $this->getParentType(), $this->getParentId() );
+		$table->removeTableClass( 'fixed' );
+		
+		if ( ! $this->getParent() instanceof Rules\Bundle ) {
+			unset( $table->columns['default_value'] );
+		}
 		
 		return $table;
 	}

@@ -106,26 +106,23 @@ class _Action extends GenericOperation
 	{
 		return array(
 			'edit' => array(
+				'title' => __( 'Configure Action', 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-wrench',
-				'attr' => array(
-					'class' => 'btn btn-sm btn-default',
-					'title' => __( 'Configure Action', 'mwp-rules' ),
-				),
 				'params' => array(
 					'do' => 'edit',
-					'id' => $this->id,
+					'id' => $this->id(),
 					'_tab' => 'operation_config',
 				),
 			),
 			'delete' => array(
+				'title' => __( 'Delete Action', 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-trash',
 				'attr' => array( 
-					'class' => 'btn btn-sm btn-default',
-					'title' => __( 'Delete Action', 'mwp-rules' ),
+					'class' => 'text-danger',
 				),
 				'params' => array(
 					'do' => 'delete',
-					'id' => $this->id,
+					'id' => $this->id(),
 				),
 			)
 		);

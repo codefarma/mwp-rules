@@ -255,45 +255,34 @@ class _CustomLog extends ExportableRecord
 	public function getControllerActions()
 	{
 		return array(
-			'edit' => array(
+			'view' => array(
 				'title' => '',
+				'title' => __( 'View Log Entries', 'mwp-rules' ),
+				'icon' => 'glyphicon glyphicon-list-alt',
+				'url' => $this->getRecordController()->getUrl(),
+			),
+			'edit' => array(
+				'title' => $this->_getEditTitle(),
 				'icon' => 'glyphicon glyphicon-pencil',
-				'attr' => array( 
-					'title' => $this->_getEditTitle(),
-					'class' => 'btn btn-sm btn-default',
-				),
 				'params' => array(
 					'do' => 'edit',
 					'id' => $this->id(),
 				),
 			),
-			'view' => array(
-				'title' => '',
-				'icon' => 'glyphicon glyphicon-eye-open',
-				'attr' => array( 
-					'title' => $this->_getViewTitle(),
-					'class' => 'btn btn-sm btn-default',
-				),
-				'url' => $this->getRecordController()->getUrl(),
-			),
 			'export' => array(
-				'title' => '',
+				'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-export',
-				'attr' => array( 
-					'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
-					'class' => 'btn btn-sm btn-default',
-				),
 				'params' => array(
 					'do' => 'export',
 					'id' => $this->id(),
 				),
 			),
 			'delete' => array(
-				'title' => '',
+				'separator' => true,
+				'title' => $this->_getDeleteTitle(),
 				'icon' => 'glyphicon glyphicon-trash',
 				'attr' => array( 
-					'title' => $this->_getDeleteTitle(),
-					'class' => 'btn btn-sm btn-default',
+					'class' => 'text-danger',
 				),
 				'params' => array(
 					'do' => 'delete',

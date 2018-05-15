@@ -28,16 +28,13 @@ $controller = $table->getController();
 <li class="operation-row condition-row" id="condition_<?php echo $condition->id ?>">
 	<div class="operation-details row-handle">
 		<div class="pull-right operation-row-actions">
-			<?php foreach ( $condition->getControllerActions() as $action ) : ?>
-				<a <?php if ( isset( $action['attr'] ) ) { foreach( $action['attr'] as $k => $v ) { if ( is_array( $v ) ) { $v = json_encode( $v ); } printf( '%s="%s" ', $k, esc_attr( $v ) ); } }	?> 
-					href="<?php echo $controller->getUrl( isset( $action['params'] ) ? $action['params'] : array() ) ?>
-					">
-					<?php if ( isset( $action['icon'] ) ) : ?>
-						<i class="<?php echo $action['icon'] ?>"></i>
-					<?php endif ?>
-					<?php echo isset( $action['title'] ) ? $action['title'] : ''; ?>
-				</a>
-			<?php endforeach ?>
+			<?php echo $this->getTemplateContent( 'views/management/records/row_actions', array( 
+				'controller' => $controller,
+				'record' => $condition,
+				'table' => $table,
+				'actions' => $condition->getControllerActions(),
+				'default_row_actions' => '',
+			)); ?>
 		</div>
 		<strong class="text-info" style="font-size:1.2em"><?php echo $condition->title ?> </strong> 
 		<?php if ( count( $subconditions ) ) : ?>

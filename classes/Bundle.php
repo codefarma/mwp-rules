@@ -67,11 +67,6 @@ class _Bundle extends ExportableRecord
     public static $plugin_class = 'MWP\Rules\Plugin';
 	
 	/**
-	 * @var string
-	 */
-	public static $lang_edit = 'Manage';
-	
-	/**
 	 * @var	string
 	 */
 	public static $lang_singular = 'Bundle';
@@ -235,26 +230,27 @@ class _Bundle extends ExportableRecord
 		unset( $actions['view'] );
 		
 		$bundle_actions = array(
-			'edit' => '',
 			'settings' => array(
-				'title' => '',
+				'title' => __( 'Update Settings', 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-cog',
-				'attr' => array( 
-					'title' => __( 'Edit Settings', 'mwp-rules' ),
-					'class' => 'btn btn-xs btn-default',
-				),
 				'params' => array(
 					'do' => 'settings',
 					'id' => $this->id(),
 				),
 			),
-			'export' => array(
-				'title' => '',
-				'icon' => 'glyphicon glyphicon-export',
-				'attr' => array( 
-					'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
-					'class' => 'btn btn-xs btn-default',
+			'edit' => '',
+			'manage_rules' => array(
+				'title' => __( 'Manage Rules', 'mwp-rules' ),
+				'icon' => 'glyphicon glyphicon-briefcase',
+				'params' => array(
+					'do' => 'edit',
+					'_tab' => 'bundle_rules',
+					'id' => $this->id(),
 				),
+			),
+			'export' => array(
+				'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
+				'icon' => 'glyphicon glyphicon-export',
 				'params' => array(
 					'do' => 'export',
 					'id' => $this->id(),
@@ -479,10 +475,15 @@ class _Bundle extends ExportableRecord
 	/**
 	 * Get a count of all the rules associated with this bundle
 	 *
+	 * @param	bool		$enabled_only				Only count rules that are enabled
 	 * @return	int
 	 */
-	public function getRuleCount()
+	public function getRuleCount( $enabled_only=FALSE )
 	{
+		if ( $enabled_only ) {
+			return Rule::countWhere( array( 'rule_bundle_id=%d AND rule_enabled=1', $this->id() ) );
+		}
+		
 		return Rule::countWhere( array( 'rule_bundle_id=%d', $this->id() ) );
 	}
 	

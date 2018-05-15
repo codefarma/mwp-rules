@@ -112,13 +112,15 @@ class _RulesController extends ExportableController
 		(
 			'tableConfig' => array(
 				'tableTemplate' => 'rules/table',
-				'actionsColumn' => 'rule_enabled',
+				//'actionsColumn' => 'rule_enabled',
 				'default_where' => array( 'rule_parent_id=0 AND rule_bundle_id=%d', $this->getBundleId() ),
 				'columns' => array(
 					'rule_title'      => __( 'Rule Summary', 'mwp-rules' ),
 					'rule_event_hook' => __( 'Evaluated When', 'mwp-rules' ),
 					'subrules'        => __( 'Subrules', 'mwp-rules' ),
-					'rule_enabled'    => __( 'Settings', 'mwp-rules' ),
+					'rule_enabled'    => __( 'Status', 'mwp-rules' ),
+					'_row_actions'    => '',
+					'drag_handle'     => '',
 				),
 				'searchable' => array(
 					'rule_title' => array( 'type' => 'contains', 'combine_words' => 'and' ),
@@ -132,6 +134,9 @@ class _RulesController extends ExportableController
 					'export' => __( 'Export Rules', 'mwp-rules' ),
 				),
 				'handlers' => array(
+					'drag_handle' => function( $row ) {
+						return '<div class="draggable-handle mwp-bootstrap"><i class="glyphicon glyphicon-menu-hamburger"></i></div>';
+					},
 					'rule_title' => function( $record )
 					{
 						$rule = Rules\Rule::load( $record['rule_id'] );
@@ -144,33 +149,36 @@ class _RulesController extends ExportableController
 						$conditionsUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_conditions' ) );
 						$actionsUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_actions' ) );
 						
-						return '<span style="min-height: 30px; font-size: 1.2em;">' . $record['rule_title'] . '</span><br>' . 
-							'<ul style="list-style-type:disc; margin:2px 0 0 20px;">' . 
-								"<li style='margin-bottom:0'><a href='{$conditionsUrl}'>{$condition_count} conditions</a></li>" . 
-								"<li style='margin-bottom:0'><a href='{$actionsUrl}'>{$action_count} actions</a></li>" . 
-							'</ul>';
+						return '<div class="mwp-bootstrap">' . 
+							'<span style="font-size: 1.2em; display: inline-block;">' . $record['rule_title'] . '<hr style="margin:7px 0 5px;"></span>' . 
+							'' .
+							'<ul style="margin:0;">' . 
+								"<li style='margin-bottom:0'><i class='glyphicon glyphicon-triangle-right' style='font-size:0.8em; opacity: 0.6;'></i> {$condition_count} <a href='{$conditionsUrl}'>conditions</a></li>" . 
+								"<li style='margin-bottom:0'><i class='glyphicon glyphicon-triangle-right' style='font-size:0.8em; opacity: 0.6;'></i> {$action_count} <a href='{$actionsUrl}'>actions</a></li>" . 
+							'</ul>' .
+						'</div>';
 					},
 					'rule_enabled' => function( $record ) 
 					{
 						$rule = Rules\Rule::load( $record['rule_id'] );
 						$event = $rule->event();
 						
-						$status = '<div class="mwp-bootstrap" style="margin-bottom:10px">';
+						$status = '<div class="mwp-bootstrap" style="margin-bottom:10px; min-width: 120px;">';
 						$status .= $event ? ( $record['rule_enabled'] ? 
 							'<span data-rules-enabled-toggle="rule" data-rules-id="' . $rule->id() . '" class="label label-success rules-pointer">ENABLED</span>' : 
 							'<span data-rules-enabled-toggle="rule" data-rules-id="' . $rule->id() . '" class="label label-danger rules-pointer">DISABLED</span>' ) : 
 							'<span class="label label-warning">INOPERABLE</span>';
 							
-						if ( $record['rule_debug'] ) {
-							$status .= ' <a href="' . $rule->url( array( '_tab' => 'rule_debug_console' ) ) . '"><span class="label label-info"><i class="glyphicon glyphicon-wrench"></i> DEBUG MODE ON</span></a>';
-						}
-						
 						if ( ! $rule->parent() and $rule->enabled ) {
 							$status .= ' <span title="' . __( 'Priority', 'mwp-rules' ) . '" class="label label-primary">' . $rule->priority . '</span>';
 						}
 						
 						if ( $rule->enable_recursion ) {
 							$status .= ' <span title="' . __( 'Recursions Allowed', 'mwp-rules' ) . '" class="label label-default"><i class="glyphicon glyphicon-repeat"></i> ' . $rule->recursion_limit . '</span>';
+						}
+						
+						if ( $record['rule_debug'] ) {
+							$status .= '<div style="margin: 4px 0"><a href="' . $rule->url( array( '_tab' => 'rule_debug_console' ) ) . '" class="nounderline"><span class="label label-warning"><i class="glyphicon glyphicon-wrench"></i> DEBUG MODE ON</span></a></div>';
 						}
 						
 						$status .= '</div>';
@@ -205,15 +213,15 @@ class _RulesController extends ExportableController
 						$controller = Rules\Plugin::instance()->getRulesController( $rule->getBundle() );
 						$subrulesUrl = $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_subrules' ) );
 						
-						$output = '<div class="mwp-bootstrap">';
+						$output = '<div class="mwp-bootstrap" style="min-width: 150px; margin-right: 25px;">';
 						
 						if ( $subrule_count ) {
-							$output .= "<span style='font-size:15px; font-weight:bold;'><i class='glyphicon glyphicon-link'></i> <a href='{$subrulesUrl}'>{$subrule_count} sub-rules.</a></span>";
+							$output .= "<i class='glyphicon glyphicon-link' style='font-size:0.85em'></i> <span style='font-size:15px; font-weight:bold;'><a href='{$subrulesUrl}'>{$subrule_count} sub-rules</a></span>";
 						} else {
 							$output .= "No subrules.";
 						}
 						
-						$output .= "<div style='margin-top:10px'><a class='btn btn-sm btn-default' href=\"" . $controller->getUrl( array( 'do' => 'new', 'parent_id' => $rule->id ) ) . "\"><i class='glyphicon glyphicon-plus'></i> New sub-rule</a></div>";
+						$output .= "<hr style='margin:8px 0'><i class='glyphicon glyphicon-plus' style='font-size:0.7em; vertical-align: 2px;'></i> <a href=\"" . $controller->getUrl( array( 'do' => 'new', 'parent_id' => $rule->id ) ) . "\">Create sub-rule</a>";
 						$output .= "</div>";
 						
 						return $output;
@@ -221,6 +229,20 @@ class _RulesController extends ExportableController
 				),
 			),
 		));
+	}
+	
+	/**
+	 * Get the active record display table
+	 *
+	 * @param	array			$override_options			Default override options
+	 * @return	MWP\Framework\Helpers\ActiveRecordTable
+	 */
+	public function createDisplayTable( $override_options=array() )
+	{
+		$table = parent::createDisplayTable( $override_options );
+		$table->removeTableClass( 'fixed' );
+
+		return $table;
 	}
 	
 	/**

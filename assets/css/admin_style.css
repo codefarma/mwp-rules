@@ -158,6 +158,17 @@
 	display: none !important;
 }
 
+.wrap.rules .draggable-handle {
+	padding: 5px; 
+	font-size: 12px; 
+	text-align:center;	
+}
+
+.wrap.rules .column-drag_handle {
+	width: 25px;
+	padding: 10px 10px 10px 0;
+}
+
 a.nounderline:hover {
 	text-decoration: none
 }
@@ -276,9 +287,20 @@ a.nounderline:hover {
 }
 
 .mwp-rules-form .operation-details {
-	padding: 5px 0;
-	margin: 5px 0;
+	padding: 10px 0;
+}
+
+.mwp-rules-form .operation-row {
 	border-bottom: 1px solid #eee;
+	margin: 5px 0;
+}
+
+.mwp-rules-form .condition-row .operation-details {
+	border-bottom: 1px solid #eee;
+}
+
+.mwp-rules-form .operation-table li.operation-row:last-child {
+	border-bottom: 0;
 }
 
 .mwp-rules-form .operation-details p {
@@ -296,6 +318,10 @@ a.nounderline:hover {
 
 .mwp-bootstrap .widefat td, .mwp-bootstrap .widefat th {
 	padding: 8px 10px;
+}
+
+.rules.wrap .widefat td, .rules-wrap .widefat th {
+	vertical-align: middle;
 }
 
 .mwp-rules-form .tokens-toggle {

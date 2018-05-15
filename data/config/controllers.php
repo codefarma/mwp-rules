@@ -78,9 +78,34 @@ return [
 			),
 			'columns' => [
 				'hook_hook' => __( 'Hook', 'mwp-rules' ),
-				'hook_title' => __( 'Title', 'mwp-rules' ),
-				'hook_type' => __( 'Type', 'mwp-rules' ),
+				'hook_title' => __( 'Event', 'mwp-rules' ),
 				'hook_description' => __( 'Description', 'mwp-rules' ),
+				'arguments' => __( 'Arguments', 'mwp-rules' ),
+				//'hook_type' => __( 'Type', 'mwp-rules' ),
+			],
+			'handlers' => [
+				'hook_hook' => function( $row ) {
+					switch( $row['hook_type'] ) {
+						case 'action':
+							$output .= '<code class="mwp-bootstrap"><span class="text-success">' . $row['hook_type'] . ':</span></code>';
+							break;
+						case 'filter':
+							$output .= '<code class="mwp-bootstrap"><span class="text-warning">' . $row['hook_type'] . ':</span></code>';
+							break;
+						case 'custom':
+							$output .= '<code class="mwp-bootstrap"><span class="text-primary">action:</span></code>';
+							break;
+						default:
+							$output .= '<code class="mwp-bootstrap"><span>' . $row['hook_type'] . ':</span></code>';
+					}
+					
+					return $output . '<code>' . $row['hook_hook'] . '</code>';
+				},
+				'arguments' => function( $row ) {
+					$hook = Rules\Hook::load( $row['hook_id'] );
+					$args = array_map( function( $arg ) { return '$' . $arg->varname; }, $hook->getArguments() );
+					return ! empty( $args ) ? '<span class="mwp-bootstrap"><code>' . implode( ', ', $args ) . '</code></span>' : 'No arguments.';
+				}
 			],
 		],
 	],
@@ -108,46 +133,6 @@ return [
 		'adminPage' => [ 
 			'type' => 'submenu', 
 			'parent_slug' => 'mwp-rules' 
-		],
-		'tableConfig' => [
-			'columns' => [
-				'argument_title' => __( 'Title', 'mwp-rules' ),
-				'argument_varname' => __( 'Machine Name', 'mwp-rules' ),
-				'argument_type' => __( 'Type', 'mwp-rules' ),
-				'argument_required' => __( 'Required', 'mwp-rules' ),
-				'argument_widget' => __( 'Input Widget', 'mwp-rules' ),
-				'default_value' => __( 'Default Value', 'mwp-rules' ),
-			],
-			'handlers' => [
-				'argument_varname' => function( $row ) {
-					return '<code>' . $row['argument_varname'] . '</code>';
-				},
-				'argument_required' => function( $row ) {
-					return $row['argument_required'] ? 'Yes' : 'No';
-				},
-				'argument_widget' => function( $row ) {
-					$argument = Rules\Argument::load( $row['argument_id'] );
-					return '<a href="' . $argument->url([ '_tab' => 'widget_config' ]) . '">' . $argument->widget . '</a>';
-				},
-				'default_value' => function( $row ) {
-					$argument = Rules\Argument::load( $row['argument_id'] );
-					$default_values = $argument->getSavedValues( 'default' );
-					
-					if ( ! $argument->usesDefault() ) {
-						return '--';
-					}
-					
-					if ( ! is_array( $default_values ) or count( $default_values ) == 1 ) {
-						$default_values = (array) $default_values;
-						$value = array_shift( $default_values );
-						if ( ! is_array( $value ) or is_object( $value ) ) {
-							return '<a href="' . $argument->url([ 'do' => 'set_default' ]) . '">' . ( $value ? esc_html( (string) $value ) : '--' ) . '</a>';
-						}
-					}
-					
-					return '<a href="' . $argument->url([ 'do' => 'set_default' ]) . '">Complex Data</a>';
-				}
-			],
 		],
 	],
 	

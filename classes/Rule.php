@@ -168,47 +168,34 @@ class _Rule extends ExportableRecord
 		return array(
 			'edit' => array(
 				'icon' => 'glyphicon glyphicon-wrench',
-				'title' => __( 'Configure', 'mwp-rules' ),
-				'attr' => array(
-					'class' => 'btn btn-sm btn-default',
-					'title' => __( 'Configure Rule', 'mwp-rules' ),
-				),
+				'title' => __( 'Configure Rule', 'mwp-rules' ),
 				'params' => array(
 					'do' => 'edit',
 					'id' => $this->id,
 				),
 			),
-			/*
 			'add' => array(
 				'icon' => 'glyphicon glyphicon-plus',
-				'attr' => array(
-					'class' => 'btn btn-sm btn-default',
-					'title' => __( 'Add New Subrule', 'mwp-rules' ),
-				),
+				'title' => __( 'Create New Subrule', 'mwp-rules' ),
 				'params' => array(
 					'do' => 'new',
 					'parent_id' => $this->id,
 				)
 			),
-			*/
 			'export' => array(
-				'title' => '',
+				'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-export',
-				'attr' => array( 
-					'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
-					'class' => 'btn btn-sm btn-default',
-				),
 				'params' => array(
 					'do' => 'export',
 					'id' => $this->id(),
 				),
 			),
-			
 			'delete' => array(
+				'separator' => true,
+				'title' => __( 'Delete Rule', 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-trash',
 				'attr' => array( 
-					'class' => 'btn btn-sm btn-default',
-					'title' => __( 'Delete Rule', 'mwp-rules' ),
+					'class' => 'text-danger',
 				),
 				'params' => array(
 					'do' => 'delete',

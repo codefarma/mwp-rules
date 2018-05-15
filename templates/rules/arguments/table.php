@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
-<ol <?php echo $table->getSequencingBindAttr() ?>>
+<ol <?php echo $table->getSequencingBindAttr( 'sequenceableRecords', [ 'handle' => '.draggable-handle' ] ) ?>>
 	<?php if ( $table->has_items() ) : ?>
 		<?php $table->display_rows() ?>
 	<?php else: ?>

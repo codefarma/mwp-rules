@@ -25,32 +25,35 @@ $controller = $table->getController();
 ?>
 
 <li class="operation-row action-row" id="<?php echo $action->id ?>">
-	<div class="operation-details row-handle">
-		<div class="pull-right operation-row-actions">
-			<?php foreach ( $action->getControllerActions() as $_action ) : ?>
-				<a <?php if ( isset( $_action['attr'] ) ) { foreach( $_action['attr'] as $k => $v ) { if ( is_array( $v ) ) { $v = json_encode( $v ); } printf( '%s="%s" ', $k, esc_attr( $v ) ); } }	?> 
-					href="<?php echo $controller->getUrl( isset( $_action['params'] ) ? $_action['params'] : array() ) ?>
-					">
-					<?php if ( isset( $_action['icon'] ) ) : ?>
-						<i class="<?php echo $_action['icon'] ?>"></i>
-					<?php endif ?>
-					<?php echo isset( $_action['title'] ) ? $_action['title'] : '' ?>
-				</a>
-			<?php endforeach ?>
+	<div class="operation-details row-handle row">
+		<div class="col-sm-8">
+			<strong class="text-info" style="font-size:1.2em"><?php echo $action->title ?> </strong> 
+			<span style="margin-left: 15px" class="label label-<?php echo $action->enabled ? 'success' : 'danger' ?> rules-pointer" data-rules-enabled-toggle="action" data-rules-id="<?php echo $action->id() ?>">
+				<?php echo $action->enabled ? 'ENABLED' : 'DISABLED' ?>
+			</span>
+			<p>
+				<i class="glyphicon glyphicon-triangle-right"></i> Using: <span class="text-success"><?php echo $definition ? $definition->title : 'Unregistered action' ?></span> 
+				<?php if ( $action->schedule_mode == 0 ) : ?>
+					<span title="This action will be executed immediately during the event" class="label label-default"><i class="glyphicon glyphicon-time"></i> Immediately</span>
+				<?php endif ?>
+				<?php if ( in_array( $action->schedule_mode, array( 2, 3, 4 ) ) ) : ?>
+					<span title="This action will be executed at a scheduled time" class="label label-warning"><i class="glyphicon glyphicon-time"></i> Scheduled</span>
+				<?php endif ?>
+			</p>
 		</div>
-		
-		<strong class="text-info" style="font-size:1.2em"><?php echo $action->title ?> </strong> 
-		<span style="margin-left: 15px" class="label label-<?php echo $action->enabled ? 'success' : 'danger' ?> rules-pointer" data-rules-enabled-toggle="action" data-rules-id="<?php echo $action->id() ?>">
-			<?php echo $action->enabled ? 'ENABLED' : 'DISABLED' ?>
-		</span>
-		<p>
-			<i class="glyphicon glyphicon-triangle-right"></i> Using: <span class="text-success"><?php echo $definition ? $definition->title : 'Unregistered action' ?></span> 
-			<?php if ( $action->schedule_mode == 0 ) : ?>
-				<span title="This action will be executed immediately during the event" class="label label-default"><i class="glyphicon glyphicon-time"></i> Immediately</span>
-			<?php endif ?>
-			<?php if ( in_array( $action->schedule_mode, array( 2, 3, 4 ) ) ) : ?>
-				<span title="This action will be executed at a scheduled time" class="label label-warning"><i class="glyphicon glyphicon-time"></i> Scheduled</span>
-			<?php endif ?>
-		</p>
+		<div class="col-sm-4">
+			<div class="pull-right draggable-handle" style="margin:2px 0 0 5px;">
+				<i class="glyphicon glyphicon-menu-hamburger" style="padding: 5px;"></i>
+			</div>
+			<div class="pull-right operation-row-actions">
+				<?php echo $this->getTemplateContent( 'views/management/records/row_actions', array( 
+					'controller' => $controller,
+					'record' => $action,
+					'table' => $table,
+					'actions' => $action->getControllerActions(),
+					'default_row_actions' => '',
+				)); ?>
+			</div>
+		</div>
 	</div>
 </li>
