@@ -352,7 +352,7 @@ class _Rule extends ExportableRecord
 			$form->addField( 'enable_recursion', 'checkbox', array(
 				'label' => __( 'Enable Recursion', 'mwp-rules' ),
 				'value' => 1,
-				'description' => __( 'Allow this rule to be recursively triggered by its own conditions and actions.', 'mwp-rules' ),
+				'description' => __( 'Allow this rule to be recursively triggered by its own conditions and actions. By default, recursive rule processing is protected to prevent infinite loops.', 'mwp-rules' ),
 				'data' => (bool) $rule->enable_recursion,
 				'toggles' => array(
 					1 => array( 'show' => array( '#rule_recursion_limit' ) ),
@@ -364,7 +364,7 @@ class _Rule extends ExportableRecord
 				'row_attr' => array( 'id' => 'rule_recursion_limit' ),
 				'attr' => array( 'min' => 1 ),
 				'label' => __( 'Recursion Limit', 'mwp-rules' ),
-				'description' => __( 'Enter the number of times this rule should be able to recurse on itself.', 'mwp-rules' ),
+				'description' => __( 'Enter the number of times this rule should will be able to recurse on itself.', 'mwp-rules' ),
 				'data' => (int) $rule->recursion_limit ?: 1,
 				'required' => true,
 			),
@@ -381,14 +381,14 @@ class _Rule extends ExportableRecord
 		/* Base compare mode */
 		$form->addField( 'base_compare', 'choice', array(
 			'label' => __( 'Base Conditions Comparison', 'mwp-rules' ),
-			'choices' => array( 'AND' => 'and', 'OR' => 'or' ),
+			'choices' => array( 'ALL' => 'and', 'ANY' => 'or' ),
 			'required' => true,
 			'data' => $rule->base_compare ?: 'and',
-			'expanded' => true,
-			'description' => "<p>You can choose how you want the base conditions for this rule to be evaluated.</p>
-				<ol>
-					<li>If you choose AND, all base conditions must be valid for actions to be executed.</li>
-					<li>If you choose OR, actions will be executed if any base condition is valid.</li>
+			'expanded' => false,
+			'description' => "<p>Choose how you want the root conditions for this rule to be evaluated.</p>
+				<ol class='text-info'>
+					<li>If you choose ALL, all root conditions must be valid for actions to be executed.</li>
+					<li>If you choose ANY, actions will be executed if any root condition is valid.</li>
 				</ol>",
 		), 
 		'rule_conditions');
