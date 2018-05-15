@@ -198,7 +198,7 @@ class _Hook extends ExportableRecord
 			'edit' => '',
 			'manage_arguments' => array(
 				'title' => __( 'Manage Arguments', 'mwp-rules' ),
-				'icon' => 'glyphicon glyphicon-console',
+				'icon' => 'glyphicon glyphicon-th-list',
 				'params' => array(
 					'do' => 'edit',
 					'_tab' => 'arguments',

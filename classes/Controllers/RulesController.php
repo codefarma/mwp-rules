@@ -216,12 +216,12 @@ class _RulesController extends ExportableController
 						$output = '<div class="mwp-bootstrap" style="min-width: 150px; margin-right: 25px;">';
 						
 						if ( $subrule_count ) {
-							$output .= "<i class='glyphicon glyphicon-link' style='font-size:0.85em'></i> <span style='font-size:15px; font-weight:bold;'><a href='{$subrulesUrl}'>{$subrule_count} sub-rules</a></span>";
+							$output .= "<a class='btn btn-xs btn-primary' href='{$subrulesUrl}'><i class='glyphicon glyphicon-link' style='font-size:0.85em; margin-right:5px;'></i> {$subrule_count} sub-rules</a>";
 						} else {
 							$output .= "No subrules.";
 						}
 						
-						$output .= "<hr style='margin:8px 0'><i class='glyphicon glyphicon-plus' style='font-size:0.7em; vertical-align: 2px;'></i> <a href=\"" . $controller->getUrl( array( 'do' => 'new', 'parent_id' => $rule->id ) ) . "\">Create sub-rule</a>";
+						$output .= "<hr style='margin:8px 0'><i class='glyphicon glyphicon-plus' style='font-size:0.7em; vertical-align: 2px;'></i> <a href=\"" . $controller->getUrl( array( 'do' => 'new', 'parent_id' => $rule->id ) ) . "\">Add sub-rule</a>";
 						$output .= "</div>";
 						
 						return $output;

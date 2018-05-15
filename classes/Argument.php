@@ -406,7 +406,7 @@ class _Argument extends ExportableRecord
 		$form->addField( 'class', 'text', array(
 			'label' => __( 'Object Class', 'mwp-rules' ),
 			'description' => __( 'If this data is an object, or is a scalar value that can be used to load an object, enter the class name of that object here.', 'mwp-rules' ),
-			'attr' => array( 'placeholder' => 'WP_User' ),
+			'attr' => array( 'placeholder' => 'WP_Class' ),
 			'data' => $this->class,
 			'required' => false,
 		),

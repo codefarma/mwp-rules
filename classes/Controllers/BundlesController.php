@@ -103,8 +103,8 @@ class _BundlesController extends ExportableController
 						$total_count = $bundle->getRuleCount();
 						
 						return '<div class="mwp-bootstrap">' . 
-							'<i class="glyphicon glyphicon-triangle-right" style="font-size:0.7em"></i> <a href="' . $bundle->url(['_tab'=>'bundle_rules']) . '">' . $active_count . ' active rules</a> ' . 
-							( $active_count < $total_count ? "({$total_count} total)" : "" ) .
+							'<i class="glyphicon glyphicon-triangle-right" style="font-size:0.7em"></i> <a href="' . $bundle->url(['_tab'=>'bundle_rules']) . '">' . $total_count . ' total rules</a> ' . 
+							( $active_count < $total_count ? "({$active_count} enabled)" : "" ) .
 						'</div>';
 					},
 					'bundle_enabled' => function( $row ) {

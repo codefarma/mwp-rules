@@ -231,7 +231,7 @@ class _Bundle extends ExportableRecord
 		
 		$bundle_actions = array(
 			'settings' => array(
-				'title' => __( 'Update Settings', 'mwp-rules' ),
+				'title' => __( 'Adjust Settings', 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-cog',
 				'params' => array(
 					'do' => 'settings',

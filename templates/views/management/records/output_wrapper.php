@@ -32,7 +32,7 @@ if ( isset( $_REQUEST['do'] ) ) {
 	}
 	array_unshift( $breadcrumbs, array(
 		'url' => $controller->getUrl(),
-		'title' => $controller->adminPage->title,
+		'title' => is_callable( array( $controller, 'getPluralName' ) ) ? $controller->getPluralName() : $controller->adminPage->title,
 	));
 }
 
@@ -48,7 +48,7 @@ while ( is_callable( array( $_controller, 'getParent' ) ) and $_parent = $_contr
 	$_controller = $_parent->_getController();
 	array_unshift( $breadcrumbs, array(
 		'url' => $_controller->getUrl(),
-		'title' => $_controller->adminPage->title,
+		'title' => is_callable( array( $_controller, 'getPluralName' ) ) ? $_controller->getPluralName() : $_controller->adminPage->title,
 	));
 }
 
