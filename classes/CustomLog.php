@@ -269,6 +269,15 @@ class _CustomLog extends ExportableRecord
 					'id' => $this->id(),
 				),
 			),
+			'manage_fields' => array(
+				'title' => __( 'Manage Custom Fields', 'mwp-rules' ),
+				'icon' => 'glyphicon glyphicon-expand',
+				'params' => array(
+					'do' => 'edit',
+					'_tab' => 'arguments',
+					'id' => $this->id(),
+				),
+			),
 			'export' => array(
 				'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-export',
@@ -277,8 +286,19 @@ class _CustomLog extends ExportableRecord
 					'id' => $this->id(),
 				),
 			),
-			'delete' => array(
+			'empty' => array(
 				'separator' => true,
+				'title' => __( 'Flush Log Entries', 'mwp-rules' ),
+				'icon' => 'glyphicon glyphicon-erase',
+				'attr' => array(
+					'class' => 'text-warning',
+				),
+				'params' => array(
+					'do' => 'flush',
+					'id' => $this->id(),
+				),
+			),
+			'delete' => array(
 				'title' => $this->_getDeleteTitle(),
 				'icon' => 'glyphicon glyphicon-trash',
 				'attr' => array( 
@@ -423,6 +443,33 @@ class _CustomLog extends ExportableRecord
 		$this->data = $values['log_display'];
 		
 		parent::processEditForm( $_values );
+	}
+	
+	/**
+	 * Build an editing form
+	 *
+	 * @return	MWP\Framework\Helpers\Form
+	 */
+	protected function buildFlushForm()
+	{
+		$plugin = $this->getPlugin();
+		$form = static::createForm( 'flush', array( 'attr' => array( 'class' => 'container', 'style' => 'max-width: 600px; margin: 75px auto;' ) ) );
+		
+		$form->addHtml( 'flush_notice', $plugin->getTemplateContent( 'views/management/records/notice_flush', [ 'record' => $this ] ) );
+		
+		$form->addField( 'cancel', 'submit', array( 
+			'label' => __( 'Cancel', 'mwp-framework' ), 
+			'attr' => array( 'class' => 'btn btn-warning' ),
+			'row_attr' => array( 'class' => 'col-xs-6 text-right' ),
+		));
+		
+		$form->addField( 'confirm', 'submit', array( 
+			'label' => __( 'Confirm Flush', 'mwp-framework' ), 
+			'attr' => array( 'class' => 'btn btn-danger' ),
+			'row_attr' => array( 'class' => 'col-xs-6 text-left' ),
+		));
+		
+		return $form;
 	}
 		
 	/**
@@ -840,6 +887,17 @@ class _CustomLog extends ExportableRecord
 					break;
 			}
 		}
+	}
+	
+	/**
+	 * Flush the logs table
+	 *
+	 * @return	void
+	 */
+	public function flushLogs()
+	{
+		$recordClass = $this->getRecordClass();
+		$recordClass::deleteWhere('1');
 	}
 	
 }
