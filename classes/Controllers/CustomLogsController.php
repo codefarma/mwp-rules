@@ -40,7 +40,9 @@ class _CustomLogsController extends ExportableController
 					'export' => __( 'Export Custom Logs', 'mwp-rules' ),
 				),
 				'columns' => array(
-					'custom_log_title' => __( 'Title', 'mwp-rules' ),
+					'custom_log_title' => __( 'Log Title', 'mwp-rules' ),
+					'fields' => __( 'Custom Fields', 'mwp-rules' ),
+					'records' => __( 'Total Records', 'mwp-rules' ),
 					'_row_actions'   => '',
 					'drag_handle'    => '',
 				),
@@ -48,6 +50,16 @@ class _CustomLogsController extends ExportableController
 					'drag_handle' => function( $row ) {
 						return '<div class="draggable-handle mwp-bootstrap"><i class="glyphicon glyphicon-menu-hamburger"></i></div>';
 					},
+					'fields' => function( $row ) {
+						$log = Rules\CustomLog::load( $row['custom_log_id'] );
+						$fields = array_map( function( $arg ) { return '<code>' . esc_html( $arg->title ) . '</code>'; }, $log->getArguments() );
+						return ! empty( $fields ) ? implode( ', ', $fields ) : 'None.';
+					},
+					'records' => function ( $row ) {
+						$log = Rules\CustomLog::load( $row['custom_log_id'] );
+						$recordClass = $log->getRecordClass();
+						return $recordClass::countWhere('1');
+					}
 				],
 			),
 		));
@@ -68,5 +80,46 @@ class _CustomLogsController extends ExportableController
 			)
 		);
 	}
+	
+	/**
+	 * Delete an active record
+	 * 
+	 * @param	ActiveRecord			$record				The active record, or NULL to load by request param
+	 * @return	void
+	 */
+	public function do_flush( $record=NULL )
+	{
+		$controller = $this;
+		$class = $this->recordClass;
+		
+		if ( ! $record ) {
+			try	{
+				$record = $class::load( isset( $_REQUEST['id'] ) ? $_REQUEST['id'] : 0 );
+			}
+			catch( \OutOfRangeException $e ) { 
+ 				echo $this->error( __( 'The custom log could not be loaded.', 'mwp-rules' ) . ' Class: ' . $this->recordClass . ' ' . ', ID: ' . ( (int) $_REQUEST['id'] ) );
+				return;
+			}
+		}
+		
+		$form = $record->getForm( 'flush' );
+		
+		if ( $form->isValidSubmission() )
+		{
+			if ( $form->getForm()->getClickedButton()->getName() === 'confirm' ) {
+				$record->flushLogs();
+			}
+			
+			$form->processComplete( function() use ( $controller ) {
+				wp_redirect( $controller->getUrl() );
+				exit;
+			});
+		}
+	
+		$output = $this->getPlugin()->getTemplateContent( 'views/management/records/delete', array( 'form' => $form, 'plugin' => $this->getPlugin(), 'controller' => $this, 'record' => $record ) );
+		
+		echo $this->wrap( __( 'Flush All Log Entries' ) . ': ' . $record->title, $output, [ 'classes' => 'flush', 'record' => $record ] );
+	}
+	
 	
 }
