@@ -11,22 +11,27 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) or ! WP_UNINSTALL_PLUGIN ) {
 	die( 'Access denied.' );
 }
 
-if ( file_exists( WP_PLUGINS_DIR . '/mwp-framework/plugin.php' ) )
-{
-	include_once WP_PLUGINS_DIR . '/mwp-framework/plugin.php';
+include_once __DIR__ . '/plugin.php';
 
-	require_once 'vendor/autoload.php';
-
-	/* Get the plugin instance */
-	$plugin = \MWP\Rules\Plugin::instance();
-
-	/**
-	 * Uninstall it
-	 *
-	 * If you overload this method in your plugin, make sure to call
-	 * parent::uninstall() because the modern wordpress framework performs
-	 * automatic clean up operations such as the removal of your custom
-	 * database tables.
-	 */
-	$plugin->uninstall();
+if ( ! class_exists( 'MWPFramework' ) ) {
+	if ( ! file_exists( __DIR__ . '/framework/plugin.php' ) ) {
+		return;
+	}
+	
+	include_once __DIR__ . '/framework/plugin.php';
+	do_action( 'mwp_framework_manual_init' );
 }
+
+/* Get the plugin instance */
+$plugin = \MWP\Rules\Plugin::instance();
+$plugin->setPath( rtrim( plugin_dir_path( __DIR__ . '/plugin.php' ), '/' ) );
+
+/**
+ * Uninstall it
+ *
+ * If you overload this method in your plugin, make sure to call
+ * parent::uninstall() because the modern wordpress framework performs
+ * automatic clean up operations such as the removal of your custom
+ * database tables.
+ */
+$plugin->uninstall();
