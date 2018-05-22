@@ -5,7 +5,7 @@
  * Description: Automate new features and processes for any WordPress site through the use of simple "rules".
  * Author: Code Farma
  * Author URI: https://www.codefarma.com
- * Version: 1.0.1
+ * Version: 1.0.2
  */
 namespace MWP\Rules;
 
@@ -33,13 +33,13 @@ include_once 'includes/plugin-bootstrap.php';
 add_action( 'mwp_framework_init', function() 
 {
 	/* Prepare Settings */
-	//Plugin::instance()->addSettings( Settings::instance() );
+	Plugin::instance()->addSettings( Settings::instance() );
 	
 	/* Attach callbacks to WordPress */
 	Framework::instance()
 	
 		->attach( Plugin::instance() )
-		->attach( Settings::instance() )
+		//->attach( Settings::instance() )
 		->attach( AjaxHandlers::instance() )
 		
 		->attach( new Events\System )

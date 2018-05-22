@@ -175,7 +175,7 @@ class _Rule extends ExportableRecord
 				),
 			),
 			'add' => array(
-				'icon' => 'glyphicon glyphicon-plus',
+				'icon' => 'glyphicon glyphicon-link',
 				'title' => __( 'Create New Subrule', 'mwp-rules' ),
 				'params' => array(
 					'do' => 'new',

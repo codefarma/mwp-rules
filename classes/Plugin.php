@@ -166,14 +166,10 @@ class _Plugin extends \MWP\Framework\Plugin
 		
 		/* Register custom events */
 		if ( isset( $custom_hooks['events'] ) ) {
-			$action_triggered_txt = __( '(Custom Action)', 'mwp-rules' );
 			foreach( $custom_hooks['events'] as $type => $events ) {
 				foreach( $events as $hook => $info ) {
 					if ( isset( $info['definition'] ) ) {
 						$definition = $info['definition'];
-						if ( $definition['hook_data']['hook_type'] == 'custom' ) {
-							$definition['title'] = $definition['title'];
-						}
 						$this->describeEvent( $type, $hook, $definition );
 					}
 				}
@@ -182,7 +178,6 @@ class _Plugin extends \MWP\Framework\Plugin
 		
 		/* Register custom actions */
 		if ( isset( $custom_hooks['actions'] ) ) {
-			$custom_action_txt = __( '(Custom Action)', 'mwp-rules' );
 			foreach( $custom_hooks['actions'] as $hook => $info ) {
 				if ( isset( $info['definition'] ) ) {
 					$definition = $info['definition'];
