@@ -157,7 +157,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	 * @return	void
 	 */
 	public function whenPluginsLoaded()
-	{
+	{	
 		/* Allow plugins to register their own ECA's */
 		do_action( 'rules_register_ecas' );
 		
@@ -209,41 +209,46 @@ class _Plugin extends \MWP\Framework\Plugin
 	{
 		$custom_hooks = $this->getCache( 'custom_hooks', TRUE );
 		
-		if ( ! is_array( $custom_hooks ) ) {
+		if ( ! is_array( $custom_hooks ) ) 
+		{
 			$custom_hooks = array( 'events' => array(), 'actions' => array() );
-			foreach( Hook::loadWhere('1') as $hook ) {
-				switch( $hook->type ) {
-					case 'custom':
-						$custom_hooks['actions'][$hook->hook] = array(
-							'definition' => $hook->getActionDefinition(),
-						);
-						
-						// Intentionally move on and add custom action as an event also...
-						
-					case 'action':
-						$custom_hooks['events']['action'][$hook->hook] = array(
-							'definition' => $hook->getEventDefinition(),
-						);
-						break;
-					case 'filter':
-						$custom_hooks['events']['filter'][$hook->hook] = array(
-							'definition' => $hook->getEventDefinition(),
-						);
-						break;
+			$dbHelper = \MWP\Framework\DbHelper::instance();
+			
+			if ( $dbHelper->tableExists( Hook::_getTable() ) and $dbHelper->tableExists( CustomLog::_getTable() ) ) {
+				foreach( Hook::loadWhere('1') as $hook ) {
+					switch( $hook->type ) {
+						case 'custom':
+							$custom_hooks['actions'][$hook->hook] = array(
+								'definition' => $hook->getActionDefinition(),
+							);
+							
+							// Intentionally move on and add custom action as an event also...
+							
+						case 'action':
+							$custom_hooks['events']['action'][$hook->hook] = array(
+								'definition' => $hook->getEventDefinition(),
+							);
+							break;
+						case 'filter':
+							$custom_hooks['events']['filter'][$hook->hook] = array(
+								'definition' => $hook->getEventDefinition(),
+							);
+							break;
+					}
 				}
-			}
-			
-			foreach( CustomLog::loadWhere('1') as $log ) {
-				$custom_hooks['events']['action'][ $log->getHookPrefix() . '_create' ] = array(
-					'definition' => $log->getEventDefinition(),
-				);
 				
-				$custom_hooks['actions'][ $log->getHookPrefix() . '_create' ] = array(
-					'definition' => $log->getActionDefinition(),
-				);
+				foreach( CustomLog::loadWhere('1') as $log ) {
+					$custom_hooks['events']['action'][ $log->getHookPrefix() . '_create' ] = array(
+						'definition' => $log->getEventDefinition(),
+					);
+					
+					$custom_hooks['actions'][ $log->getHookPrefix() . '_create' ] = array(
+						'definition' => $log->getActionDefinition(),
+					);
+				}
+				
+				$this->setCache( 'custom_hooks', $custom_hooks, TRUE );
 			}
-			
-			$this->setCache( 'custom_hooks', $custom_hooks, TRUE );
 		}
 		
 		return $custom_hooks;		
@@ -1897,6 +1902,22 @@ class _Plugin extends \MWP\Framework\Plugin
 				$event->executeDeferred( $action );
 			}
 		}
+	}
+	
+	/**
+	 * Uninstall routine
+	 *
+	 * @return	void
+	 */
+	public function uninstall()
+	{
+		// Remove tables created for custom logs
+		foreach( CustomLog::loadWhere('1') as $log ) {
+			$log->delete();
+		}
+		
+		// Normal uninstall of tables, settings, etc
+		parent::uninstall();
 	}
 }
 
