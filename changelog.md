@@ -6,6 +6,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.0.2] - 2018-05-30
+
+### Added
+
+- Improvements to user interface
+- Menu item for custom logs to manage fields
+- Menu item for custom logs to flush entries
+- Started tracking the rules_apps table for future use
+- Added an extension to the ActiveRecord class to add the class to the rules map `addToRulesMap()`
+
+### Fixed
+
+- Fixed broken uninstall routine
+- Fixed various php notices
+- Fixed database errors caused by non-present tables on initial install
+
+### Changed
+
+- Removed unused dependency tracking code
+- Removed search box from rules controller
+
+
 ## [1.0.1] - 2018-05-14
 
 ### Added
