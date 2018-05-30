@@ -582,7 +582,8 @@ class _Argument extends ExportableRecord
 		$_values = $values['argument_details'];
 		$_values['widget'] = $widget_type;
 		$_values['varname'] = strtolower( $_values['varname'] );
-		$_values['data'] = $data;
+		
+		$this->data = $data;
 		
 		parent::processEditForm( $_values );
 	}
