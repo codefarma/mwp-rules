@@ -112,7 +112,6 @@ class _RulesController extends ExportableController
 		(
 			'tableConfig' => array(
 				'tableTemplate' => 'rules/table',
-				//'actionsColumn' => 'rule_enabled',
 				'default_where' => array( 'rule_parent_id=0 AND rule_bundle_id=%d', $this->getBundleId() ),
 				'columns' => array(
 					'rule_title'      => __( 'Rule Summary', 'mwp-rules' ),
@@ -121,9 +120,6 @@ class _RulesController extends ExportableController
 					'rule_enabled'    => __( 'Status', 'mwp-rules' ),
 					'_row_actions'    => '',
 					'drag_handle'     => '',
-				),
-				'searchable' => array(
-					'rule_title' => array( 'type' => 'contains', 'combine_words' => 'and' ),
 				),
 				'bulkActions' => array(
 					'enable' => __( 'Enable Rules', 'mwp-rules' ),
