@@ -187,22 +187,46 @@ class _System
 							},
 						),
 					),
+					'attachments' => array(
+						'label' => 'Email Attachments',
+						'default' => 'manual',
+						'argtypes' => array(
+							'array' => array( 'description' => 'An array of paths for files to attach' ),
+							'string' => array( 'description' => 'A list of paths of files to attach, separated ' ),
+						),
+						'configuration' => array(
+							'form' => function( $form, $values ) {
+								$form->addField( 'rules_email_attachments', 'textarea', array(
+									'label' => __( 'Attachments', 'mwp-rules' ),
+									'description' => __( 'Enter one file path per line of attachments to send with this email. i.e. "/var/www/html/wp-content/uploads/filename.pdf".', 'mwp-rules' ),
+									'data' => isset( $values['rules_email_attachments'] ) ? $values['rules_email_attachments'] : '',
+								));
+							},
+							'getArg' => function( $values ) {
+								return explode( "\n", str_replace( "\r\n", "\n", $values['rules_email_attachments'] ) );
+							},
+						),
+					),
 				),
-				'callback' => function( $to, $subject, $message, $headers, $values ) {
+				'callback' => function( $to, $subject, $message, $headers, $attachments, $values ) 
+				{
 					$custom_from = $values['rules_email_from_source'] == 'custom' and $values['rules_email_from'];
+					
 					if ( $custom_from ) {
 						$change_mail_from = function() use ( $values ) { return $values['rules_email_from']; };
 						$change_mail_from_name = function() use ( $values ) { return $values['rules_email_from_name']; };
-						add_filter( 'wp_mail_from', $return_mail_from );
-						add_filter( 'wp_mail_from_name', $return_mail_from_name );
-					}
-					wp_mail( $to, $subject, $message, $headers );
-					if ( $custom_from ) {
-						remove_filter( 'wp_mail_from', $return_mail_from );
-						remove_filter( 'wp_mail_from_name', $return_mail_from_name );
+						add_filter( 'wp_mail_from', $change_mail_from );
+						add_filter( 'wp_mail_from_name', $change_mail_from_name );
 					}
 					
-					return array( 'to' => $to, 'subject' => $subject );
+					$result = wp_mail( $to, $subject, $message, $headers, $attachments ?: [] );
+					
+					if ( $custom_from ) {
+						remove_filter( 'wp_mail_from', $change_mail_from );
+						remove_filter( 'wp_mail_from_name', $change_mail_from_name );
+					}
+					
+					return array( 'result' => $result, 'to' => $to, 'subject' => $subject, 'message' => $message, 'headers' => $headers, 'attachments' => $attachments );
 				}
 			)),
 			
