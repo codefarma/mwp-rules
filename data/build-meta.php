@@ -1,7 +1,7 @@
 <?php
 return <<<'JSON'
 {
-    "framework_version": "2.0.2",
+    "framework_version": "2.0.5",
     "framework_bundled": true,
     "tables": [
         {
@@ -1299,6 +1299,169 @@ return <<<'JSON'
                     ],
                     "columns": [
                         "id"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "rules_apps",
+            "columns": {
+                "app_id": {
+                    "allow_null": false,
+                    "auto_increment": true,
+                    "binary": false,
+                    "decimals": null,
+                    "default": null,
+                    "length": 20,
+                    "name": "app_id",
+                    "type": "BIGINT",
+                    "unsigned": true,
+                    "values": [],
+                    "zerofill": false
+                },
+                "app_uuid": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 25,
+                    "name": "app_uuid",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "app_title": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": "",
+                    "length": 255,
+                    "name": "app_title",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "app_weight": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "app_weight",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "app_enabled": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "1",
+                    "length": 1,
+                    "name": "app_enabled",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "app_description": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": "",
+                    "length": 1028,
+                    "name": "app_description",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "app_creator": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 255,
+                    "name": "app_creator",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "app_imported": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "app_imported",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "app_version": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": "0.0.0",
+                    "length": 56,
+                    "name": "app_version",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "app_data": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 0,
+                    "name": "app_data",
+                    "type": "TEXT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                }
+            },
+            "indexes": {
+                "PRIMARY": {
+                    "type": "primary",
+                    "name": "PRIMARY",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "app_id"
+                    ]
+                },
+                "app_uuid": {
+                    "type": "key",
+                    "name": "app_uuid",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "app_uuid"
                     ]
                 }
             }
