@@ -25,9 +25,6 @@ if ( file_exists( dirname( __DIR__ ) . '/framework/plugin.php' ) ) {
 	include_once dirname( __DIR__ ) . '/framework/plugin.php';
 }
 
-/* Register plugin dependencies */
-include_once 'plugin-dependency-config.php';
-
 /* Display notice if framework is missing */
 add_action( 'after_plugin_row_' . plugin_basename( dirname( __DIR__ ) . '/plugin.php' ), array( 'MWPRulesPlugin', 'status' ) );
 
