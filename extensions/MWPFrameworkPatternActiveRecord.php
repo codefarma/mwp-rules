@@ -17,13 +17,13 @@ class MWPFrameworkPatternActiveRecord extends _MWPFrameworkPatternActiveRecord
 	 */
 	public static function addToRulesMap( &$map, $augmentations=[] )
 	{
-		$class = static::class;
+		$object_class = static::class;
 		
 		$object_map = array(
 			'label' => static::$lang_singular,
-			'loader' => function( $val ) use ( $class ) {
+			'loader' => function( $val ) use ( $object_class ) {
 				try {
-					return $class::load( $val );
+					return $object_class::load( $val );
 				} catch( \OutOfRangeException $e ) { 
 					return NULL;
 				}
@@ -66,7 +66,7 @@ class MWPFrameworkPatternActiveRecord extends _MWPFrameworkPatternActiveRecord
 			
 			$column_type = isset( $config['type'] ) ? $config['type'] : 'varchar';
 			$type = isset( $type_map[ $column_type ] ) ? $type_map[ $column_type ] : 'string';
-			$label = ucwords( str_replace( '_', '', $prop ) );
+			$label = ucwords( str_replace( '_', ' ', $prop ) );
 			$class = NULL;
 			$nullable = isset( $config['allow_null'] ) && $config['allow_null'] == false ? false : true;
 			
@@ -114,7 +114,9 @@ class MWPFrameworkPatternActiveRecord extends _MWPFrameworkPatternActiveRecord
 			$object_map['mappings'][$prop] = $mapping;
 		}
 		
-		return array_replace_recursive( $map, array( $class => $object_map ), $augmentations );
+		$map = array_replace_recursive( $map, array( $object_class => $object_map ), $augmentations );
+		
+		return $map;
 	}
 
 }
