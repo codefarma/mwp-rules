@@ -1048,6 +1048,8 @@ class _Argument extends ExportableRecord
 		
 		$export['data']['argument_data'] = json_encode( $argument_data );
 		
+		unset( $export['parent_id'] );
+		
 		return $export;
 	}
 	

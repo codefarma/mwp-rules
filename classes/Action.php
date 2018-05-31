@@ -352,6 +352,9 @@ class _Action extends GenericOperation
 	public function getExportData()
 	{
 		$export = parent::getExportData();
+		
+		unset( $export['rule_id'] );
+
 		return $export;
 	}
 	

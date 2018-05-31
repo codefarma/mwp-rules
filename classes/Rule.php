@@ -989,6 +989,10 @@ class _Rule extends ExportableRecord
 		$export['children'] = array_map( function( $subrule ) { return $subrule->getExportData(); }, $this->getChildren() );
 		$export['conditions'] = array_map( function( $condition ) { return $condition->getExportData(); }, $this->getConditions() );
 		$export['actions'] = array_map( function( $action ) { return $action->getExportData(); }, $this->getActions() );
+		
+		unset( $export['parent_id'] );
+		unset( $export['bundle_id'] );
+		
 		return $export;
 	}
 	

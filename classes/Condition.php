@@ -393,6 +393,10 @@ class _Condition extends GenericOperation
 	{
 		$export = parent::getExportData();
 		$export['children'] = array_map( function( $subrule ) { return $subrule->getExportData(); }, $this->getChildren() );
+		
+		unset( $export['parent_id'] );
+		unset( $export['rule_id'] );
+		
 		return $export;
 	}
 	

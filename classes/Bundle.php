@@ -508,6 +508,9 @@ class _Bundle extends ExportableRecord
 		$export = parent::getExportData();
 		$export['arguments'] = array_map( function( $argument ) { return $argument->getExportData(); }, $this->getArguments() );
 		$export['rules'] = array_map( function( $rule ) { return $rule->getExportData(); }, $this->getRules() );
+		
+		unset( $export['app_id'] );
+		
 		return $export;
 	}
 	
