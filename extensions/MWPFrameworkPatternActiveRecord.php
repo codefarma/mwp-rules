@@ -114,7 +114,7 @@ class MWPFrameworkPatternActiveRecord extends _MWPFrameworkPatternActiveRecord
 			$object_map['mappings'][$prop] = $mapping;
 		}
 		
-		$map = array_replace_recursive( $map, array( $object_class => $object_map ), $augmentations );
+		$map = array_replace_recursive( $map, array( $object_class => array_replace_recursive( $object_map, $augmentations ) ) );
 		
 		return $map;
 	}
