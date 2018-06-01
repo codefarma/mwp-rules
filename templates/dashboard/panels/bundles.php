@@ -36,7 +36,7 @@ $bundles = Rules\Bundle::loadWhere('bundle_app_id=0');
 			<tr>
 				<th>Bundle Name</th>
 				<th>Total Rules</th>
-				<th><i class="glyphicon glyphicon-gift"></i> Package</th>
+				<!-- <th><i class="glyphicon glyphicon-gift"></i> Package</th> -->
 				<th><i class="glyphicon glyphicon-cog"></i> Settings</th>
 				<th class="text-right">Status</th>
 			</tr>
@@ -46,10 +46,10 @@ $bundles = Rules\Bundle::loadWhere('bundle_app_id=0');
 			<tr>
 				<td><a href="<?php echo $plugin->getBundlesController()->getUrl(['do'=>'edit','id'=>$bundle->id()]) ?>"><?php echo esc_html( $bundle->title ) ?></a></td>
 				<td><a href="<?php echo $plugin->getBundlesController()->getUrl(['do'=>'edit','id'=>$bundle->id(),'_tab'=>'bundle_rules']) ?>"><?php echo $bundle->getRuleCount() ?></a></td>
-				<td>
+				<!-- <td>
 					<i class="glyphicon glyphicon-download"></i> 
 					<a href="<?php echo $plugin->getBundlesController()->getUrl(['do'=>'export','id'=>$bundle->id()]) ?>">Download</a>
-				</td>
+				</td> -->
 				<td>
 					<?php if ( $bundle->hasSettings() ) { ?>
 					<i class="glyphicon glyphicon-triangle-right"></i> 

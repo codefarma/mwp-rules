@@ -78,7 +78,7 @@ class _BundlesController extends ExportableController
 			'tableConfig' => array(
 				'bulkActions' => array(
 					'delete' => __( 'Delete Bundles', 'mwp-rules' ),
-					'export' => __( 'Export Bundles', 'mwp-rules' ),
+					'export' => __( 'Download Bundles', 'mwp-rules' ),
 				),
 				'columns' => array(
 					'bundle_title'   => __( 'Bundle', 'mwp-rules' ),

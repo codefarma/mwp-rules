@@ -185,8 +185,8 @@ class _App extends ExportableRecord
 			),
 			'edit' => '',
 			'export' => array(
-				'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
-				'icon' => 'glyphicon glyphicon-export',
+				'title' => __( 'Download ' . $this->_getSingularName(), 'mwp-rules' ),
+				'icon' => 'glyphicon glyphicon-cloud-download',
 				'params' => array(
 					'do' => 'export',
 					'id' => $this->id(),

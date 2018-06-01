@@ -38,7 +38,7 @@ $apps = Rules\App::loadWhere('1');
 				<th>App Name</th>
 				<th>Author</th>
 				<th>Version</th>
-				<th><i class="glyphicon glyphicon-gift"></i> Package</th>
+				<!-- <th><i class="glyphicon glyphicon-gift"></i> Package</th> -->
 				<th><i class="glyphicon glyphicon-cog"></i> Settings</th>
 				<th class="text-right">Status</th>
 			</tr>
@@ -49,9 +49,9 @@ $apps = Rules\App::loadWhere('1');
 				<td><?php echo esc_html( $app->title ) ?></td>
 				<td><?php echo $app->creator ?></td>
 				<td><?php echo $app->version ?></td>
-				<td>
+				<!-- <td>
 					<a href="<?php echo $plugin->getAppsController()->getUrl(['do'=>'export','id'=>$app->id()]) ?>"><i class="glyphicon glyphicon-download"></i> Download</a>
-				</td>
+				</td> -->
 				<td>
 					<?php if ( $app->hasSettings() ) { ?>
 					<a href="<?php echo $plugin->getAppsController()->getUrl(['do'=>'settings','id'=>$app->id(),'from'=>'dashboard']) ?>" type="button"><i class="glyphicon glyphicon-triangle-right"></i> Configure</button>

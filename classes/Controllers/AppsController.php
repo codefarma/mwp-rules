@@ -35,7 +35,7 @@ class _AppsController extends ExportableController
 			'tableConfig' => array(
 				'bulkActions' => array(
 					'delete' => __( 'Delete Apps', 'mwp-rules' ),
-					'export' => __( 'Export Apps', 'mwp-rules' ),
+					'export' => __( 'Download Apps', 'mwp-rules' ),
 				),
 				'columns' => array(
 					'app_title'        => __( 'App Title', 'mwp-rules' ),

@@ -124,10 +124,10 @@ class _RulesController extends ExportableController
 				'bulkActions' => array(
 					'enable' => __( 'Enable Rules', 'mwp-rules' ),
 					'disable' => __( 'Disable Rules', 'mwp-rules' ),
+					'export' => __( 'Download Rules', 'mwp-rules' ),
 					'enableDebugRecursive' => __( 'Enable Debug Mode', 'mwp-rules' ),
 					'disableDebugRecursive' => __( 'Disable Debug Mode', 'mwp-rules' ),
 					'delete' => __( 'Delete Rules', 'mwp-rules' ),
-					'export' => __( 'Export Rules', 'mwp-rules' ),
 				),
 				'handlers' => array(
 					'drag_handle' => function( $row ) {
