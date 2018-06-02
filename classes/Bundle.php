@@ -37,13 +37,15 @@ class _Bundle extends ExportableRecord
      */
     public static $columns = array(
         'id',
-		'uuid',
-		'title',
-		'weight',
-		'description',
-		'enabled',
-		'imported',
-		'app_id',
+		'uuid' => [ 'type' => 'varchar', 'length' => 25 ],
+		'title' => [ 'type' => 'varchar', 'length' => 1028, 'allow_null' => false ],
+		'weight' => [ 'type' => 'int', 'length' => 11, 'default' => '0', 'allow_null' => false ],
+		'description' => [ 'type' => 'text', 'default' => '' ],
+		'enabled' => [ 'type' => 'tinyint', 'length' => 1, 'default' => '1', 'allow_null' => false ],
+		'imported' => [ 'type' => 'int', 'length' => 11, 'default' => '0', 'allow_null' => false ],
+		'app_id' => [ 'type' => 'bigint', 'length' => 20, 'default' => '0', 'allow_null' => false ],
+		'data' => [ 'type' => 'text', 'format' => 'JSON' ],
+		'add_menu' => [ 'type' => 'tinyint', 'length' => 1, 'default' => '0', 'allow_null' => false ],
     );
 
     /**
@@ -370,6 +372,31 @@ class _Bundle extends ExportableRecord
 			)),
 			'bundle_rules' );
 			
+			if ( ! $bundle->app_id ) {
+				$form->addTab( 'bundle_advanced', array(
+					'title' => __( 'Advanced', 'mwp-rules' ),
+				));
+				
+				$form->addField( 'add_menu', 'checkbox', array(
+					'label' => __( 'Add Settings Menu', 'mwp-rules' ),
+					'description' => __( 'Add the settings for this bundle to the core WordPress Settings menu.', 'mwp-rules' ),
+					'value' => 1,
+					'data' => $this->add_menu !== NULL ? (bool) $this->add_menu : false,
+					'toggles' => array(
+						1 => array( 'show' => array( '#menu_title' ) ),
+					),
+				));
+				
+				$form->addField( 'menu_title', 'text', array(
+					'row_attr' => array( 'id' => 'menu_title' ),
+					'label' => __( 'Custom Menu Title', 'mwp-rules' ),
+					'description' => __( 'Customize the name of the settings menu link', 'mwp-rules' ),
+					'attr' => array( 'placeholder' => $this->title ),
+					'required' => false,
+					'data' => $this->data['menu_title'],
+				));
+			}
+			
 			/* Redirect to the bundles tab of the containing app after saving */
 			$bundle = $this;
 			$form->onComplete( function() use ( $bundle, $plugin ) {
@@ -405,6 +432,16 @@ class _Bundle extends ExportableRecord
 	protected function processEditForm( $values )
 	{
 		$_values = $values['bundle_details'];
+		
+		if ( isset( $values['bundle_advanced'] ) ) {
+			if ( isset( $values['bundle_advanced']['add_menu'] ) ) {
+				$_values['add_menu'] = $values['bundle_advanced']['add_menu'];
+			}
+			
+			$data = $this->data;
+			$data['menu_title'] = $values['bundle_advanced']['menu_title'];
+			$this->data = $data;
+		}
 		
 		parent::processEditForm( $_values );
 	}

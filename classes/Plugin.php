@@ -255,6 +255,44 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
+	 * Add select bundles to the WP Settings menu
+	 * 
+	 * @MWP\WordPress\Action( for="admin_menu" )
+	 * 
+	 * @return void
+	 */
+	public function wpInit()
+	{
+		$output = '';
+		$callback = function() use ( &$output ) { echo $output; };
+		
+		foreach( Bundle::loadWhere( array( 'bundle_add_menu=1 AND bundle_enabled=1 AND bundle_app_id=0' ) ) as $bundle ) {
+			if ( $bundle->hasSettings() ) {
+				$menu_name = $bundle->data['menu_title'] ?: $bundle->title;
+				$page_hook = add_options_page( $bundle->title, $menu_name, 'manage_options', 'bundle-settings-' . $bundle->id(), $callback );
+				add_action( 'load-' . $page_hook, function() use ( $bundle, &$output ) {
+					$form = $bundle->getForm( 'settings' );
+					if ( $form->isValidSubmission() ) {
+						$values = $form->getValues();
+						$bundle->processForm( $values, 'settings' );
+						add_action( 'admin_notices', function() {
+							echo '<div class="notice notice-success">
+								 <p>' . __( 'Settings have been saved.', 'mwp-rules' ) . '</p>
+							</div>';
+						});
+						
+						/* Fetch new form with updated values */
+						$form = $bundle->getForm( 'settings' );
+					}
+					
+					$output .= $form->render();
+				});
+			}
+		}
+		
+	}
+	
+	/**
 	 * Run scheduled actions
 	 *
 	 * @MWP\WordPress\Action( for="mwp_rules_run_scheduled_actions" )
