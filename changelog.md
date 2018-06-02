@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.0.3] - 2018-06-01
+
+### Added
+
+- Bundles can now have a menu item added to the WP Settings Menu
+- Added ability to specify attachments in the email action
+
+### Changed
+
+- Removed foreign key references from exported rule data
+- Adjusted verbage for exporting rules from 'Export ...' to 'Download ...'
+- Removed the download option from the dashboard bundle panel
+
+### Fixed
+
+- Corrected active record class map generation output
+
 ## [1.0.2] - 2018-05-30
 
 ### Added

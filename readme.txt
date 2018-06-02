@@ -3,9 +3,9 @@ Contributors: codefarma
 Donate link: http://www.codefarma.com/
 Tags: rules, automation, programming
 Requires at least: 4.7
-Tested up to: 4.9.5
+Tested up to: 4.9.6
 Requires PHP: 5.6
-Stable tag: 1.0.0
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,44 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
  
 
 == Changelog ==
+ 
+= 1.0.3 =
+
+### Added
+
+- Bundles can now have a menu item added to the WP Settings Menu
+- Added ability to specify attachments in the email action
+
+### Changed
+
+- Removed foreign key references from exported rule data
+- Adjusted verbage for exporting rules from 'Export ...' to 'Download ...'
+- Removed the download option from the dashboard bundle panel
+
+### Fixed
+
+- Corrected active record class map generation output
+ 
+= 1.0.2 =
+
+### Added
+
+- Improvements to user interface
+- Menu item for custom logs to manage fields
+- Menu item for custom logs to flush entries
+- Started tracking the rules_apps table for future use
+- Added an extension to the ActiveRecord class to add the class to the rules map `addToRulesMap()`
+
+### Fixed
+
+- Fixed broken uninstall routine
+- Fixed various php notices
+- Fixed database errors caused by non-present tables on initial install
+
+### Changed
+
+- Removed unused dependency tracking code
+- Removed search box from rules controller
  
 = 1.0.1 =
 
