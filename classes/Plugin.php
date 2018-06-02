@@ -269,7 +269,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		foreach( Bundle::loadWhere( array( 'bundle_add_menu=1 AND bundle_enabled=1 AND bundle_app_id=0' ) ) as $bundle ) {
 			if ( $bundle->hasSettings() ) {
 				$menu_name = $bundle->data['menu_title'] ?: $bundle->title;
-				$page_hook = add_options_page( $bundle->title, $menu_name, 'manage_options', 'bundle-settings-' . $bundle->id(), $callback );
+				$page_hook = add_options_page( $bundle->title, $menu_name, 'manage_options', 'rules-bundle-settings-' . $bundle->id(), $callback );
 				add_action( 'load-' . $page_hook, function() use ( $bundle, &$output ) {
 					$form = $bundle->getForm( 'settings' );
 					if ( $form->isValidSubmission() ) {
