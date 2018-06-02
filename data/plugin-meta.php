@@ -11,7 +11,7 @@ return <<<'JSON'
     "slug": "mwp-rules",
     "vendor": "Code Farma",
     "namespace": "MWP\\Rules",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "tables": [
         "rules_rules",
         "rules_conditions",
@@ -23,6 +23,7 @@ return <<<'JSON'
         "rules_bundles",
         "rules_scheduled_actions",
         "rules_custom_logs"
-    ]
+    ],
+    "ms_tables": []
 }
 JSON;

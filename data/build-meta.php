@@ -1,7 +1,7 @@
 <?php
 return <<<'JSON'
 {
-    "framework_version": "2.0.6",
+    "framework_version": "2.0.7",
     "framework_bundled": true,
     "tables": [
         {
@@ -1503,7 +1503,7 @@ return <<<'JSON'
                     "collation": "utf8mb4_unicode_ci",
                     "decimals": null,
                     "default": "",
-                    "length": 255,
+                    "length": 1028,
                     "name": "bundle_title",
                     "type": "VARCHAR",
                     "unsigned": false,
@@ -1531,7 +1531,7 @@ return <<<'JSON'
                     "default": "1",
                     "length": 1,
                     "name": "bundle_enabled",
-                    "type": "INT",
+                    "type": "TINYINT",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
@@ -1542,10 +1542,10 @@ return <<<'JSON'
                     "binary": false,
                     "collation": "utf8mb4_unicode_ci",
                     "decimals": null,
-                    "default": "",
-                    "length": 1028,
+                    "default": null,
+                    "length": 0,
                     "name": "bundle_description",
-                    "type": "VARCHAR",
+                    "type": "TEXT",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
@@ -1571,7 +1571,34 @@ return <<<'JSON'
                     "default": "0",
                     "length": 20,
                     "name": "bundle_app_id",
-                    "type": "INT",
+                    "type": "BIGINT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "bundle_add_menu": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 1,
+                    "name": "bundle_add_menu",
+                    "type": "TINYINT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "bundle_data": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 0,
+                    "name": "bundle_data",
+                    "type": "TEXT",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
