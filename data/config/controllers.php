@@ -71,43 +71,6 @@ return [
 			'menu' => __( 'Custom Events', 'mwp-rules' ), 
 			'parent' => 'mwp-rules',
 		],
-		'tableConfig' => [
-			'bulkActions' => array(
-				'delete' => __( 'Delete Events', 'mwp-rules' ),
-				'export' => __( 'Export Events', 'mwp-rules' ),
-			),
-			'columns' => [
-				'hook_hook' => __( 'Hook', 'mwp-rules' ),
-				'hook_title' => __( 'Event', 'mwp-rules' ),
-				'hook_description' => __( 'Description', 'mwp-rules' ),
-				'arguments' => __( 'Arguments', 'mwp-rules' ),
-				//'hook_type' => __( 'Type', 'mwp-rules' ),
-			],
-			'handlers' => [
-				'hook_hook' => function( $row ) {
-					switch( $row['hook_type'] ) {
-						case 'action':
-							$output .= '<code class="mwp-bootstrap"><span class="text-success">' . $row['hook_type'] . ':</span></code>';
-							break;
-						case 'filter':
-							$output .= '<code class="mwp-bootstrap"><span class="text-warning">' . $row['hook_type'] . ':</span></code>';
-							break;
-						case 'custom':
-							$output .= '<code class="mwp-bootstrap"><span class="text-primary">action:</span></code>';
-							break;
-						default:
-							$output .= '<code class="mwp-bootstrap"><span>' . $row['hook_type'] . ':</span></code>';
-					}
-					
-					return $output . '<code>' . $row['hook_hook'] . '</code>';
-				},
-				'arguments' => function( $row ) {
-					$hook = Rules\Hook::load( $row['hook_id'] );
-					$args = array_map( function( $arg ) { return '$' . $arg->varname; }, $hook->getArguments() );
-					return ! empty( $args ) ? '<span class="mwp-bootstrap"><code>' . implode( ', ', $args ) . '</code></span>' : 'No arguments.';
-				}
-			],
-		],
 	],
 	
 	/* Rules Logs */

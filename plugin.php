@@ -69,6 +69,7 @@ add_action( 'mwp_framework_init', function()
 	Action          ::setControllerClass( Controllers\ActionsController::class );
 	Condition       ::setControllerClass( Controllers\ConditionsController::class );
 	RuleLog         ::setControllerClass( Controllers\LogsController::class );
+	Hook            ::setControllerClass( Controllers\HooksController::class );
 	ScheduledAction ::setControllerClass( Controllers\ScheduleController::class );
 	Argument        ::setControllerClass( Controllers\ArgumentsController::class );
 	CustomLog       ::setControllerClass( Controllers\CustomLogsController::class );
