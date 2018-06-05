@@ -261,7 +261,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	 * 
 	 * @return void
 	 */
-	public function wpInit()
+	public function addSettingsMenus()
 	{
 		$output = '';
 		$callback = function() use ( &$output ) { echo $output; };
@@ -285,7 +285,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$form = $bundle->getForm( 'settings' );
 					}
 					
-					$output .= $form->render();
+					$output .= '<div style="max-width: 1100px; margin: 50px auto;">' . $form->render() . '</div>';
 				});
 			}
 		}
