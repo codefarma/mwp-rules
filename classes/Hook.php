@@ -44,6 +44,7 @@ class _Hook extends ExportableRecord
 		'api_methods',
 		'type',
 		'hook',
+		'category',
 		'imported',
     );
 
@@ -219,8 +220,9 @@ class _Hook extends ExportableRecord
 	public function getEventDefinition()
 	{
 		$definition = array(
-			'title' => $this->title,
+			'title' => $this->title . ' (Custom Event)',
 			'description' => $this->description,
+			'group' => $this->category ?: 'Uncategorized',
 		);
 		
 		foreach( $this->getArguments() as $argument ) {
@@ -240,9 +242,9 @@ class _Hook extends ExportableRecord
 	public function getActionDefinition()
 	{
 		$definition = array(
-			'title' => $this->title,
+			'title' => $this->title . ' (Custom Action)',
 			'description' => $this->description,
-			'group' => 'Custom',
+			'group' => $this->category ?: 'Custom',
 			'callback' => array( static::class, 'callback_' . $this->id() ),
 		);
 		
@@ -346,6 +348,13 @@ class _Hook extends ExportableRecord
 			'required' => false,
 		), 'hook_details' );
 		
+		$form->addField( 'category', 'text', array(
+			'label' => __( 'Category', 'mwp-rules' ),
+			'description' => __( 'A category name used to categorize this event in the event selection widget displayed when starting new rules.', 'mwp-rules' ),
+			'data' => $this->category,
+			'required' => false,
+		), 'hook_details' );
+		
 		if ( $this->id() ) {
 			$form->addTab( 'arguments', array(
 				'title' => __( 'Arguments', 'mwp-rules' ),
@@ -429,13 +438,16 @@ class _Hook extends ExportableRecord
 	 */
 	public static function import( $data )
 	{
-		$uuid_col = static::$prefix . 'uuid';
+		$uuid_col = static::_getPrefix() . 'uuid';
 		$results = [];
 		
 		if ( isset( $data['data'] ) ) 
 		{
 			$_existing = ( isset( $data['data'][ $uuid_col ] ) and $data['data'][ $uuid_col ] ) ? static::loadWhere( array( $uuid_col . '=%s', $data['data'][ $uuid_col ] ) ) : [];
 			$hook = count( $_existing ) ? array_shift( $_existing ) : new static;
+			
+			/* Remove duplicates of the same event */
+			static::deleteWhere( array( 'hook_hook=%s AND hook_type=%s AND hook_uuid<>%s', $data['data']['hook_hook'], $data['data']['hook_type'], $data['data']['hook_uuid'] ) );
 			
 			/* Set column values */
 			foreach( $data['data'] as $col => $value ) {
