@@ -1,7 +1,7 @@
 <?php
 return <<<'JSON'
 {
-    "framework_version": "2.0.7",
+    "framework_version": "2.0.7.1",
     "framework_bundled": true,
     "tables": [
         {
@@ -1057,6 +1057,20 @@ return <<<'JSON'
                     "default": "",
                     "length": 1028,
                     "name": "hook_hook",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "hook_category": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 255,
+                    "name": "hook_category",
                     "type": "VARCHAR",
                     "unsigned": false,
                     "values": [],
