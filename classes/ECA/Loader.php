@@ -58,8 +58,7 @@ class _Loader
 			$this->instance = call_user_func( $this->instance );
 		}
 		
-		if ( is_array( $this->instance ) ) 
-		{
+		if ( is_array( $this->instance ) ) {
 			$class = $this->class;
 			$this->instance = new $class( array_merge( $this->extras, $this->instance ) );
 		}

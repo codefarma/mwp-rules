@@ -157,7 +157,19 @@ class _Plugin extends \MWP\Framework\Plugin
 	 * @return	void
 	 */
 	public function whenPluginsLoaded()
-	{	
+	{
+		$stored_packages = $this->getECAPackageDetails();
+		
+		/* Include ECA expansion packs */
+		$expansion_dir = $this->getPath() . '/expansions';
+		if ( is_dir( $expansion_dir ) ) {
+			foreach( glob( $expansion_dir . '/*', GLOB_ONLYDIR ) as $expansion_path ) {
+				if ( file_exists( $expansion_path . '/init.php' ) ) {
+					include_once $expansion_path . '/init.php';
+				}
+			}
+		}
+		
 		/* Allow plugins to register their own ECA's */
 		do_action( 'rules_register_ecas' );
 		
@@ -190,6 +202,10 @@ class _Plugin extends \MWP\Framework\Plugin
 					$this->defineAction( $hook, $definition );
 				}
 			}
+		}
+		
+		if ( $stored_packages !== $this->package_details ) {
+			$this->setECAPackageDetails( $this->package_details );
 		}
 		
 		/* Connect all enabled first level rules to their hooks */
@@ -374,19 +390,281 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
+	 * ECA Package Details
+	 *
+	 * @var array
+	 */
+	protected $package_details;
+	
+	/**
+	 * Get ECA package details
+	 *
+	 * @return	array
+	 */
+	public function getECAPackageDetails()
+	{
+		if ( isset( $this->package_details ) ) {
+			return $this->package_details;
+		}
+		
+		$this->package_details = $this->getCache( 'package_details' ) ?: array();
+		
+		return $this->package_details;
+	}
+	
+	/**
+	 * Set ECA package details
+	 *
+	 * @return	void
+	 */
+	public function setECAPackageDetails( $package_details )
+	{
+		$this->package_details = $package_details;
+		$this->setCache( 'package_details', $package_details, FALSE, 2592000 );
+	}
+	
+	/**
+	 * @var	array
+	 */
+	protected $plugin_list;
+	
+	/**
+	 * Get a list of all active plugins 
+	 * 
+	 * @return	array
+	 */
+	public function getPluginList()
+	{
+		if ( isset( $this->plugin_list ) ) {
+			return $this->plugin_list;
+		}
+		
+		$active_plugins = get_option('active_plugins');
+		$this->plugin_list = array_combine( array_map( function($p) { return explode('/',$p)[0]; }, $active_plugins ), $active_plugins );
+		
+		return $this->plugin_list;
+	}
+	
+	/**
+	 * Get the plugin file for a given plugin slug
+	 * 
+	 * @param	string			$slug				The plugin directory slug
+	 * @return	string|NULL
+	 */
+	public function getPluginFile( $slug )
+	{
+		$plugin_list = $this->getPluginList();
+		
+		if ( isset( $plugin_list[ $slug ] ) ) {
+			return $plugin_list[ $slug ];
+		}
+		
+		return null;
+	}
+	
+	/**
+	 *
+	 */
+	protected $themes = array();
+	
+	/**
+	 * Get a theme by its slug
+	 * 
+	 * @param	string			$theme_slug				The theme directory slug
+	 * @return	WP_Theme|bool
+	 */
+	public function getTheme( $theme_slug )
+	{
+		if ( isset( $this->themes[ $theme_slug ] ) ) {
+			return $this->themes[ $theme_slug ];
+		}
+		
+		$theme = wp_get_theme( $theme_slug );
+		if ( $theme->exists() ) {
+			$this->themes[ $theme_slug ] = $theme;
+		} else {
+			$this->themes[ $theme_slug ] = false;
+		}
+		
+		return $this->themes[ $theme_slug ];
+	}
+	
+	/**
+	 * @var array
+	 */
+	protected $resource_dirs;
+	
+	/**
+	 * Get directories of resources that can contain ECA's
+	 * 
+	 * @return	array
+	 */
+	public function getResourceDirs()
+	{
+		if ( isset( $this->resource_dirs ) ) {
+			return $this->resource_dirs;
+		}
+		
+		$this->resource_dirs = array(
+			'plugin_dir' => wp_normalize_path( WP_PLUGIN_DIR ),
+			'theme_dir' => wp_normalize_path( get_theme_root() ),
+			'expansion_dir' => wp_normalize_path( $this->getPath() . '/expansions' ),
+		);
+		
+		return $this->resource_dirs;
+	}
+	
+	/**
+	 * @var array
+	 */
+	protected $plugin_data = array();
+	
+	/**
+	 * Get plugin data
+	 *
+	 * @param	string		$plugin_file		The plugin file
+	 * @return	array
+	 */
+	public function getPluginData( $plugin_file )
+	{
+		if ( isset( $this->plugin_data[ $plugin_file ] ) ) {
+			return $this->plugin_data[ $plugin_file ];
+		}
+		
+		$this->plugin_data[ $plugin_file ] = get_plugin_data( $plugin_file );
+		
+		return $this->plugin_data[ $plugin_file ];
+	}
+	
+	/**
+	 * @var array
+	 */
+	protected $file_data = array();
+	
+	/**
+	 * Get file data
+	 *
+	 * @param	string		$file				The full file path
+	 * @return	array
+	 */
+	public function getFileData( $file, $default_headers )
+	{
+		if ( isset( $this->file_data[ $file ] ) ) {
+			return $this->file_data[ $file ];
+		}
+		
+		$this->file_data[ $file ] = get_file_data( $file, $default_headers );
+		
+		return $this->file_data[ $file ];
+	}
+	
+	/**
+	 * Get the details of the code registering an ECA
+	 *
+	 * @param	int			$stack_depth			The depth to start slicing off the backtrace to get to the function caller
+	 * @return	array
+	 */
+	public function getCallerDetails( $stack_depth=0 )
+	{
+		do {
+			$caller = array_slice( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ), $stack_depth, 1 )[0];
+		} 
+		while( 
+			substr( $caller['file'], -13 ) === "eval()'d code" && 
+			$stack_depth = $stack_depth + substr_count( $caller['file'], "eval()'d code" ) + substr_count( $caller['file'], "rules.core.functions.php" )
+		);
+		
+		$file = wp_normalize_path( $caller['file'] );	
+		list( $plugin_dir, $theme_dir, $expansion_dir ) = array_values( $this->getResourceDirs() );
+		
+		/* Is the resource in the expansions path */
+		if ( substr( $file, 0, strlen( $expansion_dir ) ) == $expansion_dir ) 
+		{
+			$relative_file = trim( substr( $file, strlen( $expansion_dir ) ), '/' );
+			$expansion_slug = substr( $relative_file, 0, strpos( $relative_file, '/' ) );
+			
+			if ( is_file( $expansion_dir . '/' . $expansion_slug . '/init.php' ) ) {
+				$expansion_data = $this->getFileData( $expansion_dir . '/' . $expansion_slug . '/init.php', [ 'Name' => 'Name', 'Url' => 'Url', 'Version' => 'Version' ] );
+				
+				return array(
+					'package' => [
+						'type'     => 'expansion',
+						'slug'     => $expansion_slug,
+						'title'    => $expansion_data['Name'] ?: ucwords( str_replace( '_', ' ', $expansion_slug ) ),
+						'url'      => $expansion_data['Url'] ?: null,
+						'version'  => $expansion_data['Version'] ?: null,
+					],
+				);
+			}
+		}
+		
+		/* Is the resource in the plugin path */
+		else if ( substr( $file, 0, strlen( $plugin_dir ) ) == $plugin_dir ) 
+		{
+			$relative_file = trim( substr( $file, strlen( $plugin_dir ) ), '/' );
+			$plugin_slug = substr( $relative_file, 0, strpos( $relative_file, '/' ) );
+
+			if ( $plugin_file = $this->getPluginFile( $plugin_slug ) ) {
+				if ( is_file( $plugin_dir . '/' . $plugin_file ) ) {
+					$plugin_data = $this->getPluginData( $plugin_dir . '/' . $plugin_file, false, false );
+					
+					return array(
+						'package' => [
+							'type'     => 'plugin',
+							'slug'     => $plugin_slug,
+							'title'    => $plugin_data['Name'],
+							'url'      => $plugin_data['PluginURI'] ?: null,
+							'version'  => $plugin_data['Version'] ?: null,
+						],
+					);
+				}
+			}
+		}
+		
+		/* Is the resource in the theme path */
+		else if ( substr( $file, 0, strlen( $theme_dir ) ) == $theme_dir ) 
+		{
+			$relative_file = trim( substr( $file, strlen( $theme_dir ) ), '/' );
+			$theme_slug = substr( $relative_file, 0, strpos( $relative_file, '/' ) );
+
+			if ( $theme = $this->getTheme( $theme_slug ) ) {					
+				return array(
+					'package' => [
+						'type'     => 'theme',
+						'slug'     => $theme_slug,
+						'parent'   => $theme->get( 'Template' ),
+						'title'    => $theme->get( 'Name' ),
+						'url'      => $theme->get( 'ThemeURI' ),
+						'version'  => $theme->get( 'Version' ),
+					],
+				);
+			}
+		}
+		
+		return array();
+	}
+	
+	/**
 	 * Describe an event that rules can be created for
 	 *
 	 * @param	string					$type				The event type (action, filter)
 	 * @param	string					$hook_name			The event hook name
 	 * @param	array|object|closure	$definition			The event definition
+	 * @param	int						$stack_depth		(internal) Used to track how many calls back to trace the original caller
 	 * @return	void
 	 */
-	public function describeEvent( $type, $hook_name, $definition=array() )
+	public function describeEvent( $type, $hook_name, $definition=array(), $stack_depth=1 )
 	{
-		$this->events[ $type ][ $hook_name ] = new Loader( 'MWP\Rules\ECA\Event', $definition, array( 
+		if ( ! isset( $this->package_details['events'][ $type ][ $hook_name ] ) ) {
+			$this->package_details['events'][ $type ][ $hook_name ] = $this->getCallerDetails( $stack_depth );
+		}
+		
+		$package_info = $this->package_details['events'][ $type ][ $hook_name ];
+		
+		$this->events[ $type ][ $hook_name ] = new Loader( 'MWP\Rules\ECA\Event', $definition, array_merge( $package_info, array( 
 			'type' => $type,
 			'hook' => $hook_name,
-		));
+		)));
 	}
 	
 	/**
@@ -394,13 +672,20 @@ class _Plugin extends \MWP\Framework\Plugin
 	 *
 	 * @param	string			$condition_key		The condition key
 	 * @param	mixed			$definition			The condition definition
+	 * @param	int				$stack_depth		(internal) Used to track how many calls back to trace the original caller
 	 * @return	void
 	 */
-	public function registerCondition( $condition_key, $definition )
+	public function registerCondition( $condition_key, $definition, $stack_depth=1 )
 	{
-		$this->conditions[ $condition_key ] = new Loader( 'MWP\Rules\ECA\Condition', $definition, array(
+		if ( ! isset( $this->package_details['conditions'][ $condition_key ] ) ) {
+			$this->package_details['conditions'][ $condition_key ] = $this->getCallerDetails( $stack_depth );
+		}
+		
+		$package_info = $this->package_details['conditions'][ $condition_key ];
+		
+		$this->conditions[ $condition_key ] = new Loader( 'MWP\Rules\ECA\Condition', $definition, array_merge( $package_info, array(
 			'key' => $condition_key,
-		));
+		)));
 	}
 	
 	/**
@@ -408,13 +693,20 @@ class _Plugin extends \MWP\Framework\Plugin
 	 *
 	 * @param	string			$action_key			The action key
 	 * @param	mixed			$definition			The action definition
+	 * @param	int				$stack_depth		(internal) Used to track how many calls back to trace the original caller
 	 * @return	void
 	 */
-	public function defineAction( $action_key, $definition )
+	public function defineAction( $action_key, $definition, $stack_depth=1 )
 	{
-		$this->actions[ $action_key ] = new Loader( 'MWP\Rules\ECA\Action', $definition, array(
+		if ( ! isset( $this->package_details['actions'][ $action_key ] ) ) {
+			$this->package_details['actions'][ $action_key ] = $this->getCallerDetails( $stack_depth );
+		}
+		
+		$package_info = $this->package_details['actions'][ $action_key ];
+		
+		$this->actions[ $action_key ] = new Loader( 'MWP\Rules\ECA\Action', $definition, array_merge( $package_info, array(
 			'key' => $action_key,
-		));
+		)));
 	}
 	
 	/**

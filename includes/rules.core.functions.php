@@ -70,17 +70,16 @@ if ( ! function_exists( 'rules_describe_event' ) ) {
 	 * }
 	 * @return void
 	 */
-	function rules_describe_event( $type, $hook, $definition ) {
-		RulesPlugin::instance()->describeEvent( $type, $hook, $definition );
-	}
-	
+	function rules_describe_event( $type, $hook, $definition, $stack_depth=2 ) {
+		RulesPlugin::instance()->describeEvent( $type, $hook, $definition, $stack_depth );
+	}	
 }
 
 if ( ! function_exists( 'rules_describe_events' ) ) {
 
-	function rules_describe_events( $events ) {
+	function rules_describe_events( $events, $stack_depth=3 ) {
 		foreach( $events as $event ) {
-			call_user_func_array( 'rules_describe_event', $event );
+			call_user_func_array( 'rules_describe_event', array_merge( $event, [ $stack_depth ] ) );
 		}
 	}
 	
@@ -193,17 +192,17 @@ if ( ! function_exists( 'rules_register_condition' ) ) {
 	 * }
 	 * @return void
 	 */
-	function rules_register_condition( $key, $definition ) {
-		RulesPlugin::instance()->registerCondition( $key, $definition );
+	function rules_register_condition( $key, $definition, $stack_depth=2 ) {
+		RulesPlugin::instance()->registerCondition( $key, $definition, $stack_depth );
 	}
 	
 }
 
 if ( ! function_exists( 'rules_register_conditions' ) ) {
 
-	function rules_register_conditions( $conditions ) {
+	function rules_register_conditions( $conditions, $stack_depth=3 ) {
 		foreach( $conditions as $condition ) {
-			call_user_func_array( 'rules_register_condition', $condition );
+			call_user_func_array( 'rules_register_condition', array_merge( $condition, [ $stack_depth ] ) );
 		}
 	}
 	
@@ -218,17 +217,17 @@ if ( ! function_exists( 'rules_define_action' ) ) {
 	 * @param  array|callable  (required)   $definition  The action definition (same format as in 'rules_register_condition')
 	 * @return void
 	 */
-	function rules_define_action( $key, $definition ) {
-		RulesPlugin::instance()->defineAction( $key, $definition );
+	function rules_define_action( $key, $definition, $stack_depth=2 ) {
+		RulesPlugin::instance()->defineAction( $key, $definition, $stack_depth );
 	}
 	
 }
 
 if ( ! function_exists( 'rules_define_actions' ) ) {
 
-	function rules_define_actions( $actions ) {
+	function rules_define_actions( $actions, $stack_depth=3 ) {
 		foreach( $actions as $action ) {
-			call_user_func_array( 'rules_define_action', $action );
+			call_user_func_array( 'rules_define_action', array_merge( $action, [ $stack_depth ] ) );
 		}
 	}
 	
