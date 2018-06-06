@@ -66,7 +66,7 @@ abstract class _GenericOperation extends ExportableRecord
 			$operation_definitions = $optype == 'condition' ? $rulesPlugin->getConditions() : $rulesPlugin->getActions();
 			
 			foreach( $operation_definitions as $definition ) {
-				$group = ( isset( $definition->group ) ? $definition->group : ( isset( $definition->package['title'] ) ? __( $definition->package['title'] ) : __( 'Unclassified', 'mwp-rules' ) ) ) . ' ' . ucwords( $optype ) . 's';
+				$group = ( isset( $definition->group ) ? $definition->group : ( isset( $definition->provider['title'] ) ? __( $definition->provider['title'] ) : __( 'Unclassified', 'mwp-rules' ) ) ) . ' ' . ucwords( $optype ) . 's';
 				$operation_choices[ $group ][ $definition->title ] = $definition->key;
 			}
 			
