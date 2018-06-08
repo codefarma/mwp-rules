@@ -65,7 +65,7 @@ class _System
 	 */
 	public function registerECAs()
 	{	
-		rules_describe_events( array(
+		rules_register_events( array(
 			
 			/* Pre setup theme */
 			array( 'action', 'setup_theme', array(

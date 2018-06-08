@@ -29,21 +29,20 @@ class _Action extends GenericOperation
     /**
      * @var    string        Table name
      */
-    public static $table = "rules_actions";
+    protected static $table = "rules_actions";
 
     /**
      * @var    array        Table columns
      */
-    public static $columns = array(
+    protected static $columns = array(
         'id',
 		'uuid',
         'title',
         'weight',
 		'rule_id',
 		'key',
-		'data' => array(
-			'format' => 'JSON'
-		),
+		'data' => [	'format' => 'JSON' ],
+		'provider' => [ 'format' => 'JSON' ],
 		'description',
         'enabled',
 		'schedule_mode',
@@ -60,17 +59,17 @@ class _Action extends GenericOperation
     /**
      * @var    string        Table primary key
      */
-    public static $key = 'id';
+    protected static $key = 'id';
 
     /**
      * @var    string        Table column prefix
      */
-    public static $prefix = 'action_';
+    protected static $prefix = 'action_';
 	
 	/**
 	 * @var	string
 	 */
-	public static $plugin_class = 'MWP\Rules\Plugin';
+	protected static $plugin_class = 'MWP\Rules\Plugin';
 	
 	/**
 	 * @var	string
@@ -85,7 +84,7 @@ class _Action extends GenericOperation
 	/**
 	 * @var	string
 	 */
-	public static $sequence_col = 'weight';
+	protected static $sequence_col = 'weight';
 	
 	/**
 	 * Associated Rule
@@ -353,7 +352,14 @@ class _Action extends GenericOperation
 	{
 		$export = parent::getExportData();
 		
-		unset( $export['rule_id'] );
+		/* Add current provider if available */
+		if ( $definition = $this->definition() ) {
+			if ( $definition->provider ) {
+				$export['data']['action_provider'] = json_encode( $definition->provider );
+			}
+		}
+		
+		unset( $export['data']['action_rule_id'] );
 
 		return $export;
 	}

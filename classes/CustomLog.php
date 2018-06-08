@@ -29,12 +29,12 @@ class _CustomLog extends ExportableRecord
     /**
      * @var    string        Table name
      */
-    public static $table = "rules_custom_logs";
+    protected static $table = "rules_custom_logs";
 
     /**
      * @var    array        Table columns
      */
-    public static $columns = array(
+    protected static $columns = array(
         'id',
 		'uuid',
         'title',
@@ -60,17 +60,22 @@ class _CustomLog extends ExportableRecord
     /**
      * @var    string        Table primary key
      */
-    public static $key = 'id';
+    protected static $key = 'id';
 
     /**
      * @var    string        Table column prefix
      */
-    public static $prefix = 'custom_log_';
+    protected static $prefix = 'custom_log_';
 	
 	/**
 	 * @var	string
 	 */
-	public static $plugin_class = 'MWP\Rules\Plugin';
+	protected static $plugin_class = 'MWP\Rules\Plugin';
+	
+	/**
+	 * @var	string
+	 */
+	protected static $sequence_col = 'weight';
 	
 	/**
 	 * @var	string
@@ -86,11 +91,6 @@ class _CustomLog extends ExportableRecord
 	 * @var	string
 	 */
 	public static $lang_plural = 'Custom Logs';
-	
-	/**
-	 * @var	string
-	 */
-	public static $sequence_col = 'weight';
 	
 	/**
 	 * @var array

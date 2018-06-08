@@ -30,12 +30,12 @@ class _Argument extends ExportableRecord
     /**
      * @var    string        Table name
      */
-    public static $table = "rules_arguments";
+    protected static $table = "rules_arguments";
 
     /**
      * @var    array        Table columns
      */
-    public static $columns = array(
+    protected static $columns = array(
         'id',
 		'uuid',
 		'title',
@@ -55,22 +55,22 @@ class _Argument extends ExportableRecord
     /**
      * @var    string        Table primary key
      */
-    public static $key = 'id';
+    protected static $key = 'id';
 
     /**
      * @var    string        Table column prefix
      */
-    public static $prefix = 'argument_';
+    protected static $prefix = 'argument_';
 
     /**
      * @var bool        Separate table per site?
      */
-    public static $site_specific = FALSE;
+    protected static $site_specific = FALSE;
 
     /**
      * @var string      The class of the managing plugin
      */
-    public static $plugin_class = 'MWP\Rules\Plugin';
+    protected static $plugin_class = 'MWP\Rules\Plugin';
 	
 	public static $lang_singular_bundle = 'Variable';
 	public static $lang_plural_bundle = 'Variables';
@@ -1048,7 +1048,7 @@ class _Argument extends ExportableRecord
 		
 		$export['data']['argument_data'] = json_encode( $argument_data );
 		
-		unset( $export['parent_id'] );
+		unset( $export['data']['argument_parent_id'] );
 		
 		return $export;
 	}

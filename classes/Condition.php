@@ -29,12 +29,12 @@ class _Condition extends GenericOperation
     /**
      * @var    string        Table name
      */
-    public static $table = "rules_conditions";
+    protected static $table = "rules_conditions";
 
     /**
      * @var    array        Table columns
      */
-    public static $columns = array(
+    protected static $columns = array(
         'id',
 		'uuid',
         'title',
@@ -42,9 +42,8 @@ class _Condition extends GenericOperation
 		'parent_id',
 		'rule_id',
 		'key',
-		'data' => array(
-			'format' => 'JSON'
-		),
+		'data' => [	'format' => 'JSON' ],
+		'provider' => [ 'format' => 'JSON' ],
         'enabled',
 		'group_compare',
 		'not',
@@ -54,17 +53,27 @@ class _Condition extends GenericOperation
     /**
      * @var    string        Table primary key
      */
-    public static $key = 'id';
+    protected static $key = 'id';
 
     /**
      * @var    string        Table column prefix
      */
-    public static $prefix = 'condition_';
+    protected static $prefix = 'condition_';
 	
 	/**
 	 * @var	string
 	 */
-	public static $plugin_class = 'MWP\Rules\Plugin';
+	protected static $plugin_class = 'MWP\Rules\Plugin';
+	
+	/**
+	 * @var	string
+	 */
+	protected static $sequence_col = 'weight';
+	
+	/**
+	 * @var	string
+	 */
+	protected static $parent_col = 'parent_id';
 	
 	/**
 	 * @var	string
@@ -76,16 +85,6 @@ class _Condition extends GenericOperation
 	 */
 	public static $lang_plural = 'Conditions';
 	
-	/**
-	 * @var	string
-	 */
-	public static $sequence_col = 'weight';
-	
-	/**
-	 * @var	string
-	 */
-	public static $parent_col = 'parent_id';
-	 
 	/**
 	 * Associated Rule
 	 */
@@ -394,8 +393,15 @@ class _Condition extends GenericOperation
 		$export = parent::getExportData();
 		$export['children'] = array_map( function( $subrule ) { return $subrule->getExportData(); }, $this->getChildren() );
 		
-		unset( $export['parent_id'] );
-		unset( $export['rule_id'] );
+		/* Add current provider if available */
+		if ( $definition = $this->definition() ) {
+			if ( $definition->provider ) {
+				$export['data']['condition_provider'] = json_encode( $definition->provider );
+			}
+		}
+		
+		unset( $export['data']['condition_parent_id'] );
+		unset( $export['data']['condition_rule_id'] );
 		
 		return $export;
 	}

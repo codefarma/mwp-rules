@@ -69,7 +69,7 @@ class _Users
 		
 		$user_lang = 'User';
 		
-		rules_define_actions( array(
+		rules_register_actions( array(
 		
 			/* Create A User 
 			array( 'rules_create_user', array(

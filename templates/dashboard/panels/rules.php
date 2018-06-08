@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use MWP\Rules;
 
 $plugin = Rules\Plugin::instance();
-$rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0');
+$rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0 AND rule_custom_internal=0');
 
 ?>
 

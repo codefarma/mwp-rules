@@ -29,12 +29,12 @@ class _Log extends ActiveRecord
     /**
      * @var    string        Table name
      */
-    public static $table = "rules_logs";
+    protected static $table = "rules_logs";
 
     /**
      * @var    array        Table columns
      */
-    public static $columns = array(
+    protected static $columns = array(
         'id',
         'event_type',
         'event_hook',
@@ -53,17 +53,17 @@ class _Log extends ActiveRecord
     /**
      * @var    string        Table primary key
      */
-    public static $key = 'id';
+    protected static $key = 'id';
 
     /**
      * @var    string        Table column prefix
      */
-    public static $prefix = '';
+    protected static $prefix = '';
 	
 	/**
 	 * @var	string
 	 */
-	public static $plugin_class = 'MWP\Rules\Plugin';
+	protected static $plugin_class = 'MWP\Rules\Plugin';
 	
 	/**
 	 * @var	string

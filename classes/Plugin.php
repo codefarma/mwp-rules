@@ -158,7 +158,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function whenPluginsLoaded()
 	{
-		$stored_provider_details = $this->getECAProviderDetails();
+		$stored_providers = $this->getECAProviders();
 		
 		/* Include ECA expansion packs */
 		$expansion_dir = $this->getPath() . '/expansions';
@@ -204,8 +204,8 @@ class _Plugin extends \MWP\Framework\Plugin
 			}
 		}
 		
-		if ( $stored_provider_details !== $this->provider_details ) {
-			$this->setECAProviderDetails( $this->provider_details );
+		if ( $stored_providers !== $this->providers ) {
+			$this->setECAProviders( $this->providers );
 		}
 		
 		/* Connect all enabled first level rules to their hooks */
@@ -394,22 +394,22 @@ class _Plugin extends \MWP\Framework\Plugin
 	 *
 	 * @var array
 	 */
-	protected $provider_details;
+	protected $providers;
 	
 	/**
 	 * Get ECA provider details
 	 *
 	 * @return	array
 	 */
-	public function getECAProviderDetails()
+	public function getECAProviders()
 	{
-		if ( isset( $this->provider_details ) ) {
-			return $this->provider_details;
+		if ( isset( $this->providers ) ) {
+			return $this->providers;
 		}
 		
-		$this->provider_details = $this->getCache( 'provider_details' ) ?: array();
+		$this->providers = $this->getCache( 'providers' ) ?: array();
 		
-		return $this->provider_details;
+		return $this->providers;
 	}
 	
 	/**
@@ -417,10 +417,10 @@ class _Plugin extends \MWP\Framework\Plugin
 	 *
 	 * @return	void
 	 */
-	public function setECAProviderDetails( $provider_details )
+	public function setECAProviders( $providers )
 	{
-		$this->provider_details = $provider_details;
-		$this->setCache( 'provider_details', $provider_details, FALSE, 2592000 );
+		$this->providers = $providers;
+		$this->setCache( 'providers', $providers, FALSE, Framework::instance()->isDev() ? MINUTE_IN_SECONDS : MONTH_IN_SECONDS );
 	}
 	
 	/**
@@ -463,7 +463,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
-	 *
+	 * @var	array
 	 */
 	protected $themes = array();
 	
@@ -655,11 +655,14 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function describeEvent( $type, $hook_name, $definition=array(), $stack_depth=1 )
 	{
-		if ( ! isset( $this->provider_details['events'][ $type ][ $hook_name ] ) ) {
-			$this->provider_details['events'][ $type ][ $hook_name ] = $this->getCallerDetails( $stack_depth );
+		if ( ! isset( $this->providers['events'][ $type ][ $hook_name ] ) ) {
+			$provider = $this->getCallerDetails( $stack_depth );
+			$provider_hash = md5( json_encode( $provider ) );
+			$this->providers['events'][ $type ][ $hook_name ] = $provider_hash;
+			$this->providers['refs'][ $provider_hash ] = $provider;
 		}
 		
-		$provider_info = $this->provider_details['events'][ $type ][ $hook_name ];
+		$provider_info = @$this->providers['refs'][ $this->providers['events'][ $type ][ $hook_name ] ] ?: array();
 		
 		$this->events[ $type ][ $hook_name ] = new Loader( 'MWP\Rules\ECA\Event', $definition, array_merge( $provider_info, array( 
 			'type' => $type,
@@ -677,11 +680,14 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function registerCondition( $condition_key, $definition, $stack_depth=1 )
 	{
-		if ( ! isset( $this->provider_details['conditions'][ $condition_key ] ) ) {
-			$this->provider_details['conditions'][ $condition_key ] = $this->getCallerDetails( $stack_depth );
+		if ( ! isset( $this->providers['conditions'][ $condition_key ] ) ) {
+			$provider = $this->getCallerDetails( $stack_depth );
+			$provider_hash = md5( json_encode( $provider ) );
+			$this->providers['conditions'][ $condition_key ] = $provider_hash;
+			$this->providers['refs'][ $provider_hash ] = $provider;
 		}
 		
-		$provider_info = $this->provider_details['conditions'][ $condition_key ];
+		$provider_info = @$this->providers['refs'][ $this->providers['conditions'][ $condition_key ] ] ?: array();
 		
 		$this->conditions[ $condition_key ] = new Loader( 'MWP\Rules\ECA\Condition', $definition, array_merge( $provider_info, array(
 			'key' => $condition_key,
@@ -698,11 +704,14 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function defineAction( $action_key, $definition, $stack_depth=1 )
 	{
-		if ( ! isset( $this->provider_details['actions'][ $action_key ] ) ) {
-			$this->provider_details['actions'][ $action_key ] = $this->getCallerDetails( $stack_depth );
+		if ( ! isset( $this->providers['actions'][ $action_key ] ) ) {
+			$provider = $this->getCallerDetails( $stack_depth );
+			$provider_hash = md5( json_encode( $provider ) );
+			$this->providers['actions'][ $action_key ] = $provider_hash;
+			$this->providers['refs'][ $provider_hash ] = $provider;
 		}
 		
-		$provider_info = $this->provider_details['actions'][ $action_key ];
+		$provider_info = @$this->providers['refs'][ $this->providers['actions'][ $action_key ] ] ?: array();
 		
 		$this->actions[ $action_key ] = new Loader( 'MWP\Rules\ECA\Action', $definition, array_merge( $provider_info, array(
 			'key' => $action_key,

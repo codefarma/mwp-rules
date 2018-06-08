@@ -30,12 +30,12 @@ class _Bundle extends ExportableRecord
     /**
      * @var    string        Table name
      */
-    public static $table = "rules_bundles";
+    protected static $table = "rules_bundles";
 
     /**
      * @var    array        Table columns
      */
-    public static $columns = array(
+    protected static $columns = array(
         'id',
 		'uuid' => [ 'type' => 'varchar', 'length' => 25 ],
 		'title' => [ 'type' => 'varchar', 'length' => 1028, 'allow_null' => false ],
@@ -51,22 +51,22 @@ class _Bundle extends ExportableRecord
     /**
      * @var    string        Table primary key
      */
-    public static $key = 'id';
+    protected static $key = 'id';
 
     /**
      * @var    string        Table column prefix
      */
-    public static $prefix = 'bundle_';
+    protected static $prefix = 'bundle_';
 
     /**
      * @var bool        Separate table per site?
      */
-    public static $site_specific = FALSE;
+    protected static $site_specific = FALSE;
 
     /**
      * @var string      The class of the managing plugin
      */
-    public static $plugin_class = 'MWP\Rules\Plugin';
+    protected static $plugin_class = 'MWP\Rules\Plugin';
 	
 	/**
 	 * @var	string
@@ -546,7 +546,7 @@ class _Bundle extends ExportableRecord
 		$export['arguments'] = array_map( function( $argument ) { return $argument->getExportData(); }, $this->getArguments() );
 		$export['rules'] = array_map( function( $rule ) { return $rule->getExportData(); }, $this->getRules() );
 		
-		unset( $export['app_id'] );
+		unset( $export['data']['bundle_app_id'] );
 		
 		return $export;
 	}

@@ -59,12 +59,12 @@ class _DashboardController extends AdminController
 	{
 		$form = $this->plugin->createForm( 'rules_package_import' );
 		
-		$form->addHeading( 'package_heading', 'Import Packaged Automations' );
+		$form->addHeading( 'package_heading', 'Install Packaged Automations' );
 		
 		$form->addField( 'package', 'file', array(
 			'row_attr' => [ 'style' => 'margin: 45px 0' ],
-			'label' => __( 'Package File', 'mwp-rules' ),
-			'description' => __( 'Select the file to upload.', 'mwp-rules' ),
+			'label' => __( 'Automations File', 'mwp-rules' ),
+			'description' => __( 'Select the automations file to install.', 'mwp-rules' ),
 			'required' => true,
 		));
 		

@@ -37,12 +37,6 @@ class _HooksController extends ExportableController
 					'delete' => __( 'Delete Events', 'mwp-rules' ),
 					'export' => __( 'Download Events', 'mwp-rules' ),
 				),
-				'columns' => [
-					'hook_hook' => __( 'Hook', 'mwp-rules' ),
-					'hook_title' => __( 'Event', 'mwp-rules' ),
-					'hook_description' => __( 'Description', 'mwp-rules' ),
-					'arguments' => __( 'Arguments', 'mwp-rules' ),
-				],
 				'handlers' => [
 					'hook_hook' => function( $row ) {
 						switch( $row['hook_type'] ) {
@@ -64,7 +58,7 @@ class _HooksController extends ExportableController
 					'arguments' => function( $row ) {
 						$hook = Hook::load( $row['hook_id'] );
 						$args = array_map( function( $arg ) { return '$' . $arg->varname; }, $hook->getArguments() );
-						return ! empty( $args ) ? '<span class="mwp-bootstrap"><code>' . implode( ', ', $args ) . '</code></span>' : 'No arguments.';
+						return ! empty( $args ) ? '<span class="mwp-bootstrap"><code>' . implode( '</code>, <code>', $args ) . '</code></span>' : 'No arguments.';
 					}
 				],
 			],
@@ -82,10 +76,6 @@ class _HooksController extends ExportableController
 		$table = parent::createDisplayTable( $override_options );
 		$table->removeTableClass( 'fixed' );
 
-		if ( $this->options['type'] == 'custom' ) {
-			unset( $table->columns['hook_hook'] );
-		}
-		
 		return $table;
 	}
 	

@@ -30,12 +30,12 @@ class _Hook extends ExportableRecord
     /**
      * @var    string        Table name
      */
-    public static $table = "rules_hooks";
+    protected static $table = "rules_hooks";
 
     /**
      * @var    array        Table columns
      */
-    public static $columns = array(
+    protected static $columns = array(
         'id',
 		'uuid',
 		'title',
@@ -52,22 +52,22 @@ class _Hook extends ExportableRecord
     /**
      * @var    string        Table primary key
      */
-    public static $key = 'id';
+    protected static $key = 'id';
 
     /**
      * @var    string        Table column prefix
      */
-    public static $prefix = 'hook_';
+    protected static $prefix = 'hook_';
 
     /**
      * @var bool        Separate table per site?
      */
-    public static $site_specific = FALSE;
+    protected static $site_specific = FALSE;
 
     /**
      * @var string      The class of the managing plugin
      */
-    public static $plugin_class = 'MWP\Rules\Plugin';
+    protected static $plugin_class = 'MWP\Rules\Plugin';
 	
 	/**
 	 * @var	string

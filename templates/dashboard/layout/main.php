@@ -27,7 +27,7 @@ $rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0');
 <div class="row">
 	<div class="col-xs-12 text-right">
 		<a href="<?php echo $plugin->getRulesController()->getUrl(['do'=>'new']) ?>" class="btn btn-primary pull-left"><i class="glyphicon glyphicon-log-in" style="margin-right: 5px"></i> <?php _e( 'Start A New Rule', 'mwp-rules' ) ?></a>
-		<a href="<?php echo $controller->getUrl([ 'do' => 'import_package' ]) ?>" class="btn btn-default"><span class="text-primary"><i class="glyphicon glyphicon-cloud-upload" style="margin-right: 5px"></i> <?php _e( 'Import Automations', 'mwp-rules' ) ?></span></a>
+		<a href="<?php echo $controller->getUrl([ 'do' => 'import_package' ]) ?>" class="btn btn-default"><span class="text-primary"><i class="glyphicon glyphicon-cloud-upload" style="margin-right: 5px"></i> <?php _e( 'Install Automations', 'mwp-rules' ) ?></span></a>
 	</div>
 </div>
 

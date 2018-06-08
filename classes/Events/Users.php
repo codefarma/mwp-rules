@@ -65,7 +65,7 @@ class _Users
 	 */
 	public function registerECAs()
 	{
-		rules_describe_events( array(
+		rules_register_events( array(
 			
 			/* User Created */
 			array( 'action', 'user_register', array(

@@ -65,7 +65,7 @@ class _Content
 	 */
 	public function registerECAs()
 	{
-		rules_describe_events( array(
+		rules_register_events( array(
 			
 			/* Post Title Filter */
 			array( 'filter', 'the_title', array(

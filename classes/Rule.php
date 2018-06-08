@@ -45,7 +45,8 @@ class _Rule extends ExportableRecord
 		'parent_id',
 		'event_type',
 		'event_hook',
-		'data' => array( 'format' => 'JSON' ),
+		'data' => [ 'format' => 'JSON' ],
+		'event_provider' => [ 'format' => 'JSON' ],
 		'priority',
 		'base_compare',
 		'debug',
@@ -1021,12 +1022,20 @@ class _Rule extends ExportableRecord
 	public function getExportData()
 	{
 		$export = parent::getExportData();
+		
 		$export['children'] = array_map( function( $subrule ) { return $subrule->getExportData(); }, $this->getChildren() );
 		$export['conditions'] = array_map( function( $condition ) { return $condition->getExportData(); }, $this->getConditions() );
 		$export['actions'] = array_map( function( $action ) { return $action->getExportData(); }, $this->getActions() );
 		
-		unset( $export['parent_id'] );
-		unset( $export['bundle_id'] );
+		/* Add current provider if available */
+		if ( $event = $this->event() ) {
+			if ( $event->provider ) {
+				$export['data']['rule_event_provider'] = json_encode( $event->provider );
+			}
+		}
+		
+		unset( $export['data']['rule_parent_id'] );
+		unset( $export['data']['rule_bundle_id'] );
 		
 		return $export;
 	}

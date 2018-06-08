@@ -72,7 +72,7 @@ class _System
 		$special_lang = 'Special';
 		$output_lang = 'Output';
 		
-		rules_define_actions( array(
+		rules_register_actions( array(
 			
 			/* Send an email */
 			array( 'rules_send_email', array( 

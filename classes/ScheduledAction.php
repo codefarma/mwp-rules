@@ -29,17 +29,17 @@ class _ScheduledAction extends ActiveRecord
     /**
      * @var    string        Table name
      */
-    public static $table = "rules_scheduled_actions";
+    protected static $table = "rules_scheduled_actions";
 
 	/**
 	 * @var	string
 	 */
-	public static $plugin_class = 'MWP\Rules\Plugin';
+	protected static $plugin_class = 'MWP\Rules\Plugin';
 	
     /**
      * @var    array        Table columns
      */
-    public static $columns = array(
+    protected static $columns = array(
         'id',
         'time',
 		'data' => array(
@@ -57,12 +57,12 @@ class _ScheduledAction extends ActiveRecord
     /**
      * @var    string        Table primary key
      */
-    public static $key = 'id';
+    protected static $key = 'id';
 
     /**
      * @var    string        Table column prefix
      */
-    public static $prefix = 'schedule_';
+    protected static $prefix = 'schedule_';
 	
 	/**
 	 * @var	string

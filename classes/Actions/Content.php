@@ -149,7 +149,7 @@ class _Content
 		$core_lang = 'Core';
 		$comment_lang = 'Comment';
 		
-		rules_define_actions( array(
+		rules_register_actions( array(
 		
 			/* Register A Post Type */
 			array( 'rules_register_post_type', array( 
