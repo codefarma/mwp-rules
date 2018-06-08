@@ -72,6 +72,11 @@ class _Argument extends ExportableRecord
      */
     protected static $plugin_class = 'MWP\Rules\Plugin';
 	
+	/**
+	 * @var	string
+	 */
+	protected static $sequence_col = 'weight';
+	
 	public static $lang_singular_bundle = 'Variable';
 	public static $lang_plural_bundle = 'Variables';
 	public static $lang_singular_log = 'Field';
@@ -92,10 +97,6 @@ class _Argument extends ExportableRecord
 	 */
 	public static $lang_plural = 'Arguments';
 	
-	/**
-	 * @var	string
-	 */
-	public static $sequence_col = 'weight';
 	
 	/**
 	 * Get map of named parent classes

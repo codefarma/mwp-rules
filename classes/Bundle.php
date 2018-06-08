@@ -71,17 +71,17 @@ class _Bundle extends ExportableRecord
 	/**
 	 * @var	string
 	 */
+	protected static $sequence_col = 'weight';
+	
+	/**
+	 * @var	string
+	 */
 	public static $lang_singular = 'Bundle';
 	
 	/**
 	 * @var	string
 	 */
 	public static $lang_plural = 'Bundles';
-	
-	/**
-	 * @var	string
-	 */
-	public static $sequence_col = 'weight';
 	
 	/**
 	 * Get the 'edit record' page title
