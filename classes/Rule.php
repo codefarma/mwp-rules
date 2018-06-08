@@ -31,12 +31,12 @@ class _Rule extends ExportableRecord
     /**
      * @var    string        Table name
      */
-    public static $table = "rules_rules";
+    protected static $table = "rules_rules";
 
     /**
      * @var    array        Table columns
      */
-    public static $columns = array(
+    protected static $columns = array(
         'id',
 		'uuid',
         'title',
@@ -53,22 +53,33 @@ class _Rule extends ExportableRecord
 		'enable_recursion',
 		'recursion_limit',
 		'imported',
+ 		'custom_internal',
     );
 
     /**
      * @var    string        Table primary key
      */
-    public static $key = 'id';
+    protected static $key = 'id';
 
     /**
      * @var    string        Table column prefix
      */
-    public static $prefix = 'rule_';
+    protected static $prefix = 'rule_';
 	
 	/**
 	 * @var	string
 	 */
-	public static $plugin_class = 'MWP\Rules\Plugin';
+	protected static $plugin_class = 'MWP\Rules\Plugin';
+	
+	/**
+	 * @var	string
+	 */
+	protected static $sequence_col = 'weight';
+	
+	/**
+	 * @var	string
+	 */
+	protected static $parent_col = 'parent_id';
 	
 	/**
 	 * @var	string
@@ -79,16 +90,6 @@ class _Rule extends ExportableRecord
 	 * @var	string
 	 */
 	public static $lang_plural = 'Rules';
-	
-	/**
-	 * @var	string
-	 */
-	public static $sequence_col = 'weight';
-	
-	/**
-	 * @var	string
-	 */
-	public static $parent_col = 'parent_id';
 	
 	/**
 	 * Get the associated bundle
@@ -106,6 +107,40 @@ class _Rule extends ExportableRecord
 			try {
 				return Bundle::load( $rule->bundle_id );
 			} catch( \OutOfRangeException $e ) { }
+		}
+		
+		return NULL;
+	}
+	
+	/**
+	 * @var Hook
+	 */
+	protected $hook;
+	
+	/**
+	 * Get the containing model Bundle/Hook (if applicable)
+	 *
+	 * @return	Bundle|Hook|NULL
+	 */
+	public function getContainer()
+	{
+		if ( $bundle = $this->getBundle() ) {
+			return $bundle;
+		}
+		
+		if ( ! isset( $this->hook ) ) {
+			$rule = $this;
+			while( $rule->parent() ) { $rule = $rule->parent(); }
+		
+			if ( $rule->custom_internal ) {
+				$hooks = Hook::loadWhere([ 'hook_type=%s AND hook_hook=%s', 'custom', $rule->event_hook ]);
+			}
+			
+			$this->hook = isset( $hooks ) && ! empty( $hooks ) ? array_shift( $hooks ) : false;
+		}
+		
+		if ( $this->hook ) {
+			return $this->hook;
 		}
 		
 		return NULL;
@@ -133,7 +168,7 @@ class _Rule extends ExportableRecord
 	 */
 	public function _getController( $key='admin' )
 	{
-		return $this->getPlugin()->getRulesController( $this->getBundle(), $key );
+		return $this->getPlugin()->getRulesController( $this->getContainer(), $key );
 	}
 	
 	/**
@@ -288,7 +323,7 @@ class _Rule extends ExportableRecord
 		/* Step 1: Configure the event for new rules */
 		if ( ! $rule->id() ) 
 		{
-			if ( ! $rule->parent_id ) {
+			if ( ! $rule->parent_id and ! $rule->custom_internal ) {
 				$event_choices = array();
 				
 				foreach( array( 'action', 'filter' ) as $type ) {
@@ -321,7 +356,7 @@ class _Rule extends ExportableRecord
 			));
 			
 			$form->onComplete( function() use ( $rule, $plugin ) {
-				$controller = $plugin->getRulesController( $rule->getBundle() );
+				$controller = $plugin->getRulesController( $rule->getContainer() );
 				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_conditions' ) ) );
 				exit;
 			});
@@ -446,7 +481,7 @@ class _Rule extends ExportableRecord
 			'title' => __( 'Sub-rules', 'mwp-rules' ),
 		));
 		
-		$rulesController = $plugin->getRulesController( $this->getBundle() );
+		$rulesController = $plugin->getRulesController( $this->getContainer() );
 		$rulesTable = $rulesController->createDisplayTable();
 		$rulesTable->bulkActions = array();
 		unset( $rulesTable->columns['rule_event_hook'] );
@@ -493,7 +528,7 @@ class _Rule extends ExportableRecord
 		/* If the rule is a sub-rule, redirect to the parent rules tab after saving */
 		if ( $parent = $rule->parent() ) {
 			$form->onComplete( function() use ( $parent, $plugin ) {
-				$controller = $plugin->getRulesController( $parent->getBundle() );
+				$controller = $plugin->getRulesController( $parent->getContainer() );
 				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $parent->id(), '_tab' => 'rule_subrules' ) ) );
 				exit;
 			});
@@ -975,7 +1010,7 @@ class _Rule extends ExportableRecord
 	 */
 	public function url( $params=array() )
 	{
-		return $this->getPlugin()->getRulesController( $this->getBundle() )->getUrl( array_replace_recursive( array( 'id' => $this->id(), 'do' => 'edit', $params ) ) );
+		return $this->getPlugin()->getRulesController( $this->getContainer() )->getUrl( array_replace_recursive( array( 'id' => $this->id(), 'do' => 'edit', $params ) ) );
 	}
 	
 	/**

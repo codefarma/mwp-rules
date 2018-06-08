@@ -75,16 +75,17 @@ add_action( 'mwp_framework_init', function()
 	CustomLog       ::setControllerClass( Controllers\CustomLogsController::class );
 	
 	/* Create controllers and admin pages */
-	//App             ::createController('admin', $config['controllers']['rules_apps']);
-	Rule            ::createController('admin', $config['controllers']['rules_rules']);
-	Bundle          ::createController('admin', $config['controllers']['rules_bundles']);
-	Condition       ::createController('admin', $config['controllers']['rules_conditions']);
-	Action          ::createController('admin', $config['controllers']['rules_actions']);
-	Hook            ::createController('admin', $config['controllers']['rules_hooks']);
-	CustomLog       ::createController('admin', $config['controllers']['rules_custom_logs']);
-	Argument        ::createController('admin', $config['controllers']['rules_arguments']);
-	RuleLog         ::createController('admin', $config['controllers']['rules_logs']);
-	ScheduledAction ::createController('admin', $config['controllers']['rules_scheduled_actions']);
+	//App             ::createController( 'admin',  $config['controllers']['rules_apps']);
+	Rule            ::createController( 'admin', $config['controllers']['rules_rules']);
+	Bundle          ::createController( 'admin', $config['controllers']['rules_bundles']);
+	Condition       ::createController( 'admin', $config['controllers']['rules_conditions']);
+	Action          ::createController( 'admin', $config['controllers']['rules_actions']);
+	Hook            ::createController( 'events', $config['controllers']['rules_events']);
+	Hook            ::createController( 'actions', $config['controllers']['rules_custom_actions']);
+	CustomLog       ::createController( 'admin', $config['controllers']['rules_custom_logs']);
+	Argument        ::createController( 'admin', $config['controllers']['rules_arguments']);
+	RuleLog         ::createController( 'admin', $config['controllers']['rules_logs']);
+	ScheduledAction ::createController( 'admin', $config['controllers']['rules_scheduled_actions']);
 	CustomLog       ::createRecordControllers();
 	
 	/* Global functions */

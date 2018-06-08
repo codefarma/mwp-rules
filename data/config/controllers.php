@@ -64,12 +64,56 @@ return [
 		],
 	],
 	
-	/* Rules Hooks */
-	'rules_hooks' => [
+	/* Rules Events */
+	'rules_events' => [
+		'type' => 'event',
 		'adminPage' => [ 
-			'type' => 'submenu', 
+			'title' => __( 'Custom Events', 'mwp-rules' ), 
+			'type' => 'submenu',
+			'slug' => 'mwp-rules-events',
 			'menu' => __( 'Custom Events', 'mwp-rules' ), 
 			'parent' => 'mwp-rules',
+		],
+		'tableConfig' => [
+			'default_where' => array( "hook_type IN ( 'action', 'condition' )" ),
+		],
+	],
+	
+	/* Rules Custom Actions */
+	'rules_custom_actions' => [
+		'type' => 'custom',
+		'adminPage' => [ 
+			'type' => 'submenu',
+			'title' => __( 'Custom Actions', 'mwp-rules' ),
+			'slug' => 'mwp-rules-custom-actions',
+			'menu' => __( 'Custom Actions', 'mwp-rules' ), 
+			'parent' => 'mwp-rules',
+		],
+
+		'getActions' => function( $actions ) {
+			$actions['new']['title'] = __( 'Create Custom Action', 'mwp-rules' );
+			$actions['new']['params']['type'] = 'custom';
+			
+			return $actions;
+		},
+		'tableConfig' => [
+			'constructor' => [ 'singular' => 'action', 'plural' => 'actions' ],
+			'default_where' => array( "hook_type IN ( 'custom' )" ),
+			'bulkActions' => array(
+				'delete' => __( 'Delete Actions', 'mwp-rules' ),
+				'export' => __( 'Download Actions', 'mwp-rules' ),
+			),
+			'columns' => [
+				'hook_title' => __( 'Action Name', 'mwp-rules' ),
+				'hook_description' => __( 'Description', 'mwp-rules' ),
+				'arguments' => __( 'Arguments', 'mwp-rules' ),
+				'rules' => __( 'Rules', 'mwp-rules' ),
+			],
+			'handlers' => [
+				'rules' => function( $row ) {
+					return Rules\Rule::countWhere(['rule_custom_internal=1 AND rule_event_type=%s AND rule_event_hook=%s', 'action', $row['hook_hook'] ]);
+				}
+			],
 		],
 	],
 	
@@ -77,8 +121,6 @@ return [
 	'rules_logs' => [
 		'adminPage' => [ 
 			'type' => 'submenu', 
-			//'menu' => __( 'Log Viewer', 'mwp-rules' ), 
-			//'parent' => 'mwp-rules',
 		],
 	],
 	

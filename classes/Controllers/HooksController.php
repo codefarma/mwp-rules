@@ -20,7 +20,7 @@ use MWP\Rules\Hook;
 /**
  * Events Controller Class
  */
-class _HooksController extends ActiveRecordController
+class _HooksController extends ExportableController
 {
 	/**
 	 * Default controller configuration
@@ -35,14 +35,13 @@ class _HooksController extends ActiveRecordController
 			'tableConfig' => [
 				'bulkActions' => array(
 					'delete' => __( 'Delete Events', 'mwp-rules' ),
-					'export' => __( 'Export Events', 'mwp-rules' ),
+					'export' => __( 'Download Events', 'mwp-rules' ),
 				),
 				'columns' => [
 					'hook_hook' => __( 'Hook', 'mwp-rules' ),
 					'hook_title' => __( 'Event', 'mwp-rules' ),
 					'hook_description' => __( 'Description', 'mwp-rules' ),
 					'arguments' => __( 'Arguments', 'mwp-rules' ),
-					//'hook_type' => __( 'Type', 'mwp-rules' ),
 				],
 				'handlers' => [
 					'hook_hook' => function( $row ) {
@@ -83,6 +82,10 @@ class _HooksController extends ActiveRecordController
 		$table = parent::createDisplayTable( $override_options );
 		$table->removeTableClass( 'fixed' );
 
+		if ( $this->options['type'] == 'custom' ) {
+			unset( $table->columns['hook_hook'] );
+		}
+		
 		return $table;
 	}
 	

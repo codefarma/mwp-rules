@@ -29,8 +29,8 @@ abstract class _ExportableRecord extends ActiveRecord
 	public function getExportData()
 	{
 		$data = $this->_data;
-		unset( $data[ static::$prefix . static::$key ] );
-		unset( $data[ static::$prefix . 'imported' ] );
+		unset( $data[ static::_getPrefix() . static::_getKey() ] );
+		unset( $data[ static::_getPrefix() . 'imported' ] );
 		
 		return array(
 			'data' => $data,

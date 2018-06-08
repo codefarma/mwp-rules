@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use MWP\Framework\Pattern\ActiveRecord;
+use MWP\Framework\Framework;
 
 /**
  * CustomAction Class
@@ -105,9 +106,7 @@ class _Hook extends ExportableRecord
 	 */
 	public function _getEditTitle( $type=NULL )
 	{
-		$singular = $this->type == 'custom' ? 'Custom Action' : ucfirst( $this->type );
-		$singular = 'Event';
-		return __( static::$lang_edit . ' ' . $singular );
+		return __( static::$lang_edit . ' ' . $this->_getSingularName() );
 	}
 	
 	/**
@@ -117,9 +116,7 @@ class _Hook extends ExportableRecord
 	 */
 	public function _getViewTitle()
 	{
-		$singular = $this->type == 'custom' ? 'Custom Action' : ucfirst( $this->type );
-		$singular = 'Event';
-		return __( static::$lang_view . ' ' . $singular );
+		return __( static::$lang_view . ' ' . $this->_getSingularName() );
 	}
 	
 	/**
@@ -129,9 +126,27 @@ class _Hook extends ExportableRecord
 	 */
 	public function _getDeleteTitle()
 	{
-		$singular = $this->type == 'custom' ? 'Custom Action' : ucfirst( $this->type );
-		$singular = 'Event';
-		return __( static::$lang_delete . ' ' . $singular );
+		return __( static::$lang_delete . ' ' . $this->_getSingularName() );
+	}
+	
+	/**
+	 * Get the singular name
+	 * 
+	 * @return	string
+	 */
+	public function _getSingularName()
+	{
+		return __( $this->type == 'custom' ? 'Action' : static::$lang_singular );
+	}
+	
+	/**
+	 * Get the plural name
+	 * 
+	 * @return	string
+	 */
+	public function _getPluralName()
+	{
+		return __( $this->type == 'custom' ? 'Actions' : static::$lang_plural );
 	}
 	
 	/**
@@ -175,12 +190,11 @@ class _Hook extends ExportableRecord
 	/**
 	 * Get the controller
 	 *
-	 * @param	string		$key			The controller key
 	 * @return	ActiveRecordController
 	 */
-	public function _getController( $key='admin' )
+	public function _getController()
 	{
-		return $this->getPlugin()->getHooksController( $key );
+		return $this->getPlugin()->getHooksController( $this->getControllerKey() );
 	}
 	
 	/**
@@ -206,8 +220,29 @@ class _Hook extends ExportableRecord
 					'id' => $this->id(),
 				),
 			),
+			'rules' => array(
+				'title' => __( 'Manage Rules', 'mwp-rules' ),
+				'icon' => 'glyphicon glyphicon-th-list',
+				'params' => array(
+					'do' => 'edit',
+					'_tab' => 'hook_rules',
+					'id' => $this->id(),
+				),
+			),
+			'export' => array(
+				'title' => __( 'Download ' . $this->_getSingularName(), 'mwp-rules' ),
+				'icon' => 'glyphicon glyphicon-cloud-download',
+				'params' => array(
+					'do' => 'export',
+					'id' => $this->id(),
+				),
+			),
 			'delete' => ''
 		);
+		
+		if ( ! $this->isCustom() ) {
+			unset( $hook_actions['rules'] );
+		}
 		
 		return array_replace_recursive( $hook_actions, $actions );
 	}
@@ -220,7 +255,7 @@ class _Hook extends ExportableRecord
 	public function getEventDefinition()
 	{
 		$definition = array(
-			'title' => $this->title . ' (Custom Event)',
+			'title' => $this->title . ( $this->isCustom() ? ' (Custom Action)' : ' (Custom Event)' ),
 			'description' => $this->description,
 			'group' => $this->category ?: 'Uncategorized',
 		);
@@ -264,7 +299,17 @@ class _Hook extends ExportableRecord
 	 */
 	public function getTypeTitle()
 	{
-		return $this->type == 'custom' ? __( 'Custom Action', 'mwp-rules' ) : ucfirst( $this->type );
+		return $this->isCustom() ? __( 'Custom Action', 'mwp-rules' ) : ucfirst( $this->type );
+	}
+	
+	/**
+	 * Check if this is a custom event
+	 *
+	 * @return	bool
+	 */
+	public function isCustom()
+	{
+		return $this->type == 'custom';
 	}
 	
 	/**
@@ -286,29 +331,17 @@ class _Hook extends ExportableRecord
 			]));
 		}
 		
-		$form->addTab( 'hook_details', array(
-			'title' => __( 'Event Details', 'mwp-rules' ),
-		));
-		
 		if ( ! $this->type ) {
-			$form->addField( 'specification', 'choice', array(
-				'label' => __( 'Event Type', 'mwp-rules' ),
-				'description' => "<div class='alert alert-info'><ol>" . 
-					"<li>" . __( 'Choose "New Unique Action" if you want to create a new custom action that you can trigger using rules.', 'mwp-rules' ) . "</li>" .
-					"<li>" . __( 'Choose "Existing Event" to add an existing hook event triggered by WordPress core or a 3rd party plugin.', 'mwp-rules' ) . "</li>" .
-				"</ol></div>",
-				'data' => 'new',
-				'expanded' => true,
-				'choices' => array(
-					'New Unique Action' => 'new',
-					'Existing Event' => 'existing',
-				),
-				'toggles' => array(
-					'new' => array( 'hide' => array( '#hook_hook', '#hook_type' ) ),
-				),
-				'required' => true,
-			), 'hook_details' );
+			$request = Framework::instance()->getRequest();
+			if ( $request->get( 'type' ) == 'custom' ) {
+				$this->type = 'custom';
+				$form->addField( 'specification', 'hidden', array( 'data' => 'new' ) );
+			}
 		}
+		
+		$form->addTab( 'hook_details', array(
+			'title' => __( ( $this->isCustom() ? 'Action' : 'Event' ) . ' Details', 'mwp-rules' ),
+		));
 		
 		if ( $this->type != 'custom' ) {
 			$has_hook_config = true;
@@ -371,10 +404,32 @@ class _Hook extends ExportableRecord
 				'controller' => $argumentsController,
 			)),
 			'arguments' );
+			
+			if ( $this->isCustom() ) {
+				$form->addTab( 'hook_rules', array(
+					'title' => __( 'Rules', 'mwp-rules' ),
+				));
+				
+				$rulesController = $plugin->getRulesController();
+				$rulesController->setHook( $this );
+				$rulesTable = $rulesController->createDisplayTable([ 
+					'perPage' => 1000,
+					'hardFilters' => array( array( "rule_custom_internal=%d AND rule_event_type=%s AND rule_event_hook=%s", 1, 'action', $this->hook ) ),
+					'bulkActions' => [],
+				]);
+				$rulesTable->prepare_items();
+				
+				$form->addHtml( 'hook_rules_table', $this->getPlugin()->getTemplateContent( 'rules/subrules/table_wrapper', array( 
+					'rule' => null,
+					'table' => $rulesTable,
+					'controller' => $rulesController,
+				)));
+			}
+			
 		} else {
 			$hook = $this;
 			$form->onComplete( function() use ( $hook, $plugin ) {
-				$controller = $plugin->getHooksController();
+				$controller = $plugin->getHooksController( $hook->getControllerKey() );
 				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $hook->id(), '_tab' => 'arguments' ) ) );
 				exit;
 			});			
@@ -397,11 +452,8 @@ class _Hook extends ExportableRecord
 	{
 		$_values = $values['hook_details'];
 		
-		if ( isset( $_values['specification'] ) ) {
-			if ( $_values['specification'] == 'new' ) {
-				$_values['hook'] = uniqid( 'rules/action/' );
-				$_values['type'] = 'custom';
-			}
+		if ( ! $this->id() and $this->type == 'custom' ) {
+			$this->hook = uniqid( 'rules/action/' );
 		}
 		
 		parent::processEditForm( $_values );
@@ -415,7 +467,17 @@ class _Hook extends ExportableRecord
 	 */
 	public function url( $params=array() )
 	{
-		return $this->getPlugin()->getHooksController()->getUrl( array_replace_recursive( array( 'id' => $this->id(), 'do' => 'edit' ), $params ) );
+		return $this->getPlugin()->getHooksController( $this->getControllerKey() )->getUrl( array_replace_recursive( array( 'id' => $this->id(), 'do' => 'edit' ), $params ) );
+	}
+	
+	/**
+	 * Get the key of the controller for this hook
+	 *
+	 * @return	string
+	 */
+	public function getControllerKey()
+	{
+		return $this->isCustom() ? 'actions' : 'events';
 	}
 	
 	/**
@@ -427,6 +489,11 @@ class _Hook extends ExportableRecord
 	{
 		$export = parent::getExportData();
 		$export['arguments'] = array_map( function( $argument ) { return $argument->getExportData(); }, $this->getArguments() );
+		
+		if ( $this->isCustom() ) {
+			$export['rules'] = array_map( function( $rule ) { return $rule->getExportData(); }, Rule::loadWhere(['rule_parent_id=0 AND rule_custom_internal=1 AND rule_event_type=%s AND rule_event_hook=%s', 'action', $this->hook ]) );
+		}
+		
 		return $export;
 	}
 	
@@ -463,6 +530,7 @@ class _Hook extends ExportableRecord
 				$results['imports']['hooks'][] = $data;
 				
 				$imported_argument_uuids = [];
+				$imported_rule_uuids = [];
 
 				/* Import hook arguments */
 				if ( isset( $data['arguments'] ) and ! empty( $data['arguments'] ) ) {
@@ -472,9 +540,22 @@ class _Hook extends ExportableRecord
 					}
 				}
 				
+				/* Import bundle rules */
+				if ( isset( $data['rules'] ) and ! empty( $data['rules'] ) ) {
+					foreach( $data['rules'] as $rule ) {
+						$imported_rule_uuids[] = $rule['data']['rule_uuid'];
+						$results = array_merge_recursive( $results, Rule::import( $rule, 0, $bundle->id() ) );
+					}
+				}
+				
 				/* Cull previously imported arguments which are no longer part of this imported hook */
 				foreach( Argument::loadWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d AND argument_imported > 0 AND argument_uuid NOT IN (\'' . implode("','", $imported_argument_uuids) . '\')', Argument::getParentType( $hook ), $hook->id() ) ) as $argument ) {
 					$argument->delete();
+				}
+				
+				/* Cull previously imported rules which are no longer part of this imported hook */
+				foreach( Rule::loadWhere( array( 'rule_parent_id=0 AND rule_custom_internal=1 AND rule_imported > 0 AND rule_event_type=%d AND rule_event_hook=%d AND rule_uuid NOT IN (\'' . implode("','", $imported_rule_uuids) . '\')', 'action', $hook->hook ) ) as $rule ) {
+					$rule->delete();
 				}
 				
 			} else {

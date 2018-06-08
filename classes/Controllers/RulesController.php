@@ -29,6 +29,11 @@ class _RulesController extends ExportableController
 	protected $bundle;
 	
 	/**
+	 * @var	MWP\Rules\Hook
+	 */
+	protected $hook;
+	
+	/**
 	 * Set the associated rule
 	 */
 	public function setBundle( $bundle )
@@ -45,11 +50,27 @@ class _RulesController extends ExportableController
 	}
 	
 	/**
+	 * Set the associated rule
+	 */
+	public function setHook( $hook )
+	{
+		$this->hook = $hook;
+	}
+	
+	/**
+	 * Get the associated rule
+	 */
+	public function getHook()
+	{
+		return $this->hook;
+	}
+	
+	/**
 	 * Get the parent
 	 */
 	public function getParent()
 	{
-		return $this->getBundle();
+		return $this->getBundle() ?: $this->getHook();
 	}
 	
 	/**
@@ -84,6 +105,15 @@ class _RulesController extends ExportableController
 				$this->setBundle( $bundle );
 			} catch( \OutOfRangeException $e ) { }
 		}
+		
+		/* Auto set the hook */
+		if ( isset( $_REQUEST['hook_id'] ) ) {
+			try {
+				$hook = Rules\Hook::load( $_REQUEST['hook_id'] );
+				$this->setHook( $hook );
+			} catch( \OutOfRangeException $e ) { }
+		}
+		
 	}
 	
 	/**
@@ -93,9 +123,15 @@ class _RulesController extends ExportableController
 	{
 		$rule_id = isset( $_REQUEST['id'] ) ? $_REQUEST['id'] : NULL;
 		$action = isset( $_REQUEST['do'] ) ? $_REQUEST['do'] : NULL;
-		if ( ! $rule_id and ( ! $action or $action == 'index' ) and $bundle = $this->getBundle() ) {
-			wp_redirect( Rules\Plugin::instance()->getBundlesController( $bundle->getApp() )->getUrl( array( 'id' => $bundle->id(), 'do' => 'edit', '_tab' => 'bundle_rules' ) ) );
-			exit;
+		if ( ! $rule_id and ( ! $action or $action == 'index' ) ) {
+			if ( $bundle = $this->getBundle() ) {
+				wp_redirect( Rules\Plugin::instance()->getBundlesController( $bundle->getApp() )->getUrl( array( 'id' => $bundle->id(), 'do' => 'edit', '_tab' => 'bundle_rules' ) ) );
+				exit;
+			}
+			if ( $hook = $this->getHook() ) {
+				wp_redirect( Rules\Plugin::instance()->getHooksController( $hook->getControllerKey() )->getUrl( array( 'id' => $hook->id(), 'do' => 'edit', '_tab' => 'hook_rules' ) ) );
+				exit;				
+			}
 		}
 	}
 	
@@ -112,7 +148,7 @@ class _RulesController extends ExportableController
 		(
 			'tableConfig' => array(
 				'tableTemplate' => 'rules/table',
-				'default_where' => array( 'rule_parent_id=0 AND rule_bundle_id=%d', $this->getBundleId() ),
+				'default_where' => array( 'rule_parent_id=0 AND rule_bundle_id=%d AND rule_custom_internal=0', $this->getBundleId() ),
 				'columns' => array(
 					'rule_title'      => __( 'Rule Summary', 'mwp-rules' ),
 					'rule_event_hook' => __( 'Evaluated When', 'mwp-rules' ),
@@ -251,6 +287,9 @@ class _RulesController extends ExportableController
 		if ( $this->getBundleId() ) {
 			$args = array_merge( array( 'bundle_id' => $this->getBundleId(), $args ) );
 		}
+		else if ( $this->getHook() ) {
+			$args = array_merge( array( 'hook_id' => $this->getHook()->id() ), $args );
+		}
 		
 		return parent::getUrl( $args );
 	}
@@ -283,13 +322,20 @@ class _RulesController extends ExportableController
 		$record = new $class;
 		$record->bundle_id = $this->getBundleId();
 		
+		if ( $hook = $this->getHook() ) {
+			$record->custom_internal = 1;
+			$record->event_type = 'action';
+			$record->event_hook = $hook->hook;
+		}
+		
 		if ( isset( $_REQUEST['parent_id'] ) ) {
 			try {
 				$parent = $class::load( $_REQUEST['parent_id'] );
-				$record->parent_id = $parent->id();
-				$record->bundle_id = $parent->bundle_id;
-				$record->event_type = $parent->event_type;
-				$record->event_hook = $parent->event_hook;
+				$record->parent_id       = $parent->id();
+				$record->bundle_id       = $parent->bundle_id;
+				$record->custom_internal = $parent->custom_internal;
+				$record->event_type      = $parent->event_type;
+				$record->event_hook      = $parent->event_hook;
 			} 
 			catch( \OutOfRangeException $e ) {}
 		}

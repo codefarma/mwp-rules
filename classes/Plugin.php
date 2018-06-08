@@ -805,10 +805,18 @@ class _Plugin extends \MWP\Framework\Plugin
 	 * 
 	 * @return	ActiveRecordController
 	 */
-	public function getRulesController( $bundle=null, $key='admin' )
+	public function getRulesController( $container=null, $key='admin' )
 	{
 		$controller = Rule::getController( $key );
-		$controller->setBundle( $bundle );
+		$controller->setBundle( NULL );
+		$controller->setHook( NULL );
+		
+		if ( $container instanceof Bundle ) {
+			$controller->setBundle( $bundle );
+		}
+		else if ( $container instanceof Hook ) {
+			$controller->setHook( $container );
+		}
 		
 		return $controller;
 	}
