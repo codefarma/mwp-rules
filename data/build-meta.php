@@ -129,6 +129,20 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
+                "rule_event_provider": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 0,
+                    "name": "rule_event_provider",
+                    "type": "TEXT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
                 "rule_priority": {
                     "allow_null": false,
                     "auto_increment": false,
@@ -217,6 +231,19 @@ return <<<'JSON'
                     "length": 11,
                     "name": "rule_bundle_id",
                     "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "rule_custom_internal": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 1,
+                    "name": "rule_custom_internal",
+                    "type": "TINYINT",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
@@ -352,6 +379,20 @@ return <<<'JSON'
                     "length": 0,
                     "name": "condition_data",
                     "type": "MEDIUMTEXT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "condition_provider": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 0,
+                    "name": "condition_provider",
+                    "type": "TEXT",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
@@ -527,6 +568,20 @@ return <<<'JSON'
                     "length": 0,
                     "name": "action_data",
                     "type": "MEDIUMTEXT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "action_provider": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 0,
+                    "name": "action_provider",
+                    "type": "TEXT",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
