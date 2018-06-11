@@ -243,7 +243,6 @@ class _ArgumentsController extends ActiveRecordController
 			'new' => array(
 				'title' => __( $recordClass::$lang_create . ' ' . $this->getSingularName() ),
 				'params' => array( 'do' => 'new' ),
-				'attr' => array( 'class' => 'btn btn-primary' ),
 			)
 		);
 	}

@@ -76,7 +76,6 @@ class _CustomLogsController extends ExportableController
 			'new' => array(
 				'title' => __( 'Create New Custom Log', 'mwp-rules' ),
 				'params' => array( 'do' => 'new' ),
-				'attr' => array( 'class' => 'btn btn-primary' ),
 			)
 		);
 	}

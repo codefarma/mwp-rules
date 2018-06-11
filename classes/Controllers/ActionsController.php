@@ -174,7 +174,6 @@ class _ActionsController extends ActiveRecordController
 			'new' => array(
 				'title' => __( 'Add Action', 'mwp-rules' ),
 				'params' => array( 'do' => 'new' ),
-				'attr' => array( 'class' => 'btn btn-primary' ),
 			)
 		);
 	}

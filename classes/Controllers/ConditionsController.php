@@ -177,7 +177,6 @@ class _ConditionsController extends ActiveRecordController
 			'new' => array(
 				'title' => __( 'Add Condition', 'mwp-rules' ),
 				'params' => array( 'do' => 'new' ),
-				'attr' => array( 'class' => 'btn btn-primary' ),
 			)
 		);
 	}

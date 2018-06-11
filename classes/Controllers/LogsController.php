@@ -122,7 +122,6 @@ class _LogsController extends ActiveRecordController
 			'flush_system_logs' => array(
 				'title' => __( 'Flush All Logs', 'mwp-rules' ),
 				'params' => array( 'do' => 'flush_system' ),
-				'attr' => array( 'class' => 'btn btn-primary' ),
 			)
 		);
 	}

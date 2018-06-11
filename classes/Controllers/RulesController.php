@@ -305,7 +305,6 @@ class _RulesController extends ExportableController
 			'new' => array(
 				'title' => __( 'Create New Rule', 'mwp-rules' ),
 				'params' => array( 'do' => 'new' ),
-				'attr' => array( 'class' => 'btn btn-primary' ),
 			)
 		);
 	}
