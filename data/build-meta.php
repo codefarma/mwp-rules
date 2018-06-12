@@ -1,7 +1,7 @@
 <?php
 return <<<'JSON'
 {
-    "framework_version": "2.0.7.1",
+    "framework_version": "2.0.7.2",
     "framework_bundled": true,
     "tables": [
         {
@@ -244,6 +244,20 @@ return <<<'JSON'
                     "length": 1,
                     "name": "rule_custom_internal",
                     "type": "TINYINT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "rule_sites": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": "",
+                    "length": 2048,
+                    "name": "rule_sites",
+                    "type": "VARCHAR",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
@@ -1510,6 +1524,20 @@ return <<<'JSON'
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
+                },
+                "app_sites": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": "",
+                    "length": 1024,
+                    "name": "app_sites",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
                 }
             },
             "indexes": {
@@ -1668,6 +1696,20 @@ return <<<'JSON'
                     "length": 0,
                     "name": "bundle_data",
                     "type": "TEXT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "bundle_sites": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": "",
+                    "length": 2048,
+                    "name": "bundle_sites",
+                    "type": "VARCHAR",
                     "unsigned": false,
                     "values": [],
                     "zerofill": false

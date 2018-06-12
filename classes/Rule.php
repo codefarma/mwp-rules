@@ -55,6 +55,7 @@ class _Rule extends ExportableRecord
 		'recursion_limit',
 		'imported',
  		'custom_internal',
+		'sites',
     );
 
     /**
@@ -180,6 +181,10 @@ class _Rule extends ExportableRecord
 	public function isActive()
 	{
 		if ( ! $this->enabled ) {
+			return false;
+		}
+		
+		if ( $this->sites and ! in_array( get_current_blog_id(), explode( ',', $this->sites ) ) ) {
 			return false;
 		}
 		
@@ -348,21 +353,7 @@ class _Rule extends ExportableRecord
 					}],
 				),
 				'rule_settings', 'title', 'before' );
-			}
-			
-			$form->addField( 'submit', 'submit', array( 
-				'label' => __( 'Continue', 'mwp-rules' ), 
-				'attr' => array( 'class' => 'btn btn-primary' ),
-				'row_attr' => array( 'class' => 'text-center' ),
-			));
-			
-			$form->onComplete( function() use ( $rule, $plugin ) {
-				$controller = $plugin->getRulesController( $rule->getContainer() );
-				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_conditions' ) ) );
-				exit;
-			});
-			
-			return $form;
+			}			
 		}
 		else
 		{
@@ -405,6 +396,58 @@ class _Rule extends ExportableRecord
 				'required' => true,
 			),
 			'rule_settings' );
+		}
+		
+		if ( is_multisite() ) {
+			$form->addField( 'sites_select', 'choice', array(
+				'row_prefix' => '<h2>Network Configuration</h2><hr>',
+				'label' => __( 'Site Selection', 'mwp-rules' ),
+				'description' => __( 'Choose which sites this rule will apply to. (Also requires the Automation Rules plugin to be enabled on the site.)', 'mwp-rules' ),
+				'choices' => array(
+					__( 'All Sites', 'mwp-rules' ) => 'all',
+					__( 'Specific Sites', 'mwp-rules' ) => 'specific',
+				),
+				'data' => $this->sites ? 'specific' : 'all',
+				'multiple' => false,
+				'expanded' => true,
+				'required' => true,
+				'toggles' => array(
+					'specific' => array( 'show' => array( '#sites' ) ),
+				),
+			),
+			'rule_settings' );
+			
+			$site_options = array();
+			foreach( get_sites() as $site ) {
+				$site_options[ $site->blogname ] = $site->id;
+			}
+			
+			$form->addField( 'sites', 'choice', array( 
+				'row_attr' => array( 'id' => 'sites' ),
+				'label' => __( 'Choose Sites', 'mwp-rules' ),
+				'choices' => $site_options,
+				'data' => explode( ',', $this->sites ),
+				'multiple' => true,
+				'expanded' => true,
+			),
+			'rule_settings' );
+		}
+		
+		/* We must have an existing rule to configure the rest... */
+		if ( ! $rule->id() ) {
+			$form->addField( 'submit', 'submit', array( 
+				'label' => __( 'Continue', 'mwp-rules' ), 
+				'attr' => array( 'class' => 'btn btn-primary' ),
+				'row_attr' => array( 'class' => 'text-center' ),
+			));
+			
+			$form->onComplete( function() use ( $rule, $plugin ) {
+				$controller = $plugin->getRulesController( $rule->getContainer() );
+				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $rule->id, '_tab' => 'rule_conditions' ) ) );
+				exit;
+			});
+			
+			return $form;
 		}
 		
 		/**
@@ -555,18 +598,26 @@ class _Rule extends ExportableRecord
 	 */
 	protected function processEditForm( $values )
 	{
-		$values = $values['rule_settings'];
+		$_values = $values['rule_settings'];
 		
-		if ( isset( $values['event'] ) ) {
-			$event_parts = explode( '/', $values['event'] );
+		if ( isset( $_values['sites'] ) and is_array( $_values['sites'] ) ) {
+			$_values['sites'] = implode( ',', $_values['sites'] );
+		}
+		
+		if ( isset( $_values['sites_select'] ) and $_values['sites_select'] == 'all' ) {
+			$_values['sites'] = '';
+		}
+		
+		if ( isset( $_values['event'] ) ) {
+			$event_parts = explode( '/', $_values['event'] );
 			$type = array_shift( $event_parts );
 			$hook = implode( '/', $event_parts );
 			
-			$values['event_type'] = $type;
-			$values['event_hook'] = $hook;
+			$_values['event_type'] = $type;
+			$_values['event_hook'] = $hook;
 		}
 		
-		parent::processEditForm( $values );
+		parent::processEditForm( $_values );
 	}
 	
 	/**
@@ -1036,6 +1087,7 @@ class _Rule extends ExportableRecord
 		
 		unset( $export['data']['rule_parent_id'] );
 		unset( $export['data']['rule_bundle_id'] );
+		unset( $export['data']['rule_sites'] );
 		
 		return $export;
 	}

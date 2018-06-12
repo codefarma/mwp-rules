@@ -7,12 +7,14 @@ if ( ! defined('ABSPATH') ) {
 use MWP\Rules;
 
 $plugin = Rules\Plugin::instance();
+$for = is_multisite() ? 'network' : 'site';
 
 return [	
 
 	/* Rules Dashboard */
 	'rules_dashboard' => [
 		'adminPage' => [
+			'for' => $for,
 			'title' => __( 'Dashboard', 'mwp-rules' ),
 			'type' => 'menu', 
 			'slug' => 'mwp-rules', 
@@ -25,6 +27,7 @@ return [
 	
 	'rules_apps' => [
 		'adminPage' => [
+			'for' => $for,
 			'type' => 'submenu',
 			'parent' => 'mwp-rules',
 			'menu' => __( 'App Manager', 'mwp-rules' ),
@@ -34,6 +37,7 @@ return [
 	/* Rulesets */
 	'rules_bundles' => [
 		'adminPage' => [
+			'for' => $for,
 			'type' => 'submenu',
 			'parent' => 'mwp-rules',
 			'menu' => __( 'Bundle Manager', 'mwp-rules' ),
@@ -43,6 +47,7 @@ return [
 	/* Rules */
 	'rules_rules' => [
 		'adminPage' => [
+			'for' => $for,
 			'title' => __( 'Rules', 'mwp-rules' ),
 			'type' => 'submenu', 
 			'parent' => 'mwp-rules', 
@@ -53,6 +58,7 @@ return [
 	/* Rules Conditions */
 	'rules_conditions' => [
 		'adminPage' => [ 
+			'for' => $for,
 			'type' => 'submenu', 
 		],
 	],
@@ -60,14 +66,15 @@ return [
 	/* Rules Actions */
 	'rules_actions' => [
 		'adminPage' => [ 
+			'for' => $for,
 			'type' => 'submenu', 
 		],
 	],
 	
 	/* Rules Events */
 	'rules_events' => [
-		'type' => 'event',
 		'adminPage' => [ 
+			'for' => $for,
 			'title' => __( 'Custom Events', 'mwp-rules' ), 
 			'type' => 'submenu',
 			'slug' => 'mwp-rules-events',
@@ -87,8 +94,8 @@ return [
 	
 	/* Rules Custom Actions */
 	'rules_custom_actions' => [
-		'type' => 'custom',
 		'adminPage' => [ 
+			'for' => $for,
 			'type' => 'submenu',
 			'title' => __( 'Custom Actions', 'mwp-rules' ),
 			'slug' => 'mwp-rules-custom-actions',
@@ -126,6 +133,7 @@ return [
 	/* Rules Logs */
 	'rules_logs' => [
 		'adminPage' => [ 
+			'for' => $for,
 			'type' => 'submenu', 
 		],
 	],
@@ -133,6 +141,7 @@ return [
 	/* Rules Scheduled Actions */
 	'rules_scheduled_actions' => [
 		'adminPage' => [ 
+			'for' => $for,
 			'type' => 'submenu', 
 			'menu' => __( 'Scheduled Actions', 'mwp-rules' ), 
 			'parent' => 'mwp-rules',
@@ -142,6 +151,7 @@ return [
 	/* Arguments Controller */
 	'rules_arguments' => [
 		'adminPage' => [ 
+			'for' => $for,
 			'type' => 'submenu', 
 			'parent_slug' => 'mwp-rules' 
 		],
@@ -150,6 +160,7 @@ return [
 	/* Rules Custom Logs */
 	'rules_custom_logs' => [
 		'adminPage' => [
+			'for' => $for,
 			'title' => __( 'Custom Logs', 'mwp-rules' ),
 			'type' => 'submenu', 
 			'parent' => 'mwp-rules', 

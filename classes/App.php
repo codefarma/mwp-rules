@@ -45,6 +45,7 @@ class _App extends ExportableRecord
 		'imported',
 		'version',
 		'data' => array( 'format' => 'JSON' ),
+		'sites',
     );
 
     /**
@@ -90,6 +91,10 @@ class _App extends ExportableRecord
 	public function isActive()
 	{
 		if ( ! $this->enabled ) {
+			return false;
+		}
+		
+		if ( $this->sites and ! in_array( get_current_blog_id(), explode( ',', $this->sites ) ) ) {
 			return false;
 		}
 		
@@ -243,6 +248,41 @@ class _App extends ExportableRecord
 			'data' => $this->enabled !== NULL ? (bool) $this->enabled : true,
 		), 'app_details' );
 		
+		if ( is_multisite() ) {
+			$form->addField( 'sites_select', 'choice', array(
+				'row_prefix' => '<h2>Network Configuration</h2><hr>',
+				'label' => __( 'Site Selection', 'mwp-rules' ),
+				'description' => __( 'Choose which sites this rule will apply to. (Also requires the Automation Rules plugin to be enabled on the site.)', 'mwp-rules' ),
+				'choices' => array(
+					__( 'All Sites', 'mwp-rules' ) => 'all',
+					__( 'Specific Sites', 'mwp-rules' ) => 'specific',
+				),
+				'data' => $this->sites ? 'specific' : 'all',
+				'multiple' => false,
+				'expanded' => true,
+				'required' => true,
+				'toggles' => array(
+					'specific' => array( 'show' => array( '#sites' ) ),
+				),
+			),
+			'rule_settings' );
+			
+			$site_options = array();
+			foreach( get_sites() as $site ) {
+				$site_options[ $site->blogname ] = $site->id;
+			}
+			
+			$form->addField( 'sites', 'choice', array( 
+				'row_attr' => array( 'id' => 'sites' ),
+				'label' => __( 'Choose Sites', 'mwp-rules' ),
+				'choices' => $site_options,
+				'data' => explode( ',', $this->sites ),
+				'multiple' => true,
+				'expanded' => true,
+			),
+			'rule_settings' );
+		}
+		
 		if ( $this->id() ) {
 			$form->addTab( 'app_bundles', array(
 				'title' => __( 'App Bundles', 'mwp-rules' ),
@@ -284,6 +324,14 @@ class _App extends ExportableRecord
 	protected function processEditForm( $values )
 	{
 		$_values = $values['app_details'];
+		
+		if ( isset( $_values['sites'] ) and is_array( $_values['sites'] ) ) {
+			$_values['sites'] = implode( ',', $_values['sites'] );
+		}
+		
+		if ( isset( $_values['sites_select'] ) and $_values['sites_select'] == 'all' ) {
+			$_values['sites'] = '';
+		}
 		
 		parent::processEditForm( $_values );
 	}
@@ -365,6 +413,9 @@ class _App extends ExportableRecord
 	{
 		$export = parent::getExportData();
 		$export['bundles'] = array_map( function( $bundle ) { return $bundle->getExportData(); }, $this->getBundles() );
+		
+		unset( $export['data']['app_sites'] );
+		
 		return $export;
 	}
 	

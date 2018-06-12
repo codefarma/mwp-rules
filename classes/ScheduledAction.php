@@ -65,6 +65,11 @@ class _ScheduledAction extends ActiveRecord
     protected static $prefix = 'schedule_';
 	
 	/**
+	 * @var		bool
+	 */
+	protected static $site_specific = TRUE;
+	
+	/**
 	 * @var	string
 	 */
 	public static $lang_singular = 'Scheduled Action';

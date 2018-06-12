@@ -210,7 +210,19 @@ class _RulesController extends ExportableController
 						}
 						
 						if ( $record['rule_debug'] ) {
-							$status .= '<div style="margin: 4px 0"><a href="' . $rule->url( array( '_tab' => 'rule_debug_console' ) ) . '" class="nounderline"><span class="label label-warning"><i class="glyphicon glyphicon-wrench"></i> DEBUG MODE ON</span></a></div>';
+							$status .= '<div style="margin-top: 4px"><a href="' . $rule->url( array( '_tab' => 'rule_debug_console' ) ) . '" class="nounderline"><span class="label label-warning"><i class="glyphicon glyphicon-wrench"></i> DEBUG MODE ON</span></a></div>';
+						}
+						
+						if ( is_multisite() ) {
+							$status .= '<div style="margin-top: 4px">';
+							if ( $rule->sites ) {
+								$sites = explode( ',', $rule->sites );
+								$site_count = count( $sites );
+								$status .= '<span class="label label-info">' . count( $sites ) . ' ' . ( $site_count == 1 ? 'site' : 'sites' ) . '</span>';
+							} else {
+								$status .= '<span class="label label-info">All sites</span>';
+							}
+							$status .= '</div>';
 						}
 						
 						$status .= '</div>';
