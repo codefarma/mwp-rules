@@ -117,6 +117,35 @@ class _App extends ExportableRecord
 	}
 	
 	/**
+	 * @var array
+	 */
+	protected $_sites;
+	
+	/**
+	 * Get the sites this bundle applies to
+	 *
+	 * @return	array|NULL
+	 */
+	public function getSites()
+	{
+		if ( ! $this->sites ) {
+			return NULL;
+		}
+		
+		if ( ! isset( $this->_sites ) ) {
+			$this->_sites = array();
+			$all_sites = $this->getPlugin()->getSites();
+			foreach( explode( ',', $this->sites ) as $site_id ) {
+				if ( isset( $all_sites[ $site_id ] ) ) {
+					$this->_sites[ $site_id ] = $all_sites[ $site_id ];
+				}
+			}
+		}
+		
+		return $this->_sites;
+	}
+	
+	/**
 	 * @var	array
 	 */
 	protected $_bundles;

@@ -38,13 +38,24 @@ class _AppsController extends ExportableController
 					'export' => __( 'Download Apps', 'mwp-rules' ),
 				),
 				'columns' => array(
-					'app_title'        => __( 'App Title', 'mwp-rules' ),
-					'app_description'  => __( 'App Description', 'mwp-rules' ),
-					'app_enabled'      => __( 'App Enabled', 'mwp-rules' ),
+					'app_title'        => __( 'Title', 'mwp-rules' ),
+					'app_description'  => __( 'Description', 'mwp-rules' ),
+					'app_enabled'      => __( 'Status', 'mwp-rules' ),
 				),
 				'handlers' => array(
 					'app_enabled' => function( $row ) {
-						return (bool) $row['app_enabled'] ? 'Yes' : 'No';
+						$output = '<div class="mwp-bootstrap">' . ( 
+							$row['app_enabled'] ? 
+							'<span data-rules-enabled-toggle="app" data-rules-id="' . $row['app_id'] . '" class="label label-success rules-pointer">ENABLED</span>' : 
+							'<span data-rules-enabled-toggle="app" data-rules-id="' . $row['app_id'] . '" class="label label-danger rules-pointer">DISABLED</span>' ) .
+						'</div>';
+						
+						if ( is_multisite() ) {
+							$app = Rules\App::load( $row['app_id'] );
+							$output .= Rules\Plugin::instance()->getTemplateContent( 'snippets/site-list', [ 'sites' => $app->getSites() ] );
+						}
+						
+						return $output;						
 					},
 				),
 			),

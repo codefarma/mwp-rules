@@ -271,6 +271,30 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
+	 * @var array
+	 */
+	protected $sites;
+	
+	/**
+	 * Get an array of all multisite sites
+	 *
+	 * @return	array
+	 */
+	public function getSites()
+	{
+		if ( ! isset( $this->sites ) ) {
+			$this->sites = array();
+			if ( is_multisite() ) {
+				foreach( get_sites() as $site ) {
+					$this->sites[ $site->id ] = $site;
+				}
+			}
+		}
+		
+		return $this->sites;
+	}
+	
+	/**
 	 * Add select bundles to the WP Settings menu
 	 * 
 	 * @MWP\WordPress\Action( for="admin_menu" )

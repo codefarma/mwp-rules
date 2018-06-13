@@ -93,7 +93,7 @@ class _BundlesController extends ExportableController
 					},
 					'bundle_title' => function( $row ) {
 						return '<div>' . 
-							'<h3 style="margin:0 0 4px 0;">' . esc_html( $row['bundle_title'] ) . '</h3>' .
+							'<div class="mwp-bootstrap" style="margin:0 0 4px 0; font-size: 1.3em;"><i class="glyphicon glyphicon-briefcase" style="margin-right: 5px; font-size: 0.7em;"></i> ' . esc_html( $row['bundle_title'] ) . '</div>' .
 							'<div>' . esc_html( $row['bundle_description'] ) . '</div>' .
 						'</div>';
 					},
@@ -108,11 +108,18 @@ class _BundlesController extends ExportableController
 						'</div>';
 					},
 					'bundle_enabled' => function( $row ) {
-						return '<div class="mwp-bootstrap">' . ( 
+						$output = '<div class="mwp-bootstrap">' . ( 
 							$row['bundle_enabled'] ? 
 							'<span data-rules-enabled-toggle="bundle" data-rules-id="' . $row['bundle_id'] . '" class="label label-success rules-pointer">ENABLED</span>' : 
 							'<span data-rules-enabled-toggle="bundle" data-rules-id="' . $row['bundle_id'] . '" class="label label-danger rules-pointer">DISABLED</span>' ) .
 						'</div>';
+						
+						if ( is_multisite() ) {
+							$bundle = Rules\Bundle::load( $row['bundle_id'] );
+							$output .= Rules\Plugin::instance()->getTemplateContent( 'snippets/site-list', [ 'sites' => $bundle->getSites() ] );
+						}
+						
+						return $output;
 					},
 				),
 			),

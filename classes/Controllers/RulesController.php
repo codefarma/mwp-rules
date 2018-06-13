@@ -214,18 +214,8 @@ class _RulesController extends ExportableController
 						}
 						
 						if ( is_multisite() ) {
-							$status .= '<div style="margin-top: 4px">';
-							if ( $rule->sites ) {
-								$sites = explode( ',', $rule->sites );
-								$site_count = count( $sites );
-								$status .= '<span class="label label-info">' . count( $sites ) . ' ' . ( $site_count == 1 ? 'site' : 'sites' ) . '</span>';
-							} else {
-								$status .= '<span class="label label-info">All sites</span>';
-							}
-							$status .= '</div>';
+							$status .= Rules\Plugin::instance()->getTemplateContent( 'snippets/site-list', [ 'sites' => $rule->getSites() ] );
 						}
-						
-						$status .= '</div>';
 						
 						return $status;
 					},
