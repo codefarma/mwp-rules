@@ -412,7 +412,7 @@ class _Bundle extends ExportableRecord
 			)),
 			'bundle_rules' );
 			
-			if ( ! $bundle->app_id ) {
+			if ( ! $this->app_id ) {
 				$form->addTab( 'bundle_advanced', array(
 					'title' => __( 'Advanced', 'mwp-rules' ),
 				));

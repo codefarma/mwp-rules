@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 
 <div class="subrule-actions">
-	<?php echo $controller->getActionsHtml( $actions ) ?>
+	<?php echo $controller->getActionsHtml( isset( $actions ) ? $actions : NULL ) ?>
 </div>
 
 <div class="subrule-table" <?php echo $table->getViewModelAttr() ?>>

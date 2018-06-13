@@ -821,7 +821,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		$controller->setHook( NULL );
 		
 		if ( $container instanceof Bundle ) {
-			$controller->setBundle( $bundle );
+			$controller->setBundle( $container );
 		}
 		else if ( $container instanceof Hook ) {
 			$controller->setHook( $container );
@@ -2019,7 +2019,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			}
 		}
 		
-		foreach( array( 'apps', 'bundles' ) as $container_type ) {
+		foreach( array( 'apps', 'bundles', 'hooks' ) as $container_type ) {
 			if ( isset( $data[ $container_type ] ) and ! empty( $data[ $container_type ] ) ) {
 				foreach( $data[ $container_type ] as $container ) {
 					$logs = $this->getLogsFromExportData( $container, $logs );

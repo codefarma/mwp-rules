@@ -544,7 +544,7 @@ class _Hook extends ExportableRecord
 				if ( isset( $data['rules'] ) and ! empty( $data['rules'] ) ) {
 					foreach( $data['rules'] as $rule ) {
 						$imported_rule_uuids[] = $rule['data']['rule_uuid'];
-						$results = array_merge_recursive( $results, Rule::import( $rule, 0, $bundle->id() ) );
+						$results = array_merge_recursive( $results, Rule::import( $rule ) );
 					}
 				}
 				

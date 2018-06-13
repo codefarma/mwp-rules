@@ -39,6 +39,7 @@ class _HooksController extends ExportableController
 				),
 				'handlers' => [
 					'hook_hook' => function( $row ) {
+						$output = '';
 						switch( $row['hook_type'] ) {
 							case 'action':
 								$output .= '<code class="mwp-bootstrap"><span class="text-success">' . $row['hook_type'] . ':</span></code>';
