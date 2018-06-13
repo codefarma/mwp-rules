@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.0.4] - 2018-06-13
+
+### Added
+
+- New field for custom events to categorize them
+- Providers of ECA's are now tracked in rules exports
+- Custom events and custom actions now have separate management screens
+- Custom actions can have rules assigned to them which comprise their core functionality
+- Added multisite support which moves rules administration to the network admin and allows rules to target specific sites
+
 ## [1.0.3] - 2018-06-01
 
 ### Added

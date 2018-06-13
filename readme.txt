@@ -5,7 +5,7 @@ Tags: rules, automation, programming
 Requires at least: 4.7
 Tested up to: 4.9.6
 Requires PHP: 5.6
-Stable tag: 1.0.2
+Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,16 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
  
 
 == Changelog ==
+ 
+= 1.0.4 =
+
+### Added
+
+- New field for custom events to categorize them
+- Providers of ECA's are now tracked in rules exports
+- Custom events and custom actions now have separate management screens
+- Custom actions can have rules assigned to them which comprise their core functionality
+- Added multisite support which moves rules administration to the network admin and allows rules to target specific sites
  
 = 1.0.3 =
 
