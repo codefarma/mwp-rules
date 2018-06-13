@@ -700,6 +700,7 @@ class _CustomLog extends ExportableRecord
 		if ( ! $controller ) {
 			$controller_config = array(
 				'adminPage' => [ 
+					'for' => is_multisite() ? 'network' : 'site',
 					'type' => 'submenu',
 					'title' => $this->title . ': ' . $class::$lang_plural,
 				],
