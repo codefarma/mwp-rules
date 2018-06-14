@@ -646,8 +646,8 @@ class _System
 						));
 					}
 				),
-				'callback' => function( $saved_values, $event_args, $operation ) {
-					$evaluate = rules_evaluation_closure( array_merge( $event_args, array( 'operation' => $operation ) ) );
+				'callback' => function( $saved_values, $event_args, $operation ) use ( $plugin ) {
+					$evaluate = rules_evaluation_closure( array_merge( array( 'operation' => $operation, 'token_value' => $plugin->createTokenEvaluator( $operation, $event_args ) ), $event_args ) );
 					return $evaluate( $saved_values[ 'rules_custom_phpcode' ] );
 				},
 			)),

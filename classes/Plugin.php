@@ -1935,6 +1935,27 @@ class _Plugin extends \MWP\Framework\Plugin
 		
 		return "Action Scheduled (ID#{$scheduled_action->id})";
 	}
+	
+	/**
+	 * Create a token evaluator closure
+	 *
+	 * @param	GenericOperation		$operation			The operation for the token context
+	 * @param	array					$event_args			The event arguments for the token context
+	 * @return	closure
+	 */
+	public function createTokenEvaluator( $operation, $event_args )
+	{
+		$token_evaluator = function( $tokenized_key ) use ( $operation, $event_args ) {
+			$token = Token::createFromResources( $tokenized_key, $operation->getResources( $event_args ) );
+			try {
+				return $token->getTokenValue();
+			} catch( \ErrorException $e ) { }
+			
+			return NULL;
+		};
+		
+		return $token_evaluator;
+	}
 
 	/**
 	 * Prepare an argument for database storage
