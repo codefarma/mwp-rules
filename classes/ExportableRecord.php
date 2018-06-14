@@ -48,7 +48,7 @@ abstract class _ExportableRecord extends ActiveRecord
 		switch( $action ) {
 			case 'export':
 				$package = Plugin::instance()->createPackage( $records );
-				$package_title = sanitize_title( current_time( 'mysql' ) );
+				$package_title = count( $records ) == 1 ? sanitize_title( $records[0]->title ) : sanitize_title( current_time( 'mysql' ) );
 				header('Content-disposition: attachment; filename=' . $package_title . '-rules.json');
 				header('Content-type: application/json');
 				echo json_encode( $package, JSON_PRETTY_PRINT );
