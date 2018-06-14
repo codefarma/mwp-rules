@@ -289,6 +289,7 @@ class _System
 						'required' => true,
 						'argtypes' => array( 
 							'object' => array( 'description' => 'The url to redirect to', 'classes' => array( 'MWP\Rules\WP\Url' ) ),
+							'string' => array( 'description' => 'The url to redirect to' ),
 						),
 						'configuration' => array(
 							'form' => function( $form, $values ) {
@@ -305,13 +306,17 @@ class _System
 					),
 				),
 				'callback' => function( $status, $url ) {
-					$new_url = (string) $url;
-					if ( $new_url ) {
-						wp_redirect( (string) $url, $status );
-						exit;
+					if ( ! in_array( $GLOBALS['pagenow'], array( 'wp-login.php' ) ) and ! is_admin() ) {
+						$new_url = (string) $url;
+						if ( $new_url ) {
+							wp_redirect( $new_url, $status );
+							exit;
+						}
+					
+						return array( 'success' => false, 'message' => 'Redirect url was empty.' );
 					}
 					
-					return 'Redirect url was empty. Skipped.';
+					return array( 'success' => false, 'message' => 'To help prevent site lockout due to faulty rules, this redirect action is only provided for the front end, and is restricted on the login page.' );
 				},
 			)),
 			
@@ -696,8 +701,8 @@ class _System
 						));
 					}
 				),
-				'callback' => function( $saved_values, $event_args, $operation ) {
-					$evaluate = rules_evaluation_closure( array_merge( $event_args, array( 'operation' => $operation ) ) );
+				'callback' => function( $saved_values, $event_args, $operation ) use ( $plugin ) {
+					$evaluate = rules_evaluation_closure( array_merge( array( 'operation' => $operation, 'token_value' => $plugin->createTokenEvaluator( $operation, $event_args ) ), $event_args ) );
 					return $evaluate( $saved_values[ 'rules_custom_phpcode' ] );
 				},
 			)),
