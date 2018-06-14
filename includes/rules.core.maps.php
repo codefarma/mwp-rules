@@ -4,22 +4,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
+use MWP\Rules\WP;
+
 /**
  * Core Global Arguments
  */
 add_filter( 'rules_global_arguments', function( $globals ) 
 {
 	return array_replace_recursive( $globals, array(
-		/*
 		'current_site' => array(
 			'argtype' => 'object',
 			'class' => 'MWP\Rules\WP\Site',
 			'label' => 'Current Site',
 			'getter' => function() {
-				return \MWP\Rules\WP\Site::instance();
+				return WP\Site::instance();
 			}
 		),
-		*/
 		'current_user' => array(
 			'argtype' => 'object',
 			'class' => 'WP_User',
@@ -50,7 +50,7 @@ add_filter( 'rules_global_arguments', function( $globals )
 			'class' => 'MWP\Rules\WP\Url',
 			'label' => 'Current URL',
 			'getter' => function() {
-				return new \MWP\Rules\WP\Url( add_query_arg() );
+				return new WP\Url( add_query_arg() );
 			}
 		),
 	));
@@ -65,7 +65,92 @@ add_filter( 'rules_class_map', function( $map )
 		'MWP\Rules\WP\Site' => array(
 			'label' => 'Site',
 			'mappings' => array(
-				
+				'name' => array(
+					'argtype' => 'string',
+					'label' => 'Name',
+					'getter' => function( $site ) {
+						return $site->name;
+					}
+				),
+				'description' => array(
+					'argtype' => 'string',
+					'label' => 'Description',
+					'getter' => function( $site ) {
+						return $site->description;
+					}
+				),
+				'wpurl' => array(
+					'argtype' => 'object',
+					'class' => 'MWP\Rules\WP\Url',
+					'label' => 'WordPress Url',
+					'getter' => function( $site ) {
+						return new WP\Url( $site->wpurl );
+					}
+				),
+				'url' => array(
+					'argtype' => 'object',
+					'class' => 'MWP\Rules\WP\Url',
+					'label' => 'Site Url',
+					'getter' => function( $site ) {
+						return new WP\Url( $site->url );
+					}
+				),
+				'admin_email' => array(
+					'argtype' => 'string',
+					'label' => 'Admin Email',
+					'getter' => function( $site ) {
+						return $site->admin_email;
+					}
+				),
+				'charset' => array(
+					'argtype' => 'string',
+					'label' => 'Character Encoding',
+					'getter' => function( $site ) {
+						return $site->charset;
+					}
+				),
+				'text_direction' => array(
+					'argtype' => 'string',
+					'label' => 'Text Direction',
+					'getter' => function( $site ) {
+						return $site->text_direction;
+					}
+				),
+				'language' => array(
+					'argtype' => 'string',
+					'label' => 'Language Code',
+					'getter' => function( $site ) {
+						return $site->language;
+					}
+				),
+				'stylesheet_url' => array(
+					'argtype' => 'string',
+					'label' => 'Active Theme URL',
+					'getter' => function( $site ) {
+						return $site->stylesheet_url;
+					}
+				),
+				'stylesheet_directory' => array(
+					'argtype' => 'string',
+					'label' => 'Active Theme Path',
+					'getter' => function( $site ) {
+						return $site->stylesheet_directory;
+					}
+				),
+				'template_url' => array(
+					'argtype' => 'string',
+					'label' => 'Base Theme URL',
+					'getter' => function( $site ) {
+						return $site->template_url;
+					}
+				),
+				'template_directory' => array(
+					'argtype' => 'string',
+					'label' => 'Base Theme Path',
+					'getter' => function( $site ) {
+						return $site->template_directory;
+					}
+				),
 			),
 		),
 		'MWP\Rules\WP\Url' => array(
@@ -145,7 +230,7 @@ add_filter( 'rules_class_map', function( $map )
 					'getter' => function( $url ) {
 						return $url->getComponent( 'fragment' );
 					}
-				)
+				),
 			),
 		),
 		'DateTime' => array(
