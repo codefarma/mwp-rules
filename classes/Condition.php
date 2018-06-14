@@ -271,6 +271,11 @@ class _Condition extends GenericOperation
 			{
 				$result = $this->opInvoke( func_get_args() );
 			}
+			catch( \Throwable $t )
+			{
+				$this->locked = FALSE;
+				throw $t;
+			}
 			catch( \Exception $e )
 			{
 				$this->locked = FALSE;

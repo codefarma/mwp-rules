@@ -172,9 +172,8 @@ class _Token
 			
 			return $this->stringValue;
 		}
-		catch( \Exception $e ) { 
-		
-		}
+		catch( \Throwable $t ) { }
+		catch( \Exception $e ) { }
 		
 		$this->stringValue = '';
 		return $this->stringValue;

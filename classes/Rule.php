@@ -907,6 +907,12 @@ class _Rule extends ExportableRecord
 						}
 					}
 				}
+				catch( \Throwable $t )
+				{
+					$this->locked = FALSE;
+					$this->recursionCount--;
+					throw $t;
+				}
 				catch( \Exception $e )
 				{
 					$this->locked = FALSE;

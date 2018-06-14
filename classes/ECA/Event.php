@@ -323,14 +323,18 @@ class _Event extends BaseDefinition
 					$plugin->rulesLog( $this, $rule, $action, $result, 'Evaluated' );
 				}
 			}
-			catch( \Exception $e )
-			{
-				/**
-				 * Log Exceptions
-				 */
-				$paths = explode( '/', str_replace( '\\', '/', $e->getFile() ) );
-				$file = array_pop( $paths );
-				$plugin->rulesLog( $this, $action->rule(), $action, $e->getMessage() . '<br>Line: ' . $e->getLine() . ' of ' . $file, 'Operation Callback Exception', 1 );
+			catch( \Throwable $t ) { $exception = $t; }
+			catch( \Exception $e ) { $exception = $e; }
+			finally {
+				if ( isset( $exception ) ) {
+					/**
+					 * Log Exceptions
+					 */
+					$paths = explode( '/', str_replace( '\\', '/', $exception->getFile() ) );
+					$file = array_pop( $paths );
+					$plugin->rulesLog( $this, $action->rule(), $action, $exception->getMessage() . '<br>Line: ' . $exception->getLine() . ' of ' . $file, 'Operation Callback Exception', 1 );
+					unset( $exception );
+				}
 			}
 		}
 		

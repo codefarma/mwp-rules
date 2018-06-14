@@ -146,7 +146,10 @@ class _ScheduledAction extends ActiveRecord
 								$plugin->rulesLog( $event, $rule, $action, $result, 'Evaluated' );
 							}
 						}
-						catch ( \Exception $e ) {
+						catch( \Throwable $t ) {
+							$plugin->rulesLog( $event, $action->rule(), $action, $t->getMessage(), 'Error Exception', 1 );
+						}
+						catch( \Exception $e ) {
 							$plugin->rulesLog( $event, $action->rule(), $action, $e->getMessage(), 'Error Exception', 1 );
 						}
 					}

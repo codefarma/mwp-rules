@@ -351,28 +351,19 @@ abstract class _GenericOperation extends ExportableRecord
 		{
 			$arg_map         = array();
 			$operation_args  = array();
-			$event_arg_index = array();
 			$i               = 0;
 			$event           = $this->event();
 			$opkey           = $this->getFormKey();
-			$operation       = $this; 
+			$operation       = $this;
 			
 			/* Name and index all the event arguments */
 			if ( isset( $event->arguments ) and count( $event->arguments ) ) {
 				foreach ( $event->arguments as $event_arg_name => $event_arg ) {
-					$arg_map[ $event_arg_name ] = $args[ $i ];
-					$event_arg_index[ $event_arg_name ] = $i++;
+					$arg_map[ $event_arg_name ] = $args[ $i++ ];
 				}
 			}
 			
-			$token_value_getter = function( $tokenized_key ) use ( $operation, $arg_map ) {
-				$token = Token::createFromResources( $tokenized_key, $operation->getResources( $arg_map ) );
-				try {
-					return $token->getTokenValue();
-				} catch( \ErrorException $e ) { }
-				
-				return NULL;
-			};
+			$token_value_getter = $rulesPlugin->createTokenEvaluator( $operation, $arg_map );
 			
 			try
 			{
@@ -773,15 +764,19 @@ abstract class _GenericOperation extends ExportableRecord
 						
 						return $result;
 					}
-					catch ( \Exception $e ) 
-					{
-						/**
-						 * Log exceptions that happen during operation execution
-						 */
-						$event = $this->rule() ? $this->rule()->event() : NULL;
-						$paths = explode( '/', str_replace( '\\', '/', $e->getFile() ) );
-						$file = array_pop( $paths );
-						$rulesPlugin->rulesLog( $event, $this->rule(), $this, $e->getMessage() . '<br>Line: ' . $e->getLine() . ' of ' . $file, 'Operation Callback Exception', 1 );
+					catch ( \Throwable $t ) { $exception = $t; }
+					catch ( \Exception $e ) { $exception = $e; }
+					finally {
+						if ( isset( $exception ) ) {
+							/**
+							 * Log uncaught exceptions that happen during operation execution
+							 */
+							$event = $this->rule() ? $this->rule()->event() : NULL;
+							$paths = explode( '/', str_replace( '\\', '/', $exception->getFile() ) );
+							$file = array_pop( $paths );
+							$rulesPlugin->rulesLog( $event, $this->rule(), $this, $exception->getMessage() . '<br>Line: ' . $exception->getLine() . ' of ' . $file, 'Operation Callback Exception', 1 );
+							unset( $exception );
+						}
 					}
 				}
 				else
@@ -792,15 +787,19 @@ abstract class _GenericOperation extends ExportableRecord
 					}
 				}
 			}
-			catch ( \Exception $e )
-			{
-				/**
-				 * Log exceptions that happen during argument preparation
-				 */
-				$event = $this->rule() ? $this->rule()->event() : NULL;
-				$paths = explode( '/', str_replace( '\\', '/', $e->getFile() ) );
-				$file = array_pop( $paths );
-				$rulesPlugin->rulesLog( $event, $this->rule(), $this, $e->getMessage() . '<br>Line: ' . $e->getLine() . ' of ' . $file, "Argument Callback Exception ({$arg_name})", 1 );
+			catch ( \Throwable $t ) { $exception = $t; }
+			catch ( \Exception $e ) { $exception = $e; }
+			finally {
+				if ( isset( $exception ) ) {
+					/**
+					 * Log uncaught exceptions that happen during argument preparation
+					 */
+					$event = $this->rule() ? $this->rule()->event() : NULL;
+					$paths = explode( '/', str_replace( '\\', '/', $exception->getFile() ) );
+					$file = array_pop( $paths );
+					$rulesPlugin->rulesLog( $event, $this->rule(), $this, $exception->getMessage() . '<br>Line: ' . $exception->getLine() . ' of ' . $file, "Argument Callback Exception ({$arg_name})", 1 );
+					unset( $exception );
+				}
 			}
 		}
 		else
@@ -870,6 +869,9 @@ abstract class _GenericOperation extends ExportableRecord
 				
 				try {
 					return (string) $token;
+				}
+				catch( \Throwable $t ) {
+					return $t->getMessage();
 				}
 				catch( \Exception $e ) {
 					return $e->getMessage();
