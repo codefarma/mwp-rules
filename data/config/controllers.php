@@ -134,7 +134,9 @@ return [
 	'rules_logs' => [
 		'adminPage' => [ 
 			'for' => $for,
-			'type' => 'submenu', 
+			'type' => 'submenu',
+			'menu' => __( 'System Log', 'mwp-rules' ),
+			'parent' => 'mwp-rules',
 		],
 	],
 	
