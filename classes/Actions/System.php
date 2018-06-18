@@ -306,7 +306,7 @@ class _System
 					),
 				),
 				'callback' => function( $status, $url ) {
-					if ( ! in_array( $GLOBALS['pagenow'], array( 'wp-login.php' ) ) and ! is_admin() ) {
+					if ( ! in_array( $GLOBALS['pagenow'], array( 'wp-login.php' ) ) and ! is_admin() and ! is_network_admin() ) {
 						$new_url = (string) $url;
 						if ( $new_url ) {
 							wp_redirect( $new_url, $status );
