@@ -74,10 +74,10 @@ $rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0 AND rule_c
 					<?php if ( count( $rule->children() ) > 0 ) { ?> <strong>+ <?php echo count( $rule->children() ) ?> <a href="<?php echo $rule->url(['_tab'=>'rule_subrules']) ?>">Sub-rules</a></strong><?php } ?>
 				</td>
 				<td class="text-right">
+					<?php echo ( $rule->debug ? ' <a href="' . $rule->url(['_tab'=>'rule_debug_console']) . '" class="nounderline"><span class="text-warning">(debug)</span></a>' : '' ) ?> 
 					<span class="label label-<?php echo $rule->enabled ? 'success' : 'danger' ?> rules-pointer" data-rules-enabled-toggle="rule" data-rules-id="<?php echo $rule->id() ?>">
 						<?php echo $rule->enabled ? 'ENABLED' : 'DISABLED' ?>
 					</span> 
-					<?php echo ( $rule->debug ? ' <a href="' . $rule->url(['_tab'=>'rule_debug_console']) . '" class="nounderline"><span class="text-warning">(debug)</span></a>' : '' ) ?>
 				</td>
 			</tr>
 			</tr>

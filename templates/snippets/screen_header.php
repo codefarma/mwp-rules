@@ -46,6 +46,7 @@ use MWP\Rules;
 
 <div class="rules-header header color-overlay" style="background: rgb(51, 122, 183) none repeat scroll 0% 0%; position: relative;">
 	<div class="inner-header-links mwp-bootstrap">
+		<!-- <i class="glyphicon glyphicon-cog"></i> <a href="javascript:;" onclick="jQuery('.screen-meta-toggle #show-settings-link').click();" style="margin-right:15px">Screen Options</a> -->
 		<i class="glyphicon glyphicon-question-sign"></i> <a target="_blank" href="https://www.codefarma.com/docs/rules-user">Get Help</a>
 	</div>
 	<div class="inner-header-description gridContainer">
