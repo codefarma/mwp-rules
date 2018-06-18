@@ -637,6 +637,10 @@ class _Rule extends ExportableRecord
 			$_values['sites'] = '';
 		}
 		
+		if ( isset( $values['rule_conditions']['base_compare'] ) ) {
+			$_values['base_compare'] = $values['rule_conditions']['base_compare'];
+		}
+		
 		if ( isset( $_values['event'] ) ) {
 			$event_parts = explode( '/', $_values['event'] );
 			$type = array_shift( $event_parts );
