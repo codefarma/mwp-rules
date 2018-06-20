@@ -5,7 +5,7 @@ Tags: rules, automation, programming
 Requires at least: 4.7
 Tested up to: 4.9.6
 Requires PHP: 5.6
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,7 +51,26 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
  
 
 == Changelog ==
- 
+
+= 1.0.5 =
+
+### Added
+
+- Full exception handling for PHP7
+- Token mappings for current site properties
+- Added a link to get to the system log in the admin menu
+
+### Changed
+
+- The redirect rules action is now safeguarded against redirecting when in the admin interface
+- Downloads of rules now auto name the file according to the item being downloaded
+- The view template for custom logs now display their field name instead of the database column name
+
+### Fixed
+
+- Error caused when using the token evaluator function in custom php actions/conditions
+- Base compare setting for conditions was not saving to the rule
+
 = 1.0.4 =
 
 ### Added

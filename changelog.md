@@ -6,6 +6,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.0.5] - 2018-06-20
+
+### Added
+
+- Full exception handling for PHP7
+- Token mappings for current site properties
+- Added a link to get to the system log in the admin menu
+
+### Changed
+
+- The redirect rules action is now safeguarded against redirecting when in the admin interface
+- Downloads of rules now auto name the file according to the item being downloaded
+- The view template for custom logs now display their field name instead of the database column name
+
+### Fixed
+
+- Error caused when using the token evaluator function in custom php actions/conditions
+- Base compare setting for conditions was not saving to the rule
+
 ## [1.0.4] - 2018-06-13
 
 ### Added
