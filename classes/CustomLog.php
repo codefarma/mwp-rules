@@ -657,6 +657,16 @@ class _CustomLog extends ExportableRecord
 	}
 	
 	/**
+	 * Get the custom language used for the log message
+	 *
+	 * @return	string
+	 */
+	public function getMessageLang()
+	{
+		return ( isset( $this->data['message_lang'] ) and $this->data['message_lang'] ) ? $this->data['message_lang'] : 'Message';	
+	}
+	
+	/**
 	 * Get log entry record class
 	 *
 	 * @return	string
@@ -671,14 +681,16 @@ class _CustomLog extends ExportableRecord
 				class CustomLogEntry{$this->id()} extends CustomLogEntry {
 					protected static \$multitons = array();
 					protected \$log_id = {$this->id()};
-					public static \$table = \"rules_custom_log_{$this->id()}\";
+					protected static \$table = \"rules_custom_log_{$this->id()}\";
 					public static \$columns = array(
-						'id',
-						'timestamp',
-						'message',
+						'id' => [ 'title' => 'ID' ],
+						'timestamp' => [ 'title' => 'Date/Time' ],
+						'message' => [ 'title' => 'Message' ],
 					);
-				}			
-			");			
+				}
+			");
+			
+			$class::$columns['message']['title'] = $this->getMessageLang();
 		}
 		
 		return $class;
@@ -695,8 +707,6 @@ class _CustomLog extends ExportableRecord
 		$controller = $class::getController( 'admin' );
 		$log = $this;
 		
-		$message_lang = ( isset( $this->data['message_lang'] ) and $this->data['message_lang'] ) ? $this->data['message_lang'] : 'Message';
-		
 		if ( ! $controller ) {
 			$controller_config = array(
 				'adminPage' => [ 
@@ -707,7 +717,7 @@ class _CustomLog extends ExportableRecord
 				'tableConfig' => array(
 					'columns' => array(
 						'entry_timestamp' => __( 'Date/Time', 'mwp-rules' ),
-						'entry_message' => __( $message_lang, 'mwp-rules' ),
+						'entry_message' => __( $this->getMessageLang(), 'mwp-rules' ),
 					),
 					'handlers' => array(
 						'entry_timestamp' => function( $row ) {
@@ -720,14 +730,13 @@ class _CustomLog extends ExportableRecord
 			$display_columns = ( isset( $this->data['field_visibility'] ) and ! empty( $this->data['field_visibility'] ) ) ? $this->data['field_visibility'] : array( 'timestamp', 'message' );
 			
 			foreach( $this->getArguments() as $argument ) 
-			{
-				if ( in_array( $argument->type, array( 'mixed', 'array', 'object' ) ) ) {
-					$class::$columns[ 'col_' . $argument->id() ] = array( 'format' => 'JSON' );
-				} else {
-					$class::$columns[] = 'col_' . $argument->id();
-				}
-				
+			{				
 				$column_name = $argument->getColumnName();
+				
+				$class::$columns[ 'col_' . $argument->id() ] = array(
+					'title' => $argument->title,
+					'format' => in_array( $argument->type, array( 'mixed', 'array', 'object' ) ) ? 'JSON' : NULL,
+				);
 				
 				if ( in_array( $column_name, $display_columns ) ) {
 					$controller_config['tableConfig']['columns'][ $class::$prefix . 'col_' . $argument->id() ] = $argument->title;
