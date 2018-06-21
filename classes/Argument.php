@@ -255,6 +255,18 @@ class _Argument extends ExportableRecord
 	}
 
 	/**
+	 * Replace Tokens 
+	 * 
+	 * @param 	string		$string				The string with possible tokens to replace
+	 * @param	array		$arg_map			The argument map of starting values to use with tokens
+	 * @return	string							The string with tokens replaced
+	 */
+	public function replaceTokens( $string, $arg_map )
+	{	
+		return $string;
+	}
+
+	/**
 	 * Get controller actions
 	 *
 	 * @return	array
@@ -957,7 +969,7 @@ class _Argument extends ExportableRecord
 		
 		if ( isset( $preset['getArg'] ) and is_callable( $preset['getArg'] ) ) {
 			$getArg = $preset['getArg'];
-			return $getArg( $saved_values, $this );
+			return $getArg( $saved_values, [], $this );
 		}
 		
 		return NULL;
