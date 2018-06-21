@@ -24,7 +24,7 @@ return <<<'JSON'
         "rules_custom_logs"
     ],
     "ms_tables": [
-		"rules_scheduled_actions"
-	]
+        "rules_scheduled_actions"
+    ]
 }
 JSON;

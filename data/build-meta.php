@@ -1,7 +1,7 @@
 <?php
 return <<<'JSON'
 {
-    "framework_version": "2.0.8",
+    "framework_version": "2.0.8.1",
     "framework_bundled": true,
     "tables": [
         {
@@ -1739,158 +1739,6 @@ return <<<'JSON'
             }
         },
         {
-            "name": "rules_scheduled_actions",
-            "columns": {
-                "schedule_id": {
-                    "allow_null": false,
-                    "auto_increment": true,
-                    "binary": false,
-                    "decimals": null,
-                    "default": null,
-                    "length": 20,
-                    "name": "schedule_id",
-                    "type": "BIGINT",
-                    "unsigned": true,
-                    "values": [],
-                    "zerofill": false
-                },
-                "schedule_time": {
-                    "allow_null": false,
-                    "auto_increment": false,
-                    "binary": false,
-                    "decimals": null,
-                    "default": "0",
-                    "length": 11,
-                    "name": "schedule_time",
-                    "type": "INT",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                },
-                "schedule_data": {
-                    "allow_null": true,
-                    "auto_increment": false,
-                    "binary": false,
-                    "collation": "utf8mb4_unicode_ci",
-                    "decimals": null,
-                    "default": null,
-                    "length": 0,
-                    "name": "schedule_data",
-                    "type": "MEDIUMTEXT",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                },
-                "schedule_unique_key": {
-                    "allow_null": true,
-                    "auto_increment": false,
-                    "binary": false,
-                    "collation": "utf8mb4_unicode_ci",
-                    "decimals": null,
-                    "default": null,
-                    "length": 2056,
-                    "name": "schedule_unique_key",
-                    "type": "VARCHAR",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                },
-                "schedule_action_id": {
-                    "allow_null": false,
-                    "auto_increment": false,
-                    "binary": false,
-                    "decimals": null,
-                    "default": "",
-                    "length": 11,
-                    "name": "schedule_action_id",
-                    "type": "INT",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                },
-                "schedule_queued": {
-                    "allow_null": false,
-                    "auto_increment": false,
-                    "binary": false,
-                    "decimals": null,
-                    "default": "0",
-                    "length": 11,
-                    "name": "schedule_queued",
-                    "type": "INT",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                },
-                "schedule_thread": {
-                    "allow_null": true,
-                    "auto_increment": false,
-                    "binary": false,
-                    "collation": "utf8mb4_unicode_ci",
-                    "decimals": null,
-                    "default": null,
-                    "length": 255,
-                    "name": "schedule_thread",
-                    "type": "VARCHAR",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                },
-                "schedule_parent_thread": {
-                    "allow_null": true,
-                    "auto_increment": false,
-                    "binary": false,
-                    "collation": "utf8mb4_unicode_ci",
-                    "decimals": null,
-                    "default": null,
-                    "length": 255,
-                    "name": "schedule_parent_thread",
-                    "type": "VARCHAR",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                },
-                "schedule_created": {
-                    "allow_null": false,
-                    "auto_increment": false,
-                    "binary": false,
-                    "decimals": null,
-                    "default": "0",
-                    "length": 11,
-                    "name": "schedule_created",
-                    "type": "INT",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                },
-                "schedule_custom_id": {
-                    "allow_null": true,
-                    "auto_increment": false,
-                    "binary": false,
-                    "collation": "utf8mb4_unicode_ci",
-                    "decimals": null,
-                    "default": "0",
-                    "length": 11,
-                    "name": "schedule_custom_id",
-                    "type": "VARCHAR",
-                    "unsigned": false,
-                    "values": [],
-                    "zerofill": false
-                }
-            },
-            "indexes": {
-                "PRIMARY": {
-                    "type": "primary",
-                    "name": "PRIMARY",
-                    "length": [
-                        null
-                    ],
-                    "columns": [
-                        "schedule_id"
-                    ]
-                }
-            }
-        },
-        {
             "name": "rules_custom_logs",
             "columns": {
                 "custom_log_id": {
@@ -2183,6 +2031,160 @@ return <<<'JSON'
                     ],
                     "columns": [
                         "custom_log_uuid"
+                    ]
+                }
+            }
+        }
+    ],
+    "ms_tables": [
+        {
+            "name": "rules_scheduled_actions",
+            "columns": {
+                "schedule_id": {
+                    "allow_null": false,
+                    "auto_increment": true,
+                    "binary": false,
+                    "decimals": null,
+                    "default": null,
+                    "length": 20,
+                    "name": "schedule_id",
+                    "type": "BIGINT",
+                    "unsigned": true,
+                    "values": [],
+                    "zerofill": false
+                },
+                "schedule_time": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "schedule_time",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "schedule_data": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 0,
+                    "name": "schedule_data",
+                    "type": "MEDIUMTEXT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "schedule_unique_key": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 2056,
+                    "name": "schedule_unique_key",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "schedule_action_id": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "",
+                    "length": 11,
+                    "name": "schedule_action_id",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "schedule_queued": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "schedule_queued",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "schedule_thread": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 255,
+                    "name": "schedule_thread",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "schedule_parent_thread": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": null,
+                    "length": 255,
+                    "name": "schedule_parent_thread",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "schedule_created": {
+                    "allow_null": false,
+                    "auto_increment": false,
+                    "binary": false,
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "schedule_created",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "schedule_custom_id": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "decimals": null,
+                    "default": "0",
+                    "length": 11,
+                    "name": "schedule_custom_id",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                }
+            },
+            "indexes": {
+                "PRIMARY": {
+                    "type": "primary",
+                    "name": "PRIMARY",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "schedule_id"
                     ]
                 }
             }
