@@ -152,7 +152,7 @@ class _ArgumentsController extends ActiveRecordController
 							$default_values = (array) $default_values;
 							$value = array_shift( $default_values );
 							if ( ! is_array( $value ) or is_object( $value ) ) {
-								return '<a href="' . $argument->url([ 'do' => 'set_default' ]) . '">' . ( $value ? esc_html( (string) $value ) : '--' ) . '</a>';
+								return '<a href="' . $argument->url([ 'do' => 'set_default' ]) . '">' . ( $value !== NULL ? esc_html( (string) $value ) : '--' ) . '</a>';
 							}
 						}
 						
