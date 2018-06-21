@@ -144,6 +144,20 @@ class _System
 				'group' => 'Output',
 			)),
 			
+			/* WP Headers */
+			array( 'filter', 'wp_headers', array(
+				'title' => 'Headers Are Being Filtered And Sent',
+				'description' => 'This filter is used to get all of the headers that WordPress outputs for a page.',
+				'group' => 'Output',
+				'arguments' => array(
+					'headers' => array(
+						'argtype' => 'array',
+						'label' => 'Headers',
+						'description' => 'An array of the headers that will be sent',
+					),
+				),
+			)),
+			
 			/* Document Title */
 			array( 'filter', 'document_title_parts', array(
 				'title' => 'Document Title Is Filtered',
