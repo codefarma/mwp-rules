@@ -1277,6 +1277,23 @@ class _Plugin extends \MWP\Framework\Plugin
 					},
 				),
 			),
+			'checkbox' => array(
+				'label' => 'Checkbox',
+				'config' => array(
+					'form' => function( $name, $form, $values, $argument ) {
+						$form->addField( $name . '_placeholder', 'checkbox', array(
+							'label' => __( 'Placeholder', 'mwp-rules' ),
+							'data' => isset( $values[ $name . '_placeholder' ] ) ? (bool) $values[ $name . '_placeholder' ] : false,
+							'value' => 1,
+						));
+					},
+					'getConfig' => function( $name, $values, $argument ) {
+						return array(
+							'attr' => array( 'placeholder' => isset( $values[ $name . '_placeholder' ] ) ? $values[ $name . '_placeholder' ] : '' ),
+						);
+					},
+				),
+			),
 			'choice' => array(
 				'label' => 'Choice Field',
 				'config' => array(
@@ -1322,7 +1339,7 @@ class _Plugin extends \MWP\Framework\Plugin
 							'required' => false,
 						));
 					},
-					'getConfig' => function( $name, $values, $argument ) {
+					'getConfig' => function( $name, $values, $argument ) use ( $plugin ) {
 						$options_source = isset( $values[ $name . '_options_source' ] ) ? $values[ $name . '_options_source' ] : NULL;
 						$choices = array();
 						
@@ -1330,7 +1347,7 @@ class _Plugin extends \MWP\Framework\Plugin
 							case 'manual':
 								$preset = $plugin->configPreset( 'key_array', $name . '_options_manual', [] );
 								if ( isset( $preset['getArg'] ) and is_callable( $preset['getArg'] ) ) {
-									$choices = call_user_func( $preset['getArg'], $values, $argument );
+									$choices = array_flip( call_user_func( $preset['getArg'], $values, [], $argument ) );
 								}
 								break;
 							case 'phpcode':
@@ -1742,7 +1759,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$meta_values = array();
+						$key_array = array();
 						$strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
 						foreach( $strings as $string ) {
 							if ( strpos( $string, ':' ) !== false ) {
@@ -1750,12 +1767,12 @@ class _Plugin extends \MWP\Framework\Plugin
 								$key = trim( array_shift( $pieces ) );
 								$value = trim( implode( ':', $pieces ) );
 								if ( $key or strval( $key ) === '0' ) {
-									$meta_values[ $key ] = $value;
+									$key_array[ $key ] = $value;
 								}
 							}
 						}
 						
-						return $meta_values;
+						return $key_array;
 					}
 				);
 				break;
