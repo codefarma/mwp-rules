@@ -118,8 +118,9 @@ class _System
 							'string' => array( 'description' => 'an individual email address, or comma delimited list of addresses to send mail to' ),
 						),
 						'configuration' => array(
-							'form' => function( $form, $values ) {
+							'form' => function( $form, $values, $operation ) {
 								$form->addField( 'rules_email_to', 'textarea', array(
+									'field_prefix' => $operation->getTokenSelector(),
 									'label' => __( 'Email Recipients', 'mwp-rules' ),
 									'description' => __( 'Enter a comma delimited list of email addresses.', 'mwp-rules' ),
 									'data' => isset( $values['rules_email_to'] ) ? $values['rules_email_to'] : '',
@@ -136,8 +137,9 @@ class _System
 						'required' => true,
 						'argtypes' => array( 'string' => array( 'description' => 'The email subject line to send' ) ),
 						'configuration' => array(
-							'form' => function( $form, $values ) {
+							'form' => function( $form, $values, $operation ) {
 								$form->addField( 'rules_email_subject', 'text', array( 
+									'field_prefix' => $operation->getTokenSelector(),
 									'label' => __( 'Email Subject', 'mwp-rules' ),
 									'data' => isset( $values['rules_email_subject'] ) ? $values['rules_email_subject'] : '',
 								));

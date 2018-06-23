@@ -14,6 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
+use MWP\Framework\Framework;
+
 /**
  * AjaxHandlers Class
  */
@@ -152,7 +154,6 @@ class _AjaxHandlers extends \MWP\Framework\Pattern\Singleton
 		wp_send_json( array( 'success' => false, 'message' => 'Invalid request.' ) );
 	}
 	
-	
 	/**
 	 * Load a set of available tokens
 	 *
@@ -162,6 +163,139 @@ class _AjaxHandlers extends \MWP\Framework\Pattern\Singleton
 	 */
 	public function getTokens()
 	{
+		check_ajax_referer( 'mwp-ajax-nonce', 'nonce' );
 		
+		$plugin = $this->getPlugin();
+		$request = Framework::instance()->getRequest();
+		$self = $this;
+		
+		/* Get derivative arguments when drilling down */
+		if ( $argument = $request->get('argument') ) 
+		{
+			$nodes = array();
+			if ( $derivatives = $plugin->getDerivativeTokens( $argument, NULL, 1, TRUE ) ) {
+				$nodes = array_map( array( $this, 'getNode' ), array_keys( $derivatives ), $derivatives );
+			}
+			
+			wp_send_json( array( 
+				'success' => true, 
+				'nodes' => $nodes,
+			));
+		}
+		else 
+		{
+			$bundle = NULL;
+			$event = NULL;
+			$nodes = [];
+			
+			/* Event Tokens */
+			if ( $event_type = $request->get('event_type') and $event_hook = $request->get('event_hook') ) {
+				if ( $event = $plugin->getEvent( $event_type, $event_hook ) ) {
+					if ( $event->arguments ) {
+						$nodes[] = [
+							'text' => 'Event Data',
+							'selectable' => false,
+							'token' => 'event',
+							'state' => [ 'opened' => true ],
+							'children' => array_map( array( $this, 'getNode' ), array_keys( $event->arguments ), $event->arguments ),
+						];
+					}
+				}
+			}
+			
+			/* Bundle Tokens */
+			if ( $bundle_id = $request->get('bundle_id') ) {
+				try { 
+					$bundle = Bundle::load( $bundle_id );
+					$nodes[] = [
+						'text' => 'Bundle Data',
+						'selectable' => false,
+						'token' => 'bundle',
+						'state' => [ 'opened' => true ],
+						'children' => array_map( array( $this, 'getNode' ), array_column( $bundle->getArguments(), 'varname' ), array_map( function($a) { return $a->getProvidesDefinition(); }, $bundle->getArguments() ) ),
+					];
+				}
+				catch( \OutOfRangeException $e ) { }
+			}
+			
+			/* Global Tokens */
+			$nodes[] = [ 
+				'text' => 'Global Data',
+				'selectable' => false,
+				'token' => 'global',
+				'state' => [ 'opened' => true ],
+				'children' => array_map( array( $this, 'getNode' ), array_keys( $plugin->getGlobalArguments() ), $plugin->getGlobalArguments() ),
+			];
+			
+			/* Load heirarchy for a pre-selected token path if possible */
+			if ( $selected = $request->get('selected') ) {
+				$tokens = explode( ':', $selected );
+				$arg_group = array_shift( $tokens );
+				
+				/* Prepare to walk */
+				foreach( $nodes as &$group ) {
+					if ( $group['token'] == $arg_group ) {
+						$_nodes = &$group['children'];
+						break;
+					}
+				}
+				
+				while( $token = array_shift( $tokens ) ) {
+					foreach( $_nodes as &$node ) {
+						if ( $node['token'] == $token ) {
+							$derivatives = $plugin->getDerivativeTokens( $node['argument'], NULL, 1, TRUE );
+							$node['children'] = array_map( array( $this, 'getNode' ), array_keys( $derivatives ), $derivatives );
+							$node['state']['opened'] = true;
+							$node['state']['selected'] = empty( $tokens );
+							$_nodes = &$node['children'];
+							break;
+						}
+					}
+				}
+			}
+			
+			wp_send_json( array(
+				'success' => true,
+				'nodes' => $nodes,
+			));
+		}
+		
+		wp_send_json( array( 'success' => false ) );
+	}
+	
+	/**
+	 * Get a node for the tree json
+	 *
+	 * @param	string		$arg_name			The argument token key
+	 * @param	array		$argument			The argument details
+	 * @return	array
+	 */
+	public function getNode( $arg_name, $argument )
+	{
+		$request = Framework::instance()->getRequest();
+		$target = $request->get('target');
+		$plugin = $this->getPlugin();
+		$compliant = $plugin->isArgumentCompliant( $argument, $target );
+		
+		/* Unset complex data */
+		unset( $argument['getter'] );
+		unset( $argument['keys'] );
+		
+		$node = [ 
+			'text' => $arg_name, 
+			'argument' => $argument,
+			'token' => $arg_name,
+			'type' => $argument['argtype'],
+			'children' => (bool) $plugin->getDerivativeTokens( $argument, NULL, 1, TRUE ),
+			'selectable' => $compliant,
+			'a_attr' => [ 
+				'class' => $compliant ? 'selectable' : 'unselectable', 
+				'title' => ( isset( $argument['label'] ) ? $argument['label'] . ' ' : '' ) 
+					. '(' . $argument['argtype'] . ')' 
+					. ( isset( $argument['class'] ) && $argument['class'] ? '[' . $argument['class'] . ']' : '' )
+			],
+		];
+		
+		return $node;		
 	}
 }

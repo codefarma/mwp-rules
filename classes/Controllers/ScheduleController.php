@@ -14,12 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use MWP\Framework\Helpers\ActiveRecordController;
-
 /**
  * Schedule Controller Class
  */
-class _ScheduleController extends ActiveRecordController
+class _ScheduleController extends BaseController
 {
 	/**
 	 * Default controller configuration

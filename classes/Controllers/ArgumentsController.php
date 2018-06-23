@@ -14,14 +14,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use MWP\Framework\Helpers\ActiveRecordController;
 use MWP\Framework\Pattern\ActiveRecord;
 use MWP\Rules;
 
 /**
  * ArgumentsController Class
  */
-class _ArgumentsController extends ActiveRecordController
+class _ArgumentsController extends BaseController
 {
 	/**
 	 * @var  ing
@@ -196,6 +195,8 @@ class _ArgumentsController extends ActiveRecordController
 			wp_redirect( $parent->_getController()->getUrl( array( 'id' => $parent->id(), 'do' => 'edit', '_tab' => 'arguments' ) ) );
 			exit;
 		}
+		
+		parent::init();
 	}
 	
 	/**

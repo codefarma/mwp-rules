@@ -14,7 +14,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use MWP\Framework\Helpers\ActiveRecordController;
 use MWP\Rules\Hook;
 
 /**

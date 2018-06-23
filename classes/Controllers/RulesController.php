@@ -133,6 +133,8 @@ class _RulesController extends ExportableController
 				exit;				
 			}
 		}
+		
+		parent::init();
 	}
 	
 	/**

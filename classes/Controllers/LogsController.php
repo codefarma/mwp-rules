@@ -14,12 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use MWP\Framework\Helpers\ActiveRecordController;
-
 /**
  * Rules Class
  */
-class _LogsController extends ActiveRecordController
+class _LogsController extends BaseController
 {
 	/**
 	 * Default controller configuration

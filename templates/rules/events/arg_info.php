@@ -23,6 +23,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
+$strtolower = is_callable( 'mb_strtolower' ) ? 'mb_strtolower' : 'strtolower';
+
 ?>
 
 <div class="event-argument-info">
@@ -30,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<ul>
 		<?php foreach ( $event->arguments as $_event_arg_name => $_event_arg ) : ?>
 			<li>
-				<code>$<?php echo $_event_arg_name ?></code> (<?php echo $_event_arg['argtype'] ?>) - <?php echo ( isset( $_event_arg['description'] ) ? ucfirst( mb_strtolower( $_event_arg['description'] ) ) : '' ) . ( ( isset( $_event_arg[ 'nullable' ] ) and $_event_arg[ 'nullable' ] ) ? " ( may be NULL )" : "" ) ?>
+				<code>$<?php echo $_event_arg_name ?></code> (<?php echo $_event_arg['argtype'] ?>) - <?php echo ( isset( $_event_arg['description'] ) ? ucfirst( $strtolower( $_event_arg['description'] ) ) : '' ) . ( ( isset( $_event_arg[ 'nullable' ] ) and $_event_arg[ 'nullable' ] ) ? " ( may be NULL )" : "" ) ?>
 				<?php if ( $_event_arg['argtype'] == 'array' and isset( $_event_arg['keys']['mappings'] ) and ! empty( $_event_arg['keys']['mappings'] ) ) : ?>
 					<ul class="array-keys">
 					<?php foreach( $_event_arg['keys']['mappings'] as $key_name => $key ) : ?>

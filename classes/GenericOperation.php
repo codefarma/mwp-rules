@@ -223,6 +223,7 @@ abstract class _GenericOperation extends ExportableRecord
 					if ( ! empty( $usable_event_data ) ) 
 					{
 						$form->addField( $argNameKey . '_eventArg', 'text', array(
+							'field_prefix' => $operation->getDataSelector( $arg_name ),
 							'row_attr' => array( 'id' => $argNameKey . '_eventArg', 'data-view-model' => 'mwp-rules' ),
 							'attr' => array( 'data-role' => 'token-select', 'data-opkey' => $optype, 'data-opid' => $operation->id(), 'data-bind' => 'jquery: { 
 								selectize: {
@@ -237,7 +238,6 @@ abstract class _GenericOperation extends ExportableRecord
 								}
 							}'),
 							'label' => __( 'Data To Use', 'mwp-rules' ),
-							//'choices' => $usable_event_data,
 							'required' => true,
 							'data' => ( isset( $operation->data[ $argNameKey . '_eventArg' ] ) and $operation->data[ $argNameKey . '_eventArg' ] ) ? $operation->data[ $argNameKey . '_eventArg' ] : reset( $usable_event_data ),
 						));
@@ -927,6 +927,11 @@ abstract class _GenericOperation extends ExportableRecord
 		return NULL;
 	}
 	
+	/**
+	 * Get the attached event
+	 *
+	 * @return	MWP\Rules\ECA\Event|NULL
+	 */
 	public function getEvent()
 	{
 		return $this->event();
@@ -967,5 +972,86 @@ abstract class _GenericOperation extends ExportableRecord
 	{
 		return preg_replace('/[^\da-z]/i', '-', $this->key );
 	}
-
+	
+	/**
+	 * Get the data selector button for this operation
+	 *
+	 * @param	string		$arg_name			The name of an argument if this will be used to select an input to it
+	 * @param	array		$config				Custom config options for the dialog
+	 * @param	array		$params				Custom params for the browser
+	 * @return	string
+	 */
+	public function getDataSelector( $arg_name, $config=[], $params=[] )
+	{
+		if ( $event = $this->getEvent() ) {
+			$params['event_type'] = $event->type;
+			$params['event_hook'] = $event->hook;
+		}
+		
+		if ( $bundle = $this->getBundle() ) {
+			$params['bundle_id'] = $bundle->id();
+		}
+		
+		$params = array_merge( array( 'target' => array( 'argtypes' => [ 'string', 'float', 'int', 'bool' ] ) ), $params );
+		$default_title = __( 'Browse Data Replacement Tokens', 'mwp-rules' );
+		$default_done_label = __( 'Insert', 'mwp-rules' );
+		$wrap_tokens = true;
+		$default_callback = "function( node, tokens, tree, dialog ) { 
+			jQuery(this)
+				.closest('.form-group.row')
+				.find('input[type=text],textarea').eq(0)
+				.insertAtCaret( '{{' + tokens.join(':') + '}}' )
+		}";
+		
+		if ( $arg_name ) {
+			$definition = $this->definition();
+			if ( isset( $definition->arguments[ $arg_name ] ) ) {
+				$arg = $definition->arguments[ $arg_name ];
+				$default_title = __( 'Choose the data to use for ', 'mwp-rules' ) . ( isset( $arg['label'] ) ? $arg['label'] : $arg_name );
+				$default_done_label = __( 'Select', 'mwp-rules' );
+				$wrap_tokens = false;
+				$default_callback = "function( node, tokens, tree, dialog ) {
+					var input = jQuery(this)
+						.closest('.form-group.row')
+						.find('input.selectized').eq(0);
+					
+					if (input.length) {
+						var selectize = input[0].selectize;
+						var tokenized_key = tokens.join(':');
+						selectize.addOption( { value: tokenized_key } );
+						selectize.setValue( tokenized_key );
+					}
+				}";
+				$params['target']['argtypes'] = $arg['argtypes'];
+			}
+		}
+		
+		$config = array_merge( array( 
+			'title' => $default_title, 
+			'callback' => $default_callback,
+			'done_label' => $default_done_label,
+			'wrap_tokens' => $wrap_tokens,
+			'wrap_html' => true,
+		), $config );
+		
+		$html = Token::getBrowserLauncherHTML( $config, $params );
+		
+		if ( $config['wrap_html'] ) {
+			$html = Plugin::instance()->getTemplateContent( 'snippets/token-browser-launcher-wrapper', [ 'html' => $html ] );
+		}
+		
+		return $html;
+	}
+	
+	/**
+	 * Get the token replacement selector launcher
+	 *
+	 * @param	array		$config				Custom config options for the dialog
+	 * @param	array		$params				Custom params for the browser
+	 * @return	string
+	 */
+	public function getTokenSelector( $config=[], $params=[] )
+	{
+		return $this->getDataSelector( NULL, $config, $params );
+	}
 }

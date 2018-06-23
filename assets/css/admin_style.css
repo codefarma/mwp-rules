@@ -342,6 +342,11 @@ a.nounderline:hover {
 	margin-bottom: 3px;
 }
 
+/* Bootstrap Tweaks */
+.modal-open {
+  overflow: inherit !important;
+}
+
 /* Selectize */
 
 .mwp-rules-form .selectize-dropdown-content {
@@ -380,4 +385,20 @@ a.nounderline:hover {
 	text-overflow: ellipsis;
 	height: 23px;
 	vertical-align: -7px;
+}
+
+/* jsTree */
+#token-browser.jstree a:focus {
+	box-shadow: none;
+	text-decoration: none;
+}
+
+#token-browser.jstree a:hover {
+	text-decoration: none;
+}
+
+#token-browser.jstree a.unselectable {
+	opacity: 0.6;
+	-moz-opacity: 0.6;
+	cursor: default;
 }

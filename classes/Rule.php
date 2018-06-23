@@ -993,11 +993,23 @@ class _Rule extends ExportableRecord
 	}
 	
 	/**
-	 * Get the event for this rule
+	 * Get the attached event
+	 *
+	 * @return	MWP\Rules\ECA\Event|NULL
 	 */
 	public function event()
 	{
 		return \MWP\Rules\Plugin::instance()->getEvent( $this->event_type, $this->event_hook );
+	}
+	
+	/**
+	 * Get the attached event
+	 *
+	 * @return	MWP\Rules\ECA\Event|NULL
+	 */
+	public function getEvent()
+	{
+		return $this->event();
 	}
 	
 	/**

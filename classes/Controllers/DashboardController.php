@@ -39,6 +39,16 @@ class _DashboardController extends AdminController
 	}
 	
 	/**
+	 * Init
+	 *
+	 * @return	void
+	 */
+	public function init()
+	{
+		$this->plugin->enqueueScripts();
+	}
+	
+	/**
 	 * Dashboard Index
 	 * 
 	 * @return	void

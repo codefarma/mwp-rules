@@ -321,6 +321,18 @@ class _Token
 	}
 	
 	/**
+	 * Get the html for a button which will open a token browser
+	 *
+	 * @param	array		$config				The browser configuration options
+	 * @param	array		$params				The token context parameters
+	 * @return	string
+	 */
+	public static function getBrowserLauncherHTML( $config=NULL, $params=NULL )
+	{
+		return Rules\Plugin::instance()->getTemplateContent( 'snippets/token-browser-launcher', [ 'config' => $config, 'params' => $params ] );
+	}
+	
+	/**
 	 * Get Token Value
 	 *
 	 * @return	string		The token value

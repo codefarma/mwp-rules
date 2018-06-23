@@ -51,9 +51,6 @@
 		 */
 		init: function()
 		{
-			// ajax actions can be made to the ajaxurl, which is automatically provided to your controller
-			var ajaxurl = this.local.ajaxurl;
-			
 			this.setupEnabledToggles();
 			
 			// set the properties on your view model which can be observed by your html templates
@@ -113,6 +110,87 @@
 				class: config.class,
 				sequence: listOrder
 			});
+		},
+		
+		/**
+		 * Open a token browser modal
+		 *
+		 * @param	object		opts			Browser config options
+		 * @param	object		params			Params to configure token requests
+		 * @return	void
+		 */
+		openTokenBrowser: function( opts, params )
+		{
+			opts = opts || {};
+			params = params || {};
+			
+			var browser = $('<div id="token-browser"></div>');
+			var _params = $.extend( { action: 'mwp_rules_get_tokens', nonce: mwp.local.ajaxnonce }, params );
+			var dialog = $( this.local.templates.token_browser );
+			var selectCallback = opts.callback || function() { };
+			
+			dialog.find('.modal-body').append(browser);
+			dialog.find('.modal-title').html( ( opts.title ? opts.title : 'Browse Data' ) + ( opts.target && opts.target.label ? ' For ' + opts.target.label : '' ) );
+			dialog.find('[role="done"]').html( opts.done_label ? opts.done_label : 'Select' );
+			dialog.find('[role="cancel"]').html( opts.cancel_label ? opts.cancel_label : 'Cancel' );
+			dialog.modal();
+			
+			var tree = browser.jstree({
+				core: {
+					data: function( node, callback ) {
+						var argument = typeof node.original !== 'undefined' ? node.original.argument : undefined;
+						$.post( mwp.local.ajaxurl, $.extend( { argument: argument }, _params ) ).done( function( response ) {
+							if ( response.success ) {
+								callback( response.nodes );
+							}
+						});
+					}
+				},
+				types: this.local.types,
+				plugins: [ 'types' ]
+			});
+			
+			var instance = tree.jstree(true);
+			
+			tree.on('loaded.jstree', function() {
+				instance.activate_node( instance.get_selected() );
+			});
+			
+			var getTokenStack = function( node, tokens ) {
+				tokens = tokens || [];
+				if ( node.original && node.original.token ) { tokens.unshift( node.original.token ); }
+				if ( node.parent ) { getTokenStack( tree.jstree(true).get_node( node.parent ), tokens ); }
+				return tokens;
+			};
+			
+			tree.on( 'activate_node.jstree', function( e, data ) {
+				var selectEnabled = true;
+				var tokenPath;
+				
+				if ( data.node.original ) {
+					var tokens = getTokenStack( data.node );
+					tokenPath = tokens.join(':');
+					if ( opts.wrap_tokens ) {
+						tokenPath = '{{' + tokenPath + '}}';
+					}
+					if ( data.node.original.selectable !== true ) {
+						data.instance.deselect_node( data.node );
+						selectEnabled = false;
+						tokenPath = '';
+					} 
+				}
+				
+				dialog.find('[role="done"]').prop( 'disabled', ! selectEnabled );
+				dialog.find('[role="token-path"]').val( tokenPath );
+			});
+			
+			dialog.on( 'click', '[role="done"]', function() {
+				var node = instance.get_node( instance.get_selected() );
+				var tokens = getTokenStack( node );
+				if ( selectCallback( node, tokens, tree, dialog ) !== false ) {
+					dialog.modal('hide');
+				}
+			});
 		}
 	
 	});
@@ -134,8 +212,7 @@
 		},
 		
 		nestableRecords: {
-			init: function( element, valueAccessor ) 
-			{
+			init: function( element, valueAccessor ) {
 				var config = ko.unwrap( valueAccessor() );
 				if ( typeof $.fn.nestedSortable !== 'undefined' ) 
 				{
@@ -161,8 +238,53 @@
 					}
 				}
 			}
+		},
+		
+		tokenSelector: {
+			init: function( element, valueAccessor ) {
+				var config = ko.unwrap( valueAccessor() );
+				var el = $(element);
+				el.on( 'click', function() {
+					if ( typeof config.callback == 'function' ) {
+						config.options.callback = config.callback.bind( element );
+					}
+					var input = el.closest('.form-group.row').find('input.selectized').eq(0);
+					if ( input.length ) { config.params.selected = input.val(); }
+					rulesController.openTokenBrowser( config.options, config.params );
+				});
+			}
 		}
+		
 	});
+	
+	/* jQuery Plugin */
+	$.fn.extend({
+		insertAtCaret: function(myValue){
+			return this.each(function(i) {
+				if (document.selection) {
+					//For browsers like Internet Explorer
+					this.focus();
+					var sel = document.selection.createRange();
+					sel.text = myValue;
+					this.focus();
+				}
+				else if (this.selectionStart || this.selectionStart == '0') {
+					//For browsers like Firefox and Webkit based
+					var startPos = this.selectionStart;
+					var endPos = this.selectionEnd;
+					var scrollTop = this.scrollTop;
+					this.value = this.value.substring(0, startPos)+myValue+this.value.substring(endPos,this.value.length);
+					this.focus();
+					this.selectionStart = startPos + myValue.length;
+					this.selectionEnd = startPos + myValue.length;
+					this.scrollTop = scrollTop;
+				} else {
+					this.value += myValue;
+					this.focus();
+				}
+			});
+		}
+	});	
 	
 	function refresh_codemirrors( scope ) {
 		scope.find('[data-role="codemirror"]').each(function() {

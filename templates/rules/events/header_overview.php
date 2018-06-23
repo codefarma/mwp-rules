@@ -18,8 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-$tokens = $event->getTokens( NULL, $rule );
-
+$bundle_id = ( isset( $rule ) and $rule->getBundle() ) ? $rule->getBundle()->id() : 'undefined';
 ?>
 
 <div class="event-overview alert alert-info" data-view-model="mwp-rules">
@@ -33,48 +32,24 @@ $tokens = $event->getTokens( NULL, $rule );
 		<?php echo $event->getDisplayArgInfo() ?>
 	</div>
 	
-	<div class="tokens-toggle" data-bind="click: function(vm, e) { jQuery(e.target).closest('.event-overview').find('.tokens-list').slideToggle(); }">
-		<strong><i class="glyphicon glyphicon-triangle-right"></i> Replacement Tokens</strong> (<?php echo count( $tokens ) ?> tokens)
+	<div class="tokens-toggle" data-bind="
+		click: function() { 
+			mwp.controller.get('mwp-rules').openTokenBrowser({
+				title: 'Browsing All Accessible Data',
+				cancel_label: 'Close',
+				callback: function( node, tokens, tree, dialog ) {
+					dialog.find('[role=token-path]').select();
+					return false;
+				}
+			},
+			{ 
+				event_type: '<?php echo $event->type ?>', 
+				event_hook: '<?php echo esc_attr( $event->hook ) ?>', 
+				bundle_id: <?php echo $bundle_id ?>
+			}); 
+		}">
+		<strong><i class="glyphicon glyphicon-modal-window"></i> Browse All Data</strong>
 	</div>
-	<div class="tokens-list">
-		<div style="margin:3px 0;">
-			<i class="glyphicon glyphicon-info-sign"></i> You can type the names of replacement tokens (including the braces) into text entry fields on this form and they will be replaced by their associated data when the rule is executed.<br>
-		</div>
-		
-		<ul>
-		<?php foreach( $tokens as $token => $description ) : ?>
-			<li><code><?php echo esc_html( $token ) . '</code> - ' . esc_html( $description ); ?></li>
-		<?php endforeach; ?>
-		</ul>
-		
-		<?php /*
-		<h3>Global Data</h3>
-		<ul>
-			<?php foreach( Rules\Plugin::instance()->getGlobalArguments() as $global_key => $global_arg ) : ?>
-				<?php $derivatives = Rules\Plugin::instance()->getDerivativeTokens( $global_arg ); ?>
-				<li data-token="global:<?php echo $global_key ?>" class="<?php if ( count( $derivatives ) ) { echo "has-derivatives"; } ?>"><code>global:<?php echo $global_key ?></code></li>
-			<?php endforeach; ?>
-		</ul>
-		<?php if ( ! empty( $event->arguments ) ) : ?>
-			<h3>Event Data</h3>
-			<ul>
-				<?php foreach( $event->arguments as $arg_key => $arg_def ) : ?>
-					<?php $derivatives = Rules\Plugin::instance()->getDerivativeTokens( $arg_def ); ?>
-					<li data-token="event:<?php echo $arg_key ?>" class="<?php if ( count( $derivatives ) ) { echo "has-derivatives"; } ?>"><code>event:<?php echo $arg_key ?></code></li>
-				<?php endforeach; ?>
-			</ul>
-		<?php endif; ?>
-		<?php if ( isset( $rule ) && $bundle = $rule->getBundle() ) : ?>
-			<h3>Bundle Settings</h3>
-			<ul>
-				<?php foreach( $bundle->getArguments() as $argument ) : ?>
-					<?php $derivatives = Rules\Plugin::instance()->getDerivativeTokens( $argument->getProvidesDefinition() ); ?>
-					<li data-token="bundle:<?php echo $argument->varname ?>" class="<?php if ( count( $derivatives ) ) { echo "has-derivatives"; } ?>"><code>bundle:<?php echo $argument->varname ?></code></li>
-				<?php endforeach; ?>
-			</ul>
-		<?php endif; ?>	
-		*/
-		?>
-	</div>
+
 </div>
 

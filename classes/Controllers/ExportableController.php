@@ -14,13 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use MWP\Framework\Helpers\ActiveRecordController;
 use MWP\Rules;
 
 /**
  * ArgumentsController Class
  */
-abstract class _ExportableController extends ActiveRecordController
+abstract class _ExportableController extends BaseController
 {
 	/**
 	 * Download an export package

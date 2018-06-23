@@ -14,12 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use MWP\Framework\Helpers\ActiveRecordController;
-
 /**
  * Actions Class
  */
-class _ActionsController extends ActiveRecordController
+class _ActionsController extends BaseController
 {
 	/**
 	 * @var	MWP\Rules\Rule
@@ -125,6 +123,8 @@ class _ActionsController extends ActiveRecordController
 			wp_redirect( \MWP\Rules\Plugin::instance()->getRulesController()->getUrl( array( 'id' => $rule_id, 'do' => 'edit', '_tab' => 'rule_actions' ) ) );
 			exit;
 		}
+		
+		parent::init();
 	}
 	
 	/**

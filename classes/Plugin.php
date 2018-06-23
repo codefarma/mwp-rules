@@ -121,6 +121,16 @@ class _Plugin extends \MWP\Framework\Plugin
 	public $selectizeCSS = 'assets/js/selectize/css/selectize.bootstrap3.css';
 	
 	/**
+	 * @MWP\WordPress\Script( handle="jstree", deps={"jquery"} )
+	 */
+	public $jsTreeJS = 'assets/js/jstree/jstree.min.js';
+	
+	/**
+	 * @MWP\WordPress\Stylesheet
+	 */
+	public $jsTreeCSS = 'assets/js/jstree/themes/default/style.min.css';
+	
+	/**
 	 * @MWP\WordPress\Stylesheet
 	 */
 	public $adminStyle = 'assets/css/admin_style.css';
@@ -133,20 +143,51 @@ class _Plugin extends \MWP\Framework\Plugin
 	/**
 	 * Enqueue scripts and stylesheets
 	 * 
-	 * @MWP\WordPress\Action( for="admin_enqueue_scripts" )
-	 *
 	 * @return	void
 	 */
 	public function enqueueScripts()
 	{
-		$this->useScript( $this->mainController );
-		$this->useScript( $this->nestedSortable );
-		$this->useScript( $this->codeMirror );
-		$this->useStyle( $this->codeMirrorStyle );
-		$this->useScript( $this->codeMirrorPHP );
-		$this->useStyle( $this->adminStyle );
-		$this->useScript( $this->selectizeJS );
-		$this->useStyle( $this->selectizeCSS );
+		$plugin = $this;
+		
+		add_action( 'admin_enqueue_scripts', function() use ( $plugin ) {
+			$plugin->useScript( $plugin->mainController, array(
+				'templates' => [
+					'token_browser' => $this->getTemplateContent( 'dialogs/token-browser' ),
+				],
+				'types' => [
+					'string' => [
+						'icon' => $this->fileUrl('assets/img/jstree/string.png'),
+					],
+					'float' => [
+						'icon' => $this->fileUrl('assets/img/jstree/number.png'),
+					],
+					'int' => [
+						'icon' => $this->fileUrl('assets/img/jstree/number.png'),
+					],
+					'bool' => [
+						'icon' => $this->fileUrl('assets/img/jstree/boolean.png'),
+					],
+					'array' => [
+						'icon' => $this->fileUrl('assets/img/jstree/array.png'),
+					],
+					'object' => [
+						'icon' => $this->fileUrl('assets/img/jstree/object.png'),
+					],
+					'mixed' => [
+						'icon' => $this->fileUrl('assets/img/jstree/mixed.png'),
+					],
+				],
+			));
+			$plugin->useScript( $plugin->nestedSortable );
+			$plugin->useScript( $plugin->codeMirror );
+			$plugin->useStyle( $plugin->codeMirrorStyle );
+			$plugin->useScript( $plugin->codeMirrorPHP );
+			$plugin->useStyle( $plugin->adminStyle );
+			$plugin->useScript( $plugin->selectizeJS );
+			$plugin->useStyle( $plugin->selectizeCSS );	
+			$plugin->useScript( $plugin->jsTreeJS );
+			$plugin->useStyle( $plugin->jsTreeCSS );
+		});
 	}
 	
 	/**
@@ -1279,20 +1320,6 @@ class _Plugin extends \MWP\Framework\Plugin
 			),
 			'checkbox' => array(
 				'label' => 'Checkbox',
-				'config' => array(
-					'form' => function( $name, $form, $values, $argument ) {
-						$form->addField( $name . '_placeholder', 'checkbox', array(
-							'label' => __( 'Placeholder', 'mwp-rules' ),
-							'data' => isset( $values[ $name . '_placeholder' ] ) ? (bool) $values[ $name . '_placeholder' ] : false,
-							'value' => 1,
-						));
-					},
-					'getConfig' => function( $name, $values, $argument ) {
-						return array(
-							'attr' => array( 'placeholder' => isset( $values[ $name . '_placeholder' ] ) ? $values[ $name . '_placeholder' ] : '' ),
-						);
-					},
-				),
 			),
 			'choice' => array(
 				'label' => 'Choice Field',
@@ -1499,7 +1526,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'text':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
 						$form->addField( $field_name, 'text', array_replace_recursive( array(
 							'label' => __( 'Text', 'mwp-rules' ),
 							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
@@ -1516,7 +1543,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'textarea':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
 							'label' => __( 'Text', 'mwp-rules' ),
 							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
@@ -1728,7 +1755,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
 							'label' => __( 'Values', 'mwp-rules' ),
 							'description' => __( 'Enter values one per line.', 'mwp-rules' ),
-							'attr' => array( 'placeholder' => 'Value1&#10;Value2' ),
+							'attr' => array( 'placeholder' => 'Value1&#10;Value2', 'rows' => 6 ),
 							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
 						),
 						$options ));
@@ -1753,7 +1780,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
 							'label' => __( 'Key/Value Pairs', 'mwp-rules' ),
 							'description' => __( 'Enter keyed values one per line, in the format of "key: value".', 'mwp-rules' ),
-							'attr' => array( 'placeholder' => 'key1: Value 1&#10;key2: Value 2' ),
+							'attr' => array( 'placeholder' => 'key1: Value 1&#10;key2: Value 2', 'rows' => 6 ),
 							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
 						),
 						$options ));
@@ -1785,7 +1812,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
 							'label' => __( 'Meta Values', 'mwp-rules' ),
 							'description' => __( 'Enter meta values one per line, in the format of "meta_key: meta_value".', 'mwp-rules' ),
-							'attr' => array( 'placeholder' => 'meta_key: meta_value' ),
+							'attr' => array( 'placeholder' => 'meta_key: meta_value', 'rows' => 6 ),
 							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
 						),
 						$options ));

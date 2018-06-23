@@ -221,6 +221,9 @@ add_filter( 'rules_class_map', function( $map )
 					},
 					'keys' => array(
 						'associative' => true,
+						'default' => array(
+							'argtype' => 'string',
+						),
 					),
 				),
 				'fragment' => array(
@@ -417,9 +420,16 @@ add_filter( 'rules_class_map', function( $map )
 						return $user->last_name;
 					},
 				),
+				'display_name' => array(
+					'argtype' => 'string',
+					'label' => 'Display Name',
+					'getter' => function( $user ) {
+						return $user->display_name;
+					}
+				),
 				'nicename' => array(
 					'argtype' => 'string',
-					'label' => 'Nice Name',
+					'label' => 'User Name Slug',
 					'getter' => function( $user ) {
 						return $user->user_nicename;
 					},
