@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
-<div class="mwp-bootstrap" style="float:right; margin-bottom: 10px;">
+<div class="mwp-bootstrap" style="float:right; margin-bottom: 10px; margin-left: 15px;">
 	<?php foreach ( $actions as $action ) : 
 		if ( ! isset( $action['link_attr']['class'] ) ) {
 			$action['link_attr']['class'] = 'btn btn-primary';

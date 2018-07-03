@@ -360,23 +360,67 @@ class _CustomLog extends ExportableRecord
 			'required' => true,
 		));
 		
-		$visibility_choices = array(
-			'Date/Time' => 'timestamp',
-			$message_lang => 'message',
+		$column_choices = array(
+			'Date/Time' => 'entry_timestamp',
+			$message_lang => 'entry_message',
 		);
 		
 		foreach( $this->getArguments() as $argument ) {
-			$visibility_choices[ $argument->title ] = $argument->getColumnName();
+			$column_choices[ $argument->title ] = $argument->getColumnName();
 		}
 		
 		$form->addField( 'field_visibility', 'choice', array(
-			'label' => __( 'Show Table Columns', 'mwp-rules' ),
-			'choices' => $visibility_choices,
-			'data' => isset( $this->data['field_visibility'] ) ? $this->data['field_visibility'] : array( 'timestamp', 'message' ),
+			'label' => __( 'Displayed Table Columns', 'mwp-rules' ),
+			'choices' => $column_choices,
+			'data' => isset( $this->data['field_visibility'] ) ? $this->data['field_visibility'] : array( 'entry_timestamp', 'entry_message' ),
 			'description' => __( 'Choose the fields that should display as columns when viewing the log entries table.', 'mwp-rules' ),
 			'multiple' => true,
 			'expanded' => true,
 			'required' => true,
+		));
+		
+		$form->addField( 'default_per_page', 'number', array(
+			'label' => __( 'Entries Per Page', 'mwp-rules' ),
+			'description' => __( 'Number of entries to show per page in the log table.', 'mwp-rules' ),
+			'data' => isset( $this->data['default_per_page'] ) ? intval( $this->data['default_per_page'] ) : 50,
+			'required' => true,
+		));
+		
+		$form->addField( 'default_sortby', 'choice', array(
+			'label' => __( 'Default Sort Column', 'mwp-rules' ),
+			'choices' => $column_choices,
+			'description' => __( 'Choose the column which entries should be sorted by default.', 'mwp-rules' ),
+			'required' => true,
+			'data' => isset( $this->data['default_sortby'] ) ? $this->data['default_sortby'] : 'entry_timestamp',
+		));
+		
+		$form->addField( 'default_sortorder', 'choice', array(
+			'label' => __( 'Default Sort Order', 'mwp-rules' ),
+			'choices' => [ 'ASC' => 'ASC', 'DESC' => 'DESC' ],
+			'description' => __( 'Choose the default sort order for entries.', 'mwp-rules' ),
+			'expanded' => true,
+			'required' => true,
+			'data' => isset( $this->data['default_sortorder'] ) ? $this->data['default_sortorder'] : 'DESC',
+		));
+		
+		$form->addField( 'sortable_columns', 'choice', array(
+			'label' => __( 'Sortable Columns', 'mwp-rules' ),
+			'choices' => $column_choices,
+			'data' => isset( $this->data['sortable_columns'] ) ? $this->data['sortable_columns'] : array( 'entry_timestamp' ),
+			'description' => __( 'Choose the columns that the user can sort log entries by.', 'mwp-rules' ),
+			'multiple' => true,
+			'expanded' => true,
+			'required' => false,
+		));
+		
+		$form->addField( 'searchable_columns', 'choice', array(
+			'label' => __( 'Searchable Columns', 'mwp-rules' ),
+			'choices' => $column_choices,
+			'data' => isset( $this->data['searchable_columns'] ) ? $this->data['searchable_columns'] : array( 'entry_message' ),
+			'description' => __( 'Choose the columns that the user can search log entries by.', 'mwp-rules' ),
+			'multiple' => true,
+			'expanded' => true,
+			'required' => false,
 		));
 		
 		$form->addTab( 'log_maintenance', array(
@@ -691,6 +735,7 @@ class _CustomLog extends ExportableRecord
 			");
 			
 			$class::$columns['message']['title'] = $this->getMessageLang();
+			$class::setControllerClass( Controllers\CustomLogEntriesController::class );
 		}
 		
 		return $class;
@@ -708,6 +753,10 @@ class _CustomLog extends ExportableRecord
 		$log = $this;
 		
 		if ( ! $controller ) {
+			
+			$sortable_columns = isset( $this->data['sortable_columns'] ) ? (array) $this->data['sortable_columns'] : array( 'entry_timestamp' );
+			$searchable_columns = isset( $this->data['searchable_columns'] ) ? (array) $this->data['searchable_columns'] : array( 'entry_message' );
+			
 			$controller_config = array(
 				'adminPage' => [ 
 					'for' => is_multisite() ? 'network' : 'site',
@@ -715,10 +764,15 @@ class _CustomLog extends ExportableRecord
 					'title' => $this->title . ': ' . $class::$lang_plural,
 				],
 				'tableConfig' => array(
+					'perPage' => isset( $this->data['default_per_page'] ) ? $this->data['default_per_page'] : 50,
+					'sortBy' => isset( $this->data['default_sortby'] ) ? 'entry_' . $this->data['default_sortby'] : 'entry_timestamp',
+					'sortOrder' => isset( $this->data['default_sortorder'] ) ? $this->data['default_sortorder'] : 'DESC',
 					'columns' => array(
 						'entry_timestamp' => __( 'Date/Time', 'mwp-rules' ),
 						'entry_message' => __( $this->getMessageLang(), 'mwp-rules' ),
 					),
+					'sortable' => array_combine( $sortable_columns, $sortable_columns ),
+					'searchable' => array_combine( $searchable_columns, array_map( function( $column ) { return [ 'type' => 'contains', 'combine_words' => 'AND' ]; }, $searchable_columns ) ),
 					'handlers' => array(
 						'entry_timestamp' => function( $row ) {
 							return get_date_from_gmt( date( 'Y-m-d H:i:s', $row['entry_timestamp'] ), 'F j, Y H:i:s' );
@@ -727,7 +781,7 @@ class _CustomLog extends ExportableRecord
 				),
 			);
 			
-			$display_columns = ( isset( $this->data['field_visibility'] ) and ! empty( $this->data['field_visibility'] ) ) ? $this->data['field_visibility'] : array( 'timestamp', 'message' );
+			$display_columns = ( isset( $this->data['field_visibility'] ) and ! empty( $this->data['field_visibility'] ) ) ? $this->data['field_visibility'] : array( 'entry_timestamp', 'entry_message' );
 			
 			foreach( $this->getArguments() as $argument ) 
 			{				
@@ -758,11 +812,11 @@ class _CustomLog extends ExportableRecord
 				}
 			}
 			
-			if ( ! in_array( 'message', $display_columns ) ) {
+			if ( ! in_array( 'entry_message', $display_columns ) ) {
 				unset( $controller_config['tableConfig']['columns']['entry_message'] );
 			}
 			
-			if ( ! in_array( 'timestamp', $display_columns ) and count( $controller_config['tableConfig']['columns'] ) > 1 ) {
+			if ( ! in_array( 'entry_timestamp', $display_columns ) and count( $controller_config['tableConfig']['columns'] ) > 1 ) {
 				unset( $controller_config['tableConfig']['columns']['entry_timestamp'] );
 			}
 			
