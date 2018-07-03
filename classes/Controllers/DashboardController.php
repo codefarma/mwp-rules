@@ -14,14 +14,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-use MWP\Framework\Pattern\AdminController;
+use MWP\Framework\Pattern\Controller;
 use MWP\Rules;
 
 /**
  * DashboardController Class
  *
  */
-class _DashboardController extends AdminController
+class _DashboardController extends Controller
 {
 	/**
 	 * @var		MWP\Rules\Plugin
@@ -35,6 +35,8 @@ class _DashboardController extends AdminController
 	 */
 	protected function constructed()
 	{
+		parent::constructed();
+		
 		$this->plugin = Rules\Plugin::instance();
 	}
 	

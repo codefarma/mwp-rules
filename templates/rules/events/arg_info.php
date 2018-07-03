@@ -44,7 +44,7 @@ $strtolower = is_callable( 'mb_strtolower' ) ? 'mb_strtolower' : 'strtolower';
 		<?php endforeach ?>
 		</ul>
 	<?php else: ?>
-		No Data Associated
+		No Event Data Associated
 	<?php endif ?>
 </div>
 

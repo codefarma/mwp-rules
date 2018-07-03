@@ -169,9 +169,9 @@ class _ArgumentsController extends BaseController
 	 * @param	array		$options				Optional configuration options
 	 * @return	void
 	 */
-	public function __construct( $recordClass, $options=array() )
+	protected function constructed()
 	{
-		parent::__construct( $recordClass, $options );
+		parent::constructed();
 		
 		/* Auto set the parent type */
 		if ( isset( $_REQUEST['parent_type'] ) ) {

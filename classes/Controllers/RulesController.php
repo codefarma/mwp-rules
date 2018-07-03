@@ -90,13 +90,11 @@ class _RulesController extends ExportableController
 	/**
 	 * Constructor
 	 *
-	 * @param	string		$recordClass			The active record class
-	 * @param	array		$options				Optional configuration options
 	 * @return	void
 	 */
-	public function __construct( $recordClass, $options=array() )
+	protected function constructed()
 	{
-		parent::__construct( $recordClass, $options );
+		parent::constructed();
 		
 		/* Auto set the bundle */
 		if ( isset( $_REQUEST['bundle_id'] ) ) {
@@ -112,8 +110,7 @@ class _RulesController extends ExportableController
 				$hook = Rules\Hook::load( $_REQUEST['hook_id'] );
 				$this->setHook( $hook );
 			} catch( \OutOfRangeException $e ) { }
-		}
-		
+		}		
 	}
 	
 	/**

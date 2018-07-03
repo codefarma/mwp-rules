@@ -80,13 +80,11 @@ class _ConditionsController extends BaseController
 	/**
 	 * Constructor
 	 *
-	 * @param	string		$recordClass			The active record class
-	 * @param	array		$options				Optional configuration options
 	 * @return	void
 	 */
-	public function __construct( $recordClass, $options=array() )
+	protected function constructed()
 	{
-		parent::__construct( $recordClass, $options );
+		parent::constructed();
 		
 		/* Auto set the rule */
 		if ( isset( $_REQUEST['rule_id'] ) ) {
