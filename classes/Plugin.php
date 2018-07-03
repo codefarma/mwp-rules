@@ -1040,6 +1040,27 @@ class _Plugin extends \MWP\Framework\Plugin
 		
 		return $this->getClassMappings( $class );
 	}
+	
+	/**
+	 * Add to the rules class map
+	 * 
+	 * @MWP\WordPress\Action( for="rules_class_map" )
+	 * 
+	 * @param	array		$map			The class map
+	 * @return	array
+	 */
+	public function addRecordClassMappings( $map )
+	{
+		CustomLog::addToRulesMap( $map );
+		
+		foreach( CustomLog::loadWhere('1') as $custom_log ) {
+			$custom_log->getRecordController();
+			$customLogClass = $custom_log->getRecordClass();
+			$customLogClass::addToRulesMap( $map );
+		}
+		
+		return $map;
+	}
 
 	/**
 	 * Get possible derivative arguments using the class map
