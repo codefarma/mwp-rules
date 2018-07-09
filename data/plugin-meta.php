@@ -11,7 +11,7 @@ return <<<'JSON'
     "slug": "mwp-rules",
     "vendor": "Code Farma",
     "namespace": "MWP\\Rules",
-    "version": "1.0.6",
+    "version": "1.1.0",
     "tables": [
         "rules_rules",
         "rules_conditions",
