@@ -52,6 +52,19 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
 
 == Changelog ==
 
+= 1.1.0 =
+
+### Added
+
+- Token browser added. Event argument selection and token replacements can now be browsed using a gui.
+- Custom logs and custom log entries are now accessible through the token browser.
+- Custom logs can now be customized to choose default sorting, alternate sorting, and searching columns.
+- Log entries count now displays on the dashboard logs tab
+
+### Changed
+
+- Changed to work with MWP Framework 2.1.x
+
 = 1.0.5 =
 
 ### Added

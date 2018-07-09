@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.1.0] - 2018-07-09
+
+### Added
+
+- Token browser added. Event argument selection and token replacements can now be browsed using a gui.
+- Custom logs and custom log entries are now accessible through the token browser.
+- Custom logs can now be customized to choose default sorting, alternate sorting, and searching columns.
+- Log entries count now displays on the dashboard logs tab
+
+### Changed
+
+- Changed to work with MWP Framework 2.1.x
+
 ## [1.0.5] - 2018-06-20
 
 ### Added
