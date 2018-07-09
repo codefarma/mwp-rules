@@ -22,8 +22,37 @@ $recent_limit = 25;
 $plugin = Rules\Plugin::instance();
 $logs = Rules\CustomLog::loadWhere('1');
 
-$logsController = $plugin->getLogsController();
-$systemLogTable = $logsController->createDisplayTable();
+$systemLogTable = $plugin->getLogsController()->createDisplayTable([
+	'displayTopNavigation' => false,
+	'displayBottomNavigation' => false,
+	'perPage' => $recent_limit,
+	'bulkActions' => [],
+	'sortable' => [],
+	'searchable' => [],
+	'sortBy' => 'id',
+	'sortOrder' => 'DESC',
+	'hardFilters' => [ array( 'error>0 OR ( op_id=0 AND rule_parent=0 )' ) ],
+]);
+$systemLogTable->prepare_items();
+
+$custom_logs = array_map( function( $log ) use ( $recent_limit ) {
+	$table = $log->getRecordController()->createDisplayTable([
+		'displayTopNavigation' => false,
+		'displayBottomNavigation' => false,
+		'perPage' => $recent_limit,
+		'bulkActions' => [],
+		'sortable' => [],
+		'searchable' => [],
+		'sortBy' => 'entry_id',
+		'sortOrder' => 'DESC',
+	]);
+	$table->prepare_items();
+	
+	return array(
+		'record' => $log,
+		'table' => $table,
+	);
+}, $logs );
 
 ?>
 
@@ -36,32 +65,31 @@ $systemLogTable = $logsController->createDisplayTable();
   </div>
   <div class="panel-body">
 	<ul class="nav nav-tabs" role="tablist">
-		<?php foreach( array_values( $logs ) as $i => $log ) : ?>
-		<li role="presentation" class="<?php echo $i == 0 ? 'active' : '' ?>"><a href="#log_<?php echo $log->id() ?>" aria-controls="log_<?php echo $log->id() ?>" role="tab" data-toggle="tab"><?php echo esc_html( $log->title ) ?></a></li>
+		<?php foreach( array_values( $custom_logs ) as $i => $log ) : ?>
+		<li role="presentation" class="<?php echo $i == 0 ? 'active' : '' ?>">
+			<a href="#log_<?php echo $log['record']->id() ?>" aria-controls="log_<?php echo $log['record']->id() ?>" role="tab" data-toggle="tab">
+				<?php echo esc_html( $log['record']->title ) ?> (<?php echo $log['table']->_pagination_args['total_items'] ?>)
+			</a>
+		</li>
 		<?php endforeach; ?>
-		<li role="presentation" class="<?php echo count( $logs ) == 0 ? 'active' : '' ?>"><a href="#system" aria-controls="system" role="tab" data-toggle="tab">System</a></li>
+		<li role="presentation" class="<?php echo count( $custom_logs ) == 0 ? 'active' : '' ?>">
+			<a href="#system" aria-controls="system" role="tab" data-toggle="tab">
+				System (<?php echo $systemLogTable->_pagination_args['total_items']; ?>)
+			</a>
+		</li>
     </ul>
 	<div class="tab-content">
-		<?php foreach( array_values( $logs ) as $i => $log ) : ?>
-		<div role="tabpanel" class="tab-pane <?php echo $i == 0 ? 'active' : '' ?>" id="log_<?php echo $log->id() ?>">
+		<?php foreach( array_values( $custom_logs ) as $i => $log ) : ?>
+		<div role="tabpanel" class="tab-pane <?php echo $i == 0 ? 'active' : '' ?>" id="log_<?php echo $log['record']->id() ?>">
 			<div class="table-container">
 			<?php 
-				$table = $log->getRecordController()->createDisplayTable([
-					'displayTopNavigation' => false,
-					'displayBottomNavigation' => false,
-					'perPage' => $recent_limit,
-					'bulkActions' => [],
-					'sortBy' => 'entry_id',
-					'sortOrder' => 'DESC',
-				]);
-				$table->prepare_items(array('1'));
-				echo $table->getDisplay();
+				echo $log['table']->getDisplay();
 			?>
 			</div>
 			<div class="table-controller-actions">
 				<p class="text-info">
-					<?php $total = $table->_pagination_args['total_items']; ?>
-					<a href="<?php echo $log->getRecordController()->getUrl() ?>" class="btn btn-<?php echo $total >= $recent_limit ? "primary" : "default" ?> btn-sm pull-right"><?php _e( 'View More', 'mwp-rules' ) ?></a>
+					<?php $total = $log['table']->_pagination_args['total_items']; ?>
+					<a href="<?php echo $log['record']->getRecordController()->getUrl() ?>" class="btn btn-<?php echo $total >= $recent_limit ? "primary" : "default" ?> btn-sm pull-right"><?php _e( 'View More', 'mwp-rules' ) ?></a>
 					<?php if ( $total ) : ?>
 						<?php _e( 'Showing the most recent', 'mwp-rules' ) ?> 
 						<strong><?php echo $recent_limit <= $total ? $recent_limit : $total; ?></strong> 
@@ -76,21 +104,12 @@ $systemLogTable = $logsController->createDisplayTable();
 		<div role="tabpanel" class="tab-pane <?php echo count( $logs ) == 0 ? 'active' : '' ?>" id="system">
 			<div class="table-container">
 			<?php 
-				$table = $plugin->getLogsController()->createDisplayTable([
-					'displayTopNavigation' => false,
-					'displayBottomNavigation' => false,
-					'perPage' => $recent_limit,
-					'bulkActions' => [],
-					'sortBy' => 'id',
-					'sortOrder' => 'DESC',
-				]);
-				$table->prepare_items( array( 'error>0 OR ( op_id=0 AND rule_parent=0 )' ) );
-				echo $table->getDisplay();
+				echo $systemLogTable->getDisplay();
 			?>
 			</div>
 			<div class="table-controller-actions">
 				<p class="text-info">
-					<?php $total = $table->_pagination_args['total_items']; ?>
+					<?php $total = $systemLogTable->_pagination_args['total_items']; ?>
 					<a href="<?php echo $plugin->getLogsController()->getUrl() ?>" class="btn btn-<?php echo $total >= $recent_limit ? "primary" : "default" ?> btn-sm pull-right"><?php _e( 'View More', 'mwp-rules' ) ?></a>
 					<?php if ( $total ) : ?>
 						<?php _e( 'Showing the most recent', 'mwp-rules' ) ?> 
