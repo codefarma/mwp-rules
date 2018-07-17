@@ -224,16 +224,30 @@ class _System
 				'configuration' => array(
 					'form' => function( $form, $values, $condition ) {
 						$compare_options = array(
-							'equals'     => 'String 1 is equal to String 2',
-							'contains'   => 'String 1 contains String 2',
-							'startswith' => 'String 1 starts with String 2',
-							'endswith'   => 'String 1 ends with String 2',
+							'equals'         => 'String 1 is equal to String 2',
+							'contains'       => 'String 1 contains String 2',
+							'contains_any'   => 'String 1 contains any value from array',
+							'contains_all'   => 'String 1 contains all values from array',
+							'contains_more'  => 'String 1 contains more than a number of values from array',
+							'contains_exact' => 'String 1 contains an exact number of values from array',
+							'startswith'     => 'String 1 starts with String 2',
+							'endswith'       => 'String 1 ends with String 2',
 						);
 						
 						$form->addField( 'rules_comparison_type', 'choice', array( 
 							'label' => __( 'Comparison Type', 'mwp-rules' ),
 							'choices' => array_flip( $compare_options ),
 							'expanded' => true,
+							'toggles' => array(
+								'equals'         => [ 'show' => [ '#rules-string-comparison_string2_form_wrapper' ] ],
+								'contains'       => [ 'show' => [ '#rules-string-comparison_string2_form_wrapper' ] ],
+								'startswith'     => [ 'show' => [ '#rules-string-comparison_string2_form_wrapper' ] ],
+								'endswith'       => [ 'show' => [ '#rules-string-comparison_string2_form_wrapper' ] ],
+								'contains_any'   => [ 'show' => [ '#rules-string-comparison_array_values_form_wrapper' ] ],
+								'contains_all'   => [ 'show' => [ '#rules-string-comparison_array_values_form_wrapper' ] ],
+								'contains_more'  => [ 'show' => [ '#rules-string-comparison_array_values_form_wrapper', '#rules-string-comparison_number_value_form_wrapper' ] ],
+								'contains_exact' => [ 'show' => [ '#rules-string-comparison_array_values_form_wrapper', '#rules-string-comparison_number_value_form_wrapper' ] ],
+							),
 							'required' => true,
 							'data' => isset( $values['rules_comparison_type'] ) ? $values['rules_comparison_type'] : 'equals',
 						));						
@@ -246,17 +260,7 @@ class _System
 							'string' => array( 'description' => 'the value to use as string 1' ),
 						),				
 						'required'	=> true,
-						'configuration' => array(
-							'form' => function( $form, $values, $condition ) {
-								$form->addField( 'rules_comparison_string1', 'text', array(
-									'label' => __( 'String 1', 'mwp-rules' ),
-									'data' => isset( $values['rules_comparison_string1'] ) ? $values['rules_comparison_string1'] : '',
-								));
-							},
-							'getArg' => function( $values ) {
-								return $values['rules_comparison_string1' ];
-							},
-						),
+						'configuration' => $plugin->configPreset( 'text', 'rules_comparison_string1', [ 'label' => 'Value' ] ),
 					),
 					'string2' => array(
 						'label' => 'String 2',
@@ -264,27 +268,89 @@ class _System
 						'argtypes' => array(
 							'string' => array( 'description' => 'the value to use as string 2' ),
 						),				
-						'required'	=> true,
-						'configuration' => array(
-							'form' => function( $form, $values, $condition ) {
-								$form->addField( 'rules_comparison_string2', 'text', array(
-									'label' => __( 'String 2', 'mwp-rules' ),
-									'data' => isset( $values['rules_comparison_string2'] ) ? $values['rules_comparison_string2'] : '',
-								));
-							},
-							'getArg' => function( $values ) {
-								return $values['rules_comparison_string2' ];
-							},
+						'required'	=> false,
+						'configuration' => $plugin->configPreset( 'text', 'rules_comparison_string2', [ 'label' => 'Value' ] ),
+					),
+					'array_values' => array(
+						'label' => 'Array',
+						'default' => 'manual',
+						'argtypes' => array(
+							'array' => array( 'description' => 'an array of string values' ),
 						),
+						'required' => false,
+						'configuration' => $plugin->configPreset( 'array', 'array_values', [ 'label' => 'Values' ] ),
+					),
+					'number_value' => array(
+						'label' => 'Number Value',
+						'default' => 'manual',
+						'required' => false,
+						'argtypes' => array(
+							'int' => array( 'description' => 'the number of values' ),
+							'float' => array( 'description' => 'the number of values' ),
+						),
+						'configuration' => $plugin->configPreset( 'text', 'number_value', [ 'label' => 'Number Value' ] ),
 					),
 				),
-				'callback' => function( $string1, $string2, $values ) {
+				'callback' => function( $string1, $string2, $array_values, $number_value, $values ) {
 					switch( $values['rules_comparison_type'] ) {
 						case 'contains':   return mb_strpos( $string1, $string2 ) !== FALSE;
 						case 'startswith': return mb_substr( $string1, 0, mb_strlen( $string2 ) ) == $string2;
 						case 'endswith':   return mb_substr( $string1, mb_strlen( $string2 ) * -1 ) == $string2;
 						case 'equals':     return $string1 == $string2;
-						default:           return FALSE;
+						
+						case 'contains_any':
+							if ( is_array( $array_values ) ) {
+								foreach( $array_values as $_value ) {
+									if ( mb_strpos( $string1, $_value ) !== FALSE ) {
+										return true;
+									}
+								}
+							}
+							return false;
+							
+						case 'contains_all':
+							if ( is_array( $array_values ) ) {
+								foreach( $array_values as $_value ) {
+									if ( mb_strpos( $string1, $_value ) === FALSE ) {
+										return false;
+									}
+								}
+								return true;
+							}
+							return false;
+							
+						case 'contains_more':
+							$number_value = absint( $number_value );
+							$tally = 0;
+							if ( is_array( $array_values ) ) {
+								foreach( $array_values as $_value ) {
+									if ( mb_strpos( $string1, $_value ) !== FALSE ) {
+										$tally++;
+										if ( $tally > $number_value ) {
+											return true;
+										}
+									}
+								}
+							}
+							return false;
+							
+						case 'contains_exact':
+							$number_value = absint( $number_value );
+							$tally = 0;
+							if ( is_array( $array_values ) ) {
+								foreach( $array_values as $_value ) {
+									if ( mb_strpos( $string1, $_value ) !== FALSE ) {
+										$tally++;
+										if ( $tally > $number_value ) {
+											return false;
+										}
+									}
+								}
+							}
+							return $tally === $number_value;
+						
+						default: 
+							return FALSE;
 					}
 				},
 			)),
