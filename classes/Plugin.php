@@ -376,7 +376,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	/**
 	 * Run scheduled actions
 	 *
-	 * @MWP\WordPress\Action( for="mwp_rules_run_scheduled_actions" )
+	 * @MWP\WordPress\Action( for="rules_action_runner" )
 	 *
 	 * @param	Task		$task				The running task
 	 * @return	void
@@ -1961,7 +1961,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			}
 		}
 		
-		$scheduled_action                = new \MWP\Rules\ScheduledAction;		
+		$scheduled_action                = new ScheduledAction;		
 		$scheduled_action->time          = $time;
 		$scheduled_action->action_id     = $action->id;
 		$scheduled_action->thread        = $thread;
@@ -1986,8 +1986,18 @@ class _Plugin extends \MWP\Framework\Plugin
 		
 		$scheduled_action->save();
 		
+		return "Action Scheduled (ID#{$scheduled_action->id})";
+	}
+	
+	/**
+	 * Update the action runner task
+	 *
+	 * @return	Task
+	 */
+	public function updateActionRunner()
+	{
 		$_next_action = ScheduledAction::getNextAction();
-		$task = Task::loadWhere( array( 'task_action=%s AND task_completed=0', 'mwp_rules_run_scheduled_actions' ) )[0];
+		$task = Task::loadWhere( array( 'task_action=%s AND task_completed=0 AND task_fails<3', 'rules_action_runner' ) )[0];
 		
 		if ( $task ) {
 			if ( ! $task->running ) {
@@ -1995,10 +2005,10 @@ class _Plugin extends \MWP\Framework\Plugin
 				$task->save();
 			}
 		} else {
-			Task::queueTask( array( 'action' => 'mwp_rules_run_scheduled_actions', 'next_start' => $_next_action->time ) );
+			$task = Task::queueTask( array( 'action' => 'rules_action_runner', 'next_start' => $_next_action->time ) );
 		}
 		
-		return "Action Scheduled (ID#{$scheduled_action->id})";
+		return $task;
 	}
 	
 	/**

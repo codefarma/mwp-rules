@@ -312,40 +312,7 @@ class _Action extends GenericOperation
 	 */
 	public function invoke()
 	{
-		$plugin = \MWP\Rules\Plugin::instance();
-		
-		if ( ! $this->locked or $this->rule()->enable_recursion )
-		{
-			/**
-			 * Lock this action from being triggered recursively by itself
-			 * and creating never ending loops
-			 */
-			$this->locked = TRUE;
-			
-			try
-			{
-				$this->opInvoke( func_get_args() );
-			}
-			catch( \Throwable $t )
-			{
-				$this->locked = FALSE;
-				throw $t;
-			}
-			catch( \Exception $e )
-			{
-				$this->locked = FALSE;
-				throw $e;
-			}
-			
-			$this->locked = FALSE;
-		}
-		else
-		{
-			if ( $rule = $this->rule() and $rule->debug )
-			{
-				$plugin->rulesLog( $rule->event(), $rule, $this, '--', 'Action recursion protection (not evaluated)' );
-			}
-		}
+		$this->opInvoke( func_get_args() );
 	}
 	
 	/**

@@ -113,7 +113,7 @@ class _Event extends BaseDefinition
 	{
 		return Rules\Plugin::instance()->getTemplateContent( 'rules/events/arg_info', array( 'event' => $this ) );
 	}
-
+	
 	/**
 	 * Begin an event cycle
 	 *
@@ -318,8 +318,7 @@ class _Event extends BaseDefinition
 				
 				$action->locked = FALSE;
 				
-				if ( $rule and $rule->debug )
-				{
+				if ( $rule and $rule->debug ) {
 					$plugin->rulesLog( $this, $rule, $action, $result, 'Evaluated' );
 				}
 			}

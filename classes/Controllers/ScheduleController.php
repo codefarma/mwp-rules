@@ -39,11 +39,15 @@ class _ScheduleController extends BaseController
 				'columns' => array(
 					'type' => __( 'Type', 'mwp-rules' ),
 					'action' => __( 'Action Description', 'mwp-rules' ),
-					'schedule_time' => __( 'Scheduled Date/Time', 'mwp-rules' ),
+					'schedule_time' => __( 'Scheduled Time', 'mwp-rules' ),
 					'schedule_unique_key' => __( 'Keyphrase', 'mwp-rules' ),
-					'schedule_queued' => __( 'Status', 'mwp-rules' ),
-					'schedule_created' => __( 'Creation Date', 'mwp-rules' ),
-					'schedule_data' => __( 'Data', 'mwp-rules' ),
+					'schedule_created' => __( 'Created On', 'mwp-rules' ),
+					'schedule_running' => __( 'Status', 'mwp-rules' ),
+				),
+				'sortable' => array(
+					'schedule_created' => 'schedule_created',
+					'schedule_time' => 'schedule_time',
+					'schedule_unique_key' => 'schedule_unique_key',
 				),
 				'handlers' => array(
 					'type' => function( $row ) {
@@ -68,14 +72,14 @@ class _ScheduleController extends BaseController
 					'schedule_created' => function( $row ) {
 						return get_date_from_gmt( date( 'Y-m-d H:i:s', $row['schedule_created'] ), 'F j, Y H:i:s' );
 					},
-					'schedule_queued' => function( $row ) {
-						if ( $row['schedule_queued'] > 0 ) {
-							return __( 'Running since', 'mwp-rules' ) . ' ' . get_date_from_gmt( date( 'Y-m-d H:i:s', $row['schedule_queued'] ), 'F j, Y H:i:s' );
+					'schedule_running' => function( $row ) {
+						if ( $row['schedule_running'] > 0 ) {
+							return __( 'Running since', 'mwp-rules' ) . ' ' . get_date_from_gmt( date( 'Y-m-d H:i:s', $row['schedule_running'] ), 'F j, Y H:i:s' );
 						} else {
 							return __( 'Queued', 'mwp-rules' );
 						}
-					}
-				)
+					},
+				),
 			),
 		));
 	}

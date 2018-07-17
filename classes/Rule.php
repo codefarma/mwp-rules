@@ -926,16 +926,14 @@ class _Rule extends ExportableRecord
 			}
 			else
 			{
-				if ( $this->debug )
-				{
+				if ( $this->debug ) {
 					$plugin->rulesLog( $this->event(), $this, NULL, '--', 'Rule recursion protection (not evaluated)' );
 				}
 			}
 		}
 		else
 		{
-			if ( $this->debug )
-			{
+			if ( $this->debug ) {
 				$plugin->rulesLog( $this->event(), $this, NULL, '--', 'Rule not evaluated (disabled)' );
 			}
 		}

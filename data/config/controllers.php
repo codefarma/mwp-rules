@@ -82,7 +82,7 @@ return [
 			'parent' => 'mwp-rules',
 		],
 		'tableConfig' => [
-			'default_where' => array( "hook_type IN ( 'action', 'condition' )" ),
+			'default_where' => array( "hook_type IN ( 'action', 'filter' )" ),
 			'columns' => [
 				'hook_hook' => __( 'Hook', 'mwp-rules' ),
 				'hook_title' => __( 'Event', 'mwp-rules' ),
@@ -143,10 +143,10 @@ return [
 	/* Rules Scheduled Actions */
 	'rules_scheduled_actions' => [
 		'adminPage' => [ 
-			'for' => $for,
-			'type' => 'submenu', 
-			'menu' => __( 'Scheduled Actions', 'mwp-rules' ), 
-			'parent' => 'mwp-rules',
+			'for' => 'site',
+			'type' => 'management', 
+			'menu' => __( 'Rules Action Queue', 'mwp-rules' ), 
+			//'parent' => 'mwp-rules',
 		],
 	],
 	

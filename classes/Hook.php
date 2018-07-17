@@ -106,6 +106,11 @@ class _Hook extends ExportableRecord
 	 */
 	public function _getEditTitle( $type=NULL )
 	{
+		switch( $type ) {
+			case 'schedule':
+				return __( 'Schedule ' . $this->_getSingularName() );
+		}
+		
 		return __( static::$lang_edit . ' ' . $this->_getSingularName() );
 	}
 	
@@ -211,6 +216,16 @@ class _Hook extends ExportableRecord
 		
 		$hook_actions = array(
 			'edit' => '',
+			'schedule' => array(
+				'title' => __( 'Schedule Execution', 'mwp-rules' ),
+				'icon' => 'glyphicon glyphicon-time',
+				'params' => array(
+					'do' => 'edit',
+					'edit' => 'schedule',
+					'id' => $this->id(),
+				),
+				'separator' => 'bottom',
+			),
 			'manage_arguments' => array(
 				'title' => __( 'Manage Arguments', 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-th-list',
@@ -241,6 +256,7 @@ class _Hook extends ExportableRecord
 		);
 		
 		if ( ! $this->isCustom() ) {
+			unset( $hook_actions['schedule'] );
 			unset( $hook_actions['rules'] );
 		}
 		
@@ -460,6 +476,73 @@ class _Hook extends ExportableRecord
 	}
 	
 	/**
+	 * Schedule an action
+	 * 
+	 * @return	MWP\Framework\Helpers\Form
+	 */
+	public function buildScheduleForm()
+	{
+		$plugin = $this->getPlugin();
+		$form = static::createForm( 'schedule', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		
+		/* Only allow scheduling of custom actions */
+		if ( $this->type != 'custom' ) {
+			$form->addHtml( '<div class="alert alert-danger">Scheduling is not available for this hook.</div>' );
+			return $form;
+		}
+		
+		$form->addTab( 'scheduling', array(
+			'title' => __( 'Scheduling', 'mwp-rules' ),
+		));
+		
+		$form->addField( 'schedule_time', 'datetime', array(
+			'label' => __( 'Scheduled Date/Time', 'mwp-rules' ),
+			'input' => 'timestamp',
+			'data' => time(),
+		));
+		
+		$form->addField( 'recurrance', 'choice', array(
+			'label' => __( 'Recurrance', 'mwp-rules' ),
+			'choices' => array(
+				'One Time Only' => 'none',
+				'Repeating Interval' => 'repeating',
+			),
+			'toggles' => array(
+				'repeating' => array( 'show' => array( '#schedule_minutes', '#schedule_hours', '#schedule_days', '#schedule_months' ) ),
+			),
+			'data' => 'none',
+			'required' => true,
+			'expanded' => true,
+		));
+		
+		$form->addField( 'schedule_minutes', 'integer', array( 'label' => __( 'Minutes', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_minutes' ), 'data' => 0 ) );
+		$form->addField( 'schedule_hours', 'integer', array( 'label' => __( 'Hours', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_hours' ), 'data' => 0 ) );
+		$form->addField( 'schedule_days', 'integer', array( 'label' => __( 'Days', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_days' ), 'data' => 0 ) );
+		$form->addField( 'schedule_months', 'integer', array( 'label' => __( 'Months', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_months' ), 'data' => 0 ) );
+		
+		$form->addTab( 'data', array(
+			'title' => __( 'Action Data', 'mwp-rules' ),
+		));
+		
+		foreach( $this->getArguments() as $argument ) {
+			$argument->addFormWidget( $form, [] );
+		}
+		
+		return $form;
+	}
+	
+	/**
+	 * Process the scheduling form
+	 * 
+	 * @param	array		$values				The form values
+	 * @return	void
+	 */
+	public function processScheduleForm( $values )
+	{
+		
+	}
+	
+	/**
 	 * Get the app url
 	 *
 	 * @param	array			$params			Url params
@@ -588,7 +671,16 @@ class _Hook extends ExportableRecord
 	 */
 	public function delete()
 	{
-		Argument::deleteWhere( array( 'argument_parent_type=%s AND argument_parent_id=%d', 'hook', $this->id() ) );
+		foreach( $this->getArguments() as $argument ) {
+			$argument->delete();
+		}
+		
+		if ( $this->isCustom() ) {
+			foreach( Rule::loadWhere( array( 'rule_custom_internal=1 AND rule_event_type=%s AND rule_event_hook=%s', $this->event_type, $this->event_hook ) ) as $rule ) {
+				$rule->delete();
+			}
+		}
+		
 		Plugin::instance()->clearCustomHooksCache();
 		return parent::delete();
 	}

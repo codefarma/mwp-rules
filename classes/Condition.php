@@ -257,95 +257,62 @@ class _Condition extends GenericOperation
 	 */
 	public function invoke()
 	{
-		$plugin = \MWP\Rules\Plugin::instance();
+		$result = $this->opInvoke( func_get_args() );
 		
-		if ( ! $this->locked or $this->rule()->enable_recursion )
+		if ( count( $this->children() ) )
 		{
+			$compareMode = $this->compareMode();
+			
 			/**
-			 * Lock this from being triggered recursively
-			 * and creating never ending loops
+			 * We already have a winner
 			 */
-			$this->locked = TRUE;
-			
-			try
+			if ( $result and $compareMode == 'or' )
 			{
-				$result = $this->opInvoke( func_get_args() );
-			}
-			catch( \Throwable $t )
-			{
-				$this->locked = FALSE;
-				throw $t;
-			}
-			catch( \Exception $e )
-			{
-				$this->locked = FALSE;
-				throw $e;
+				return TRUE;
 			}
 			
-			if ( count( $this->children() ) )
+			/**
+			 * We have already failed
+			 */
+			if ( ! $result and $compareMode == 'and' )
 			{
-				$compareMode = $this->compareMode();
-				
-				/**
-				 * We already have a winner
-				 */
-				if ( $result and $compareMode == 'or' )
+				return FALSE;
+			}
+			
+			/* Only possibilities at this point */
+			// result FALSE mode OR
+			// result TRUE mode AND
+			
+			foreach ( $this->children() as $condition )
+			{
+				if ( $condition->enabled )
 				{
-					return TRUE;
-				}
-				
-				/**
-				 * We have already failed
-				 */
-				if ( ! $result and $compareMode == 'and' )
-				{
-					return FALSE;
-				}
-				
-				/* Only possibilities at this point */
-				// result FALSE mode OR
-				// result TRUE mode AND
-				
-				foreach ( $this->children() as $condition )
-				{
-					if ( $condition->enabled )
+					$conditionsCount++;
+					$_result = call_user_func_array( array( $condition, 'invoke' ), func_get_args() );
+					
+					if ( $_result and $compareMode == 'or' ) 
 					{
-						$conditionsCount++;
-						$_result = call_user_func_array( array( $condition, 'invoke' ), func_get_args() );
-						
-						if ( $_result and $compareMode == 'or' ) 
-						{
-							$result = TRUE;
-							break;
-						}
+						$result = TRUE;
+						break;
+					}
 
-						if ( ! $_result and $compareMode == 'and' )
-						{
-							$result = FALSE;
-							break;
-						}
-					}
-					else
+					if ( ! $_result and $compareMode == 'and' )
 					{
-						if ( $rule = $this->rule() and $rule->debug )
-						{
-							$plugin->rulesLog( $rule->event(), $rule, $condition, '--', 'Condition not evaluated (disabled)' );
-						}
+						$result = FALSE;
+						break;
+					}
+				}
+				else
+				{
+					if ( $rule = $this->rule() and $rule->debug )
+					{
+						$plugin->rulesLog( $rule->event(), $rule, $condition, '--', 'Condition not evaluated (disabled)' );
 					}
 				}
 			}
-			
-			$this->locked = FALSE;
-			
-			return $result;
 		}
-		else
-		{
-			if ( $rule = $this->rule() and $rule->debug )
-			{
-				$plugin->rulesLog( $rule->event(), $rule, $this, '--', 'Condition recursion protection (not evaluated)' );
-			}
-		}
+		
+		return $result;
 	}
 	
 	/**

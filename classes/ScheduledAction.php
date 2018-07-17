@@ -47,7 +47,7 @@ class _ScheduledAction extends ActiveRecord
 		),
 		'unique_key',
         'action_id',
-		'queued',
+		'running',
 		'thread',
 		'parent_thread',
 		'created',
@@ -86,7 +86,58 @@ class _ScheduledAction extends ActiveRecord
 	 */
 	public function getControllerActions()
 	{
-		return array();
+		$actions = parent::getControllerActions();
+		
+		return $actions;
+	}
+	
+	/**
+	 * Build an editing form
+	 *
+	 * @return	MWP\Framework\Helpers\Form
+	 */
+	public function buildEditForm()
+	{
+		$plugin = $this->getPlugin();
+		$form = static::createForm( 'schedule', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		
+		$form->addField( 'schedule_type', 'choice', array(
+			'label' => __( 'Scheduled Time', 'mwp-rules' ),
+			'description' => __( 'When do you want this action to run?', 'mwp-rules' ),
+			'choices' => array( 'Specified Date/Time' => 'datetime', 'Right Now' => 'immediate' ),
+			'data' => 'datetime',
+			'toggles' => array( 'immediate' => array( 'hide' => array( '#schedule_time' ) ) ),
+			'expanded' => true,
+			'required' => true,			
+		));
+		
+		$form->addField( 'time', 'datetime', array(
+			'row_attr' => array( 'id' => 'schedule_time' ),
+			'label' => __( 'Date/Time', 'mwp-rules' ),
+			'input' => 'timestamp',
+			'data' => $this->time,
+		));
+		
+		$form->addField( 'submit', 'submit', array(
+			'label' => __( 'Save', 'mwp-rules' ),
+		));
+		
+		return $form;
+	}
+	
+	/**
+	 * Process submitted form values 
+	 *
+	 * @param	array			$values				Submitted form values
+	 * @return	void
+	 */
+	protected function processEditForm( $values )
+	{
+		if ( $values['schedule_type'] == 'immediate' ) {
+			$values['time'] = time();
+		}
+		
+		parent::processEditForm( $values );
 	}
 	
 	/**
@@ -95,13 +146,14 @@ class _ScheduledAction extends ActiveRecord
 	 */
 	public function execute()
 	{
-		if ( $this->queued ) {
+		if ( $this->running ) {
 			return;
 		} else {
-			$this->queued = time();
+			$this->running = time();
 			$this->save();
 		}
 		
+		$deleteWhenDone = true;
 		$action_data = $this->data;
 		$plugin = $this->getPlugin();
 		
@@ -123,7 +175,7 @@ class _ScheduledAction extends ActiveRecord
 
 			try
 			{
-				$action = \MWP\Rules\Action::load( $this->action_id );
+				$action = Action::load( $this->action_id );
 				
 				if ( $event = $action->event() ) 
 				{
@@ -164,7 +216,92 @@ class _ScheduledAction extends ActiveRecord
 			catch ( \OutOfRangeException $e ) { }
 		}
 
-		$this->delete();
+		/**
+		 * Custom Scheduled Actions
+		 */
+		else if ( $this->custom_id )
+		{
+			foreach ( (array) $action_data['args'] as $key => $arg ) {
+				$args[ $key ] = $plugin->restoreArg( $arg );
+			}
+			
+			try
+			{
+				$hook = Hook::load( $this->custom_id );
+				$deleteWhenDone = isset( $action_data['frequency'] ) ? $action_data['frequency'] !== 'repeat' : true;			
+				
+				/* Process as bulk action */
+				if ( $bulk_arg = $action_data['bulk_option'] ) 
+				{
+					/* Init bulk data if needed */
+					if ( ! isset( $action_data['bulk_data'] ) ) {
+						$action_data['bulk_data'] = array();
+						$action_data['bulk_count'] = count( $action_data['bulk_data'] );
+					}
+					
+					/* Run next bulk item */
+					if ( ! empty( $action_data['bulk_data'] ) ) {
+						$deleteWhenDone = false;
+						$args[ $bulk_arg ] = array_shift( $action_data['bulk_data'] );					
+						call_user_func_array( 'do_action', array_merge( [ $hook->hook ], array_values( $args ) ) );
+						$this->data = $action_data;
+						$this->save();
+					}
+					
+					/* Reschedule if processing complete */
+					else {
+						unset( $action_data['bulk_data'] );
+						$this->data = $action_data;
+						$this->reschedule();
+					}
+				}
+				
+				/* Process as regular action */
+				else {
+					call_user_func_array( 'do_action', array_merge( [ $hook->hook ], array_values( $args ) ) );
+					$this->reschedule();
+				}
+			}
+			catch( \OutOfRangeException $e ) { }
+		}
+
+		if ( $deleteWhenDone ) {
+			$this->delete();
+		}
+		else {
+			$this->running = 0;
+			$this->save();
+		}	
+	}
+	
+	/**
+	 * Reschedule for the next run
+	 *
+	 * @return	void
+	 */
+	public function reschedule()
+	{
+		$next_run = $this->time;
+		$action_data = $this->data;
+		
+		while ( $next_run <= time() ) {
+			$interval = 
+					( (int) $action_data['minutes'] * 60 ) + 
+					( (int) $action_data['hours'] * 60 * 60 ) +
+					( (int) $action_data['days'] * 60 * 60 * 24 ) +
+					( (int) $action_data['months'] * 60 * 60 * 24 * 30 );
+					
+			/* If zero interval, add 5 minutes to current time and break */
+			if ( $interval <= 0 ) {
+				$next_run = time() + ( 60 * 5 );
+				break;
+			}
+			
+			$next_run += $interval;
+		}
+		
+		$this->time = $next_run;
+		$this->save();
 	}
 	
 	/**
@@ -174,6 +311,21 @@ class _ScheduledAction extends ActiveRecord
 	 */
 	public static function getNextAction()
 	{
-		return static::loadWhere( array( 'schedule_queued=0' ), 'schedule_time ASC', 1 )[0];
+		return static::loadWhere( array( 'schedule_running=0' ), 'schedule_time ASC', 1 )[0];
+	}
+
+	/**
+ 	 * Save record
+	 *
+	 * @return	bool|WP_Error
+	 */
+	public function save()
+	{
+		$result = parent::save();
+		
+		/* Make sure the rules action runner task is up to date */
+		$this->getPlugin()->updateActionRunner();
+		
+		return $result;
 	}
 }
