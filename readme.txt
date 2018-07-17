@@ -5,7 +5,7 @@ Tags: rules, automation, programming
 Requires at least: 4.7
 Tested up to: 4.9.6
 Requires PHP: 5.6
-Stable tag: 1.0.5
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,7 +52,20 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
 
 == Changelog ==
 
-= 1.1.0 =
+1.1.1
+=====
+
+### Changed
+
+- Improved the capabilities of the string comparision core condition to handle checking against arrays
+
+### Fixed
+
+- Fixed broken show/hide form rows on post/comment update action config forms
+
+
+1.1.0
+=====
 
 ### Added
 
@@ -65,7 +78,8 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
 
 - Changed to work with MWP Framework 2.1.x
 
-= 1.0.5 =
+1.0.5
+=====
 
 ### Added
 
@@ -84,7 +98,8 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
 - Error caused when using the token evaluator function in custom php actions/conditions
 - Base compare setting for conditions was not saving to the rule
 
-= 1.0.4 =
+1.0.4
+=====
 
 ### Added
 
@@ -94,7 +109,8 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
 - Custom actions can have rules assigned to them which comprise their core functionality
 - Added multisite support which moves rules administration to the network admin and allows rules to target specific sites
  
-= 1.0.3 =
+1.0.3
+=====
 
 ### Added
 
@@ -111,7 +127,8 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
 
 - Corrected active record class map generation output
  
-= 1.0.2 =
+1.0.2
+=====
 
 ### Added
 
@@ -132,7 +149,8 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
 - Removed unused dependency tracking code
 - Removed search box from rules controller
  
-= 1.0.1 =
+1.0.1
+=====
 
 ### Added
 
@@ -158,7 +176,8 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
 
 - Completed the incomplete 'update filter value' action
  
-= 1.0.0 =
+1.0.0
+=====
 
 * First official release
 

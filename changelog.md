@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.1.1] - 2018-07-17
+
+### Changed
+
+- Improved the capabilities of the string comparision core condition to handle checking against arrays
+
+### Fixed
+
+- Fixed broken show/hide form rows on post/comment update action config forms
+
 ## [1.1.0] - 2018-07-09
 
 ### Added
