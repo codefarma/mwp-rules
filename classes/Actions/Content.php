@@ -485,15 +485,15 @@ class _Content
 							'toggles' => array(
 								'comment_status' => array( 'show' => array( '#rules_update_post_comment_status' ) ),
 								'ping_status' => array( 'show' => array( '#rules_update_post_ping_status' ) ),
-								'type' => array( 'show' => array( '#rules_update_post_type_form_wrapper' ) ),
-								'author' => array( 'show' => array( '#rules_update_post_author_form_wrapper' ) ),
-								'title' => array( 'show' => array( '#rules_update_post_title_form_wrapper' ) ),
-								'content' => array( 'show' => array( '#rules_update_post_content_form_wrapper' ) ),
-								'excerpt' => array( 'show' => array( '#rules_update_post_excerpt_form_wrapper' ) ),
-								'status' => array( 'show' => array( '#rules_update_post_status_form_wrapper' ) ),
-								'date' => array( 'show' => array( '#rules_update_post_date_form_wrapper' ) ),
-								'terms' => array( 'show' => array( '#rules_update_post_terms_form_wrapper' ) ),
-								'meta' => array( 'show' => array( '#rules_update_post_meta_form_wrapper' ) ),
+								'type' => array( 'show' => array( '#rules-update-post_type_form_wrapper' ) ),
+								'author' => array( 'show' => array( '#rules-update-post_author_form_wrapper' ) ),
+								'title' => array( 'show' => array( '#rules-update-post_title_form_wrapper' ) ),
+								'content' => array( 'show' => array( '#rules-update-post_content_form_wrapper' ) ),
+								'excerpt' => array( 'show' => array( '#rules-update-post_excerpt_form_wrapper' ) ),
+								'status' => array( 'show' => array( '#rules-update-post_status_form_wrapper' ) ),
+								'date' => array( 'show' => array( '#rules-update-post_date_form_wrapper' ) ),
+								'terms' => array( 'show' => array( '#rules-update-post_terms_form_wrapper' ) ),
+								'meta' => array( 'show' => array( '#rules-update-post_meta_form_wrapper' ) ),
 							),
 						));
 						
@@ -984,12 +984,12 @@ class _Content
 							'description' => __( 'Choose the attributes that you want to update with this action.', 'mwp-rules' ),
 							'toggles' => array(
 								'comment_approved' => array( 'show' => array( '#update_comment_approved' ) ),
-								'post' => array( 'show' => array( '#rules_update_comment_post_form_wrapper' ) ),
-								'parent' => array( 'show' => array( '#rules_update_comment_parent_form_wrapper' ) ),
-								'author' => array( 'show' => array( '#rules_update_comment_author_form_wrapper' ) ),
-								'content' => array( 'show' => array( '#rules_update_comment_content_form_wrapper' ) ),
-								'date' => array( 'show' => array( '#rules_update_comment_date_form_wrapper' ) ),
-								'meta' => array( 'show' => array( '#rules_update_comment_meta_form_wrapper' ) ),
+								'post' => array( 'show' => array( '#rules-update-comment_post_form_wrapper' ) ),
+								'parent' => array( 'show' => array( '#rules-update-comment_parent_form_wrapper' ) ),
+								'author' => array( 'show' => array( '#rules-update-comment_author_form_wrapper' ) ),
+								'content' => array( 'show' => array( '#rules-update-comment_content_form_wrapper' ) ),
+								'date' => array( 'show' => array( '#rules-update-comment_date_form_wrapper' ) ),
+								'meta' => array( 'show' => array( '#rules-update-comment_meta_form_wrapper' ) ),
 							),
 						));
 						
