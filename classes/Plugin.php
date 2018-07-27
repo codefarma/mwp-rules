@@ -1256,7 +1256,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		if ( in_array( 'mixed', array_keys( $target_types ) ) or in_array( $source_argument['argtype'], array_keys( $target_types ) ) ) {
 			$is_compliant = true;
 			$target_type = ! empty( $target_types ) ? ( in_array( $source_argument['argtype'], array_keys( $target_types ) ) ? $target_types[ $source_argument['argtype'] ] : $target_types['mixed'] ) : array();
-			if ( isset( $target_type['classes'] ) ) {
+			if ( isset( $target_type['classes'] ) and ! empty( $target_type['classes'] ) ) {
 				$is_compliant = false;
 				if ( isset( $source_argument['class'] ) ) {
 					foreach( (array) $target_type['classes'] as $target_class ) {
@@ -1275,10 +1275,10 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 
 	/**
-	 * Check For Class Compliance
+	 * Check For Class Compliance (Can argument with type $class be used as input to arguments that need $classes)
 	 *
-	 * @param	string 		$class		Class to check compliance
-	 * @param	string|array	$classes	A classname or array of classnames to validate against
+	 * @param	string 		        $class      Class to check compliance
+	 * @param	string|array	    $classes    A classname or array of classnames to validate against
 	 * @return	bool				Will return TRUE if $class is the same as or is a subclass of any $classes
 	 */
 	public function isClassCompliant( $class, $classes )
@@ -1286,17 +1286,23 @@ class _Plugin extends \MWP\Framework\Plugin
 		list( $class, $class_key ) = $this->parseIdentifier( $class );
 		$compliant = FALSE;
 		
-		foreach ( (array) $classes as $_class )
-		{
-			if ( ltrim( $_class, '\\' ) === ltrim( $class, '\\' ) )
-			{
+		foreach ( (array) $classes as $_class ) {
+			list( $_class, $_class_key ) = $this->parseIdentifier( $_class );
+			
+			if ( ltrim( $_class, '\\' ) === ltrim( $class, '\\' ) ) {
 				$compliant = TRUE;
-				break;
+			}
+			else if ( is_subclass_of( $class, $_class ) ) {
+				$compliant = TRUE;
 			}
 			
-			if ( is_subclass_of( $class, $_class ) )
-			{
-				$compliant = TRUE;
+			if ( $compliant and ( $_class_key and $class_key ) ) {
+				if ( $class_key != $_class_key ) {
+					$compliant = FALSE;
+				}
+			}
+			
+			if ( $compliant ) {
 				break;
 			}
 		}
@@ -1560,6 +1566,24 @@ class _Plugin extends \MWP\Framework\Plugin
 				);
 				break;
 			
+			/* Checkbox Field */
+			case 'checkbox':
+			
+				$config = array(
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'checkbox', array_replace_recursive( array(
+							'label' => __( 'Enable', 'mwp-rules' ),
+							'value' => 1,
+							'data' => isset( $values[ $field_name ] ) ? (bool) $values[ $field_name ] : false,
+						),
+						$options ));
+					},
+					'getArg' => function( $values ) use ( $field_name ) {
+						return isset( $values[ $field_name ] ) ? (bool) $values[ $field_name ] : NULL;
+					}
+				);
+				break;
+				
 			/* Simple Textarea Field */
 			case 'textarea':
 			
@@ -1582,12 +1606,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			
 				$config = array(
 					'form' => function( $form, $values ) use ( $field_name, $options ) {
-						$values[ $field_name ] = isset( $values[ $field_name ] ) ? $values[ $field_name ] : time();
 						$form->addField( $field_name, 'datetime', array_replace_recursive( array(
 							'label' => __( 'Date/Time', 'mwp-rules' ),
 							'view_timezone' => get_option( 'timezone_string' ) ?: 'UTC',
 							'input' => 'timestamp',
-							'data' => $values[ $field_name ],
+							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : NULL,
 						), 
 						$options ));
 					},
@@ -1597,14 +1620,15 @@ class _Plugin extends \MWP\Framework\Plugin
 						}
 					},
 					'getArg' => function( $values ) use ( $field_name ) {
-						$date = new \DateTime();
-						$date->setTimestamp( isset( $values[ $field_name ] ) ? (int) $values[ $field_name ] : 0 );
-						
-						return $date;
+						if ( isset( $values[ $field_name ] ) ) {
+							$date = new \DateTime();
+							$date->setTimestamp( (int) $values[ $field_name ] );
+							return $date;
+						}
 					},
 				);
 				break;
-
+				
 			/* Individual User */
 			case 'user':
 			
