@@ -250,7 +250,14 @@ class _System
 							),
 							'required' => true,
 							'data' => isset( $values['rules_comparison_type'] ) ? $values['rules_comparison_type'] : 'equals',
-						));						
+						));
+
+						$form->addField( 'case_insensitive', 'checkbox', array(
+							'label' => __( 'Case In-sensitive', 'mwp-rules' ),
+							'value' => 1,
+							'data' => isset( $values['case_insensitive'] ) ? (bool) $values['case_insensitive'] : false,
+							'description' => __( 'Choose whether the comparision should be made without case sensitivity', 'mwp-rules' ),
+						));
 					},
 				),
 				'arguments'	=> array(
@@ -292,16 +299,21 @@ class _System
 					),
 				),
 				'callback' => function( $string1, $string2, $array_values, $number_value, $values ) {
+					$sensitive = isset( $values['case_insensitive'] ) && $values['case_insensitive'] ? false : true;
+					$c = function( $string ) use ( $sensitive ) {
+						return $sensitive ? $string : mb_strtolower( $string );
+					};
+					
 					switch( $values['rules_comparison_type'] ) {
-						case 'contains':   return mb_strpos( $string1, $string2 ) !== FALSE;
-						case 'startswith': return mb_substr( $string1, 0, mb_strlen( $string2 ) ) == $string2;
-						case 'endswith':   return mb_substr( $string1, mb_strlen( $string2 ) * -1 ) == $string2;
-						case 'equals':     return $string1 == $string2;
+						case 'contains':   return mb_strpos( $c($string1), $c($string2) ) !== FALSE;
+						case 'startswith': return mb_substr( $c($string1), 0, mb_strlen( $c($string2) ) ) == $c($string2);
+						case 'endswith':   return mb_substr( $c($string1), mb_strlen( $c($string2) ) * -1 ) == $c($string2);
+						case 'equals':     return $c($string1) == $c($string2);
 						
 						case 'contains_any':
 							if ( is_array( $array_values ) ) {
 								foreach( $array_values as $_value ) {
-									if ( mb_strpos( $string1, $_value ) !== FALSE ) {
+									if ( mb_strpos( $c($string1), $c($_value) ) !== FALSE ) {
 										return true;
 									}
 								}
@@ -311,7 +323,7 @@ class _System
 						case 'contains_all':
 							if ( is_array( $array_values ) ) {
 								foreach( $array_values as $_value ) {
-									if ( mb_strpos( $string1, $_value ) === FALSE ) {
+									if ( mb_strpos( $c($string1), $c($_value) ) === FALSE ) {
 										return false;
 									}
 								}
@@ -324,7 +336,7 @@ class _System
 							$tally = 0;
 							if ( is_array( $array_values ) ) {
 								foreach( $array_values as $_value ) {
-									if ( mb_strpos( $string1, $_value ) !== FALSE ) {
+									if ( mb_strpos( $c($string1), $c($_value) ) !== FALSE ) {
 										$tally++;
 										if ( $tally > $number_value ) {
 											return true;
@@ -339,7 +351,7 @@ class _System
 							$tally = 0;
 							if ( is_array( $array_values ) ) {
 								foreach( $array_values as $_value ) {
-									if ( mb_strpos( $string1, $_value ) !== FALSE ) {
+									if ( mb_strpos( $c($string1), $c($_value) ) !== FALSE ) {
 										$tally++;
 										if ( $tally > $number_value ) {
 											return false;
@@ -366,9 +378,9 @@ class _System
 							'containskey'	=> 'Array contains a specific key',
 							'containsvalue' => 'Array contains a specific value',
 							'keyhasvalue'   => 'Array key has a specific value',
-							'lengthgreater'	=> 'Array size is greater than',
-							'lengthless' 	=> 'Array size is less than',
-							'lengthequal'	=> 'Array size is equal to',
+							'lengthgreater'	=> 'Array length is greater than',
+							'lengthless' 	=> 'Array length is less than',
+							'lengthequal'	=> 'Array length is an exact size',
 						);
 						
 						$form->addField( 'rules_comparison_type', 'choice', array( 
