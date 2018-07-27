@@ -170,7 +170,8 @@ abstract class _GenericOperation extends ExportableRecord
 						}
 					}
 					
-					if ( ! empty( $usable_event_data ) ) {
+					//if ( ! empty( $usable_event_data ) ) 
+					{
 						$arg_sources[ 'Event / Global Data' ] = 'event';
 					}
 					
@@ -178,12 +179,21 @@ abstract class _GenericOperation extends ExportableRecord
 						$arg_sources[ 'Manual Configuration' ] = 'manual';
 					}
 					
-					if ( isset( $arg['argtypes'] ) ) {
+					$heading_content = '<span style="margin-right:10px">' . ( isset( $arg['label'] ) ? $arg['label'] : $arg_name ) . '</span>';
+					
+					if ( isset( $arg['argtypes'] ) and is_array( $arg['argtypes'] ) ) {
 						$arg_sources[ 'Custom PHP Code' ] = 'phpcode';
+						$_typelist = array();
+						foreach( $arg['argtypes'] as $k => $v ) {
+							if ( is_array( $v ) ) {
+								$_typelist[] = '(' . $k . ')' . ( isset( $v['classes'] ) && is_array( $v['classes'] ) ? '[' . implode( '|', $v['classes'] ) . ']' : '' );
+							}
+						}
+						$heading_content .= ' <small style="font-size:12px"><code>' . implode( '</code> <code>', $_typelist ) . '</code></small>';
 					}
 					
 					$form->addHtml( '__' . $arg_name . '_form_wrapper_start', '<div id="' . $argNameKey . '_form_wrapper">' );
-					$form->addHeading( '__' . $arg_name . '_heading', isset( $arg['label'] ) ? $arg['label'] : $arg_name );
+					$form->addHeading( '__' . $arg_name . '_heading', $heading_content );
 					
 					$form->addField( $argNameKey . '_source', 'choice', array(
 						'label' => __( 'Source', 'mwp-rules' ),
@@ -220,7 +230,7 @@ abstract class _GenericOperation extends ExportableRecord
 					 *
 					 * Are there any arguments to use?
 					 */
-					if ( ! empty( $usable_event_data ) ) 
+					//if ( ! empty( $usable_event_data ) ) 
 					{
 						$form->addField( $argNameKey . '_eventArg', 'text', array(
 							'field_prefix' => $operation->getDataSelector( $arg_name ),
@@ -238,7 +248,7 @@ abstract class _GenericOperation extends ExportableRecord
 								}
 							}'),
 							'label' => __( 'Data To Use', 'mwp-rules' ),
-							'required' => true,
+							'required' => ! empty( $usable_event_data ),
 							'data' => ( isset( $operation->data[ $argNameKey . '_eventArg' ] ) and $operation->data[ $argNameKey . '_eventArg' ] ) ? $operation->data[ $argNameKey . '_eventArg' ] : reset( $usable_event_data ),
 						));
 					}
@@ -533,8 +543,8 @@ abstract class _GenericOperation extends ExportableRecord
 						if 
 						( 
 							$argument_missing and 
-							$this->data[ $argNameKey . '_source' ] == 'event' and
-							$this->data[ $argNameKey . '_eventArg_useDefault' ]
+							@$this->data[ $argNameKey . '_source' ] == 'event' and
+							@$this->data[ $argNameKey . '_eventArg_useDefault' ]
 						)	
 						{
 							/**
