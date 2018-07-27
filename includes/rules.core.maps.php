@@ -50,7 +50,7 @@ add_filter( 'rules_global_arguments', function( $globals )
 			'class' => 'MWP\Rules\WP\Url',
 			'label' => 'Current URL',
 			'getter' => function() {
-				return new WP\Url( add_query_arg() );
+				return new WP\Url( add_query_arg( [] ) );
 			}
 		),
 	));
@@ -239,13 +239,15 @@ add_filter( 'rules_class_map', function( $map )
 		'DateTime' => array(
 			'label' => 'Date/Time',
 			'loader' => function( $val, $type, $key ) {
-				if ( $type == 'int' ) {
-					$date = new \DateTime;
-					$date->setTimestamp( (int) $val );
-					return $date;
+				if ( isset( $val ) ) {
+					if ( $type == 'int' ) {
+						$date = new \DateTime;
+						$date->setTimestamp( (int) $val );
+						return $date;
+					}
+					
+					return new \DateTime( $val );
 				}
-				
-				return new \DateTime( $val );
 			},
 			'mappings' => array( 
 				'timestamp' => array(
