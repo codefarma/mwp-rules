@@ -30,6 +30,9 @@ class MWPFrameworkPatternActiveRecord extends _MWPFrameworkPatternActiveRecord
 				$records = $object_class::loadWhere( array( $key . '=%s', $val ) );
 				return array_shift( $records );
 			},
+			'reference' => function( $record ) {
+				return $record->id();
+			},
 			'mappings' => [],
 		);
 		

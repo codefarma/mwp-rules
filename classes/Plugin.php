@@ -199,6 +199,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function whenPluginsLoaded()
 	{
+		/* Get cached information about the plugins/expansions providing ECA's */
 		$stored_providers = $this->getECAProviders();
 		
 		/* Include ECA expansion packs */
@@ -245,6 +246,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			}
 		}
 		
+		/* If our providers cache has been updated, save it */
 		if ( $stored_providers !== $this->providers ) {
 			$this->setECAProviders( $this->providers );
 		}
@@ -1028,7 +1030,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	 * Get Class Conversion Mappings
 	 * 
 	 * @param 	string|NULL		$class		A specific class to return conversions for, NULL for all
-	 * @return	array						Class conversion definitions
+	 * @return	array|NULL					Class conversion definitions
 	 */
 	public function getClassMappings( $class=NULL )
 	{
@@ -1209,7 +1211,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
-	 * Get the identifier and optional key for an argument
+	 * Get the identifier and optional key for an class specification
 	 *
 	 * @param	string			$identifier			The identifier in the form of identifier[key]
 	 * @return	array
@@ -1980,7 +1982,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		 * Delete any existing action with the same unique key
 		 */
 		if ( isset( $unique_key ) and trim( $unique_key ) != '' ) {
-			foreach( ScheduledAction::loadWhere( 'schedule_unique_key=?', trim( $unique_key ) ) as $existing ) {
+			foreach( ScheduledAction::loadWhere( array( 'schedule_unique_key=%s', trim( $unique_key ) ) ) as $existing ) {
 				$existing->delete();
 			}
 		}
@@ -2072,10 +2074,23 @@ class _Plugin extends \MWP\Framework\Plugin
 			return $arg;
 		}
 		
-		$arg_class = get_class( $arg );
-		$data = apply_filters( 'rules_store_object', NULL, $arg, $arg_class );
-
-		return ( $data !== NULL ) ? array( '_obj_class' => $arg_class, 'data' => $data ) : array( '_obj_class' => 'stdClass', 'data' => (array) $arg );
+		if ( $object_store = apply_filters( 'rules_store_object', NULL, $arg ) ) {
+			return $object_store;
+		}
+		
+		$data = NULL;
+		$arg_class = get_class( $arg );		
+		$mapped = $this->getClassMappings( $arg_class );
+		
+		if ( $mapped ) {
+			if ( isset( $mapped['reference'] ) and is_callable( $mapped['reference'] ) ) {
+				$data = call_user_func( $mapped['reference'], $arg );
+			}
+		}
+		
+		$object_store = ( $data !== NULL ) ? array( '_obj_class' => $arg_class, 'data' => $data ) : array( '_obj_class' => $arg_class, 'data' => $data, 'saved_data' => (array) $arg );
+		
+		return $object_store;
 	}
 
 	/**
@@ -2091,7 +2106,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		}
 		
 		/* If the array is not a stored object reference, walk through elements recursively to restore values */
-		if ( ! isset ( $arg[ '_obj_class' ] ) ) {
+		if ( ! isset ( $arg['_obj_class'] ) ) {
 			$arg_array = array();
 			
 			foreach ( $arg as $k => $_arg ) {
@@ -2101,7 +2116,36 @@ class _Plugin extends \MWP\Framework\Plugin
 			return $arg_array;
 		}
 		
-		return apply_filters( 'rules_restore_object', NULL, $arg['data'], $arg['_obj_class'] ) ?: (object) $arg['data'];
+		if ( $object = apply_filters( 'rules_restore_object', NULL, $arg ) ) {
+			return $object;
+		}
+		
+		$typeMap = array(
+			'object' => 'object',
+			'integer' => 'int',
+			'double' => 'float',
+			'boolean' => 'bool',
+			'string' => 'string',
+			'array' => 'array',
+			'NULL' => '',
+		);
+		
+		$mapped = $this->getClassMappings( $arg['_obj_class'] );
+		if ( $mapped ) {
+			if ( isset( $mapped['loader'] ) and is_callable( $mapped['loader'] ) ) {
+				if ( isset( $arg['data'] ) ) {
+					if ( is_array( $arg['data'] ) ) {
+						list( $val, $key ) = $arg['data'];
+					} else {
+						$val = $arg['data'];
+						$key = NULL;
+					}
+					
+					return call_user_func( $mapped['loader'], $val, $typeMap[gettype($val)], $key );
+				}
+			}
+		}
+		
 	}
 	
 	/**
