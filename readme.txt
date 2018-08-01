@@ -52,6 +52,31 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
 
 == Changelog ==
 
+1.1.2
+=====
+
+### Added
+
+- Array value search condition now has setting for case insensitivity
+- New 'checkbox' config preset widget
+- Any class that extends `MWP\Framework\Pattern\ActiveRecord` can now automagically register a full set of ECA's with rules via static method `registerRulesECAs()`
+- Token selector now available on the action scheduling unique key form input
+- Added support for storing references to known objects in the class map for later loading
+
+### Changed
+
+- Event argument selection is now always available in condition/action config, even if no event args can be matched to 2 levels
+
+### Fixed
+
+- Fixed scheduled action controller not conforming to proper database schema
+- Fixed custom log entries not showing after editing default sort order on log
+- Fixed non-working token replacement on action scheduling unique key
+- Fixed non-working scheduled action unique key management
+- Fixed scheduled actions not working when operating on stored objects
+- Fixed custom filters not showing on custom events page
+
+
 1.1.1
 =====
 
