@@ -748,7 +748,7 @@ abstract class _GenericOperation extends ExportableRecord
 									$parentThread  = $rule->event()->parentThread;
 								}
 								
-								$unique_key = $this->schedule_key ? $this->replaceTokens( $this->schedule_key, $tokens ) : NULL;
+								$unique_key = $this->schedule_key ? $this->replaceTokens( $this->schedule_key, $arg_map ) : NULL;
 								$result = $rulesPlugin->scheduleAction( $this, $future_time, $operation_args, $arg_map, $thread, $parentThread, $unique_key );
 							}
 							
