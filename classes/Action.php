@@ -237,6 +237,7 @@ class _Action extends GenericOperation
 		
 			$form->addField( 'schedule_key', 'text', array( 
 				'row_attr' => array( 'id' => 'schedule_key' ),
+				'field_prefix' => $this->getTokenSelector(),
 				'label' => __( 'Unique Scheduling Keyphrase', 'mwp-rules' ),
 				'data' => $action->schedule_key,
 				'description' => __( 'Optional. Only one action will remain scheduled for any given keyphrase at a time. If an action is rescheduled, any previously scheduled actions with the same keyphrase will be removed. You can use tokens in the keyphrase and they will be replaced.', 'mwp-rules' ),
