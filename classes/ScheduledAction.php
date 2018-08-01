@@ -174,6 +174,6 @@ class _ScheduledAction extends ActiveRecord
 	 */
 	public static function getNextAction()
 	{
-		return static::loadWhere( array( 'schedule_queued=0' ), 'schedule_time ASC', 1 )[0];
+		return static::loadWhere( array( 'schedule_running=0' ), 'schedule_time ASC', 1 )[0];
 	}
 }
