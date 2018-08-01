@@ -82,7 +82,7 @@ return [
 			'parent' => 'mwp-rules',
 		],
 		'tableConfig' => [
-			'default_where' => array( "hook_type IN ( 'action', 'condition' )" ),
+			'default_where' => array( "hook_type IN ( 'action', 'filter' )" ),
 			'columns' => [
 				'hook_hook' => __( 'Hook', 'mwp-rules' ),
 				'hook_title' => __( 'Event', 'mwp-rules' ),
