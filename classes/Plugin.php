@@ -2018,23 +2018,24 @@ class _Plugin extends \MWP\Framework\Plugin
 	/**
 	 * Update the action runner task
 	 *
-	 * @return	Task
+	 * @return	Task|NULL
 	 */
 	public function updateActionRunner()
 	{
-		$_next_action = ScheduledAction::getNextAction();
-		$task = Task::loadWhere( array( 'task_action=%s AND task_completed=0 AND task_fails<3', 'rules_action_runner' ) )[0];
-		
-		if ( $task ) {
-			if ( ! $task->running ) {
-				$task->next_start = $_next_action->time;
-				$task->save();
+		if ( $_next_action = ScheduledAction::getNextAction() ) {
+			$tasks = Task::loadWhere( array( 'task_action=%s AND task_completed=0 AND task_fails<3', 'rules_action_runner' ) );
+			
+			if ( $task = array_shift( $tasks ) ) {
+				if ( ! $task->running ) {
+					$task->next_start = $_next_action->time;
+					$task->save();
+				}
+			} else {
+				$task = Task::queueTask( array( 'action' => 'rules_action_runner', 'next_start' => $_next_action->time ) );
 			}
-		} else {
-			$task = Task::queueTask( array( 'action' => 'rules_action_runner', 'next_start' => $_next_action->time ) );
+			
+			return $task;
 		}
-		
-		return $task;
 	}
 	
 	/**
