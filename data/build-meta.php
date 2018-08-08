@@ -1,7 +1,7 @@
 <?php
 return <<<'JSON'
 {
-    "framework_version": "2.1.1",
+    "framework_version": "2.1.3",
     "framework_bundled": true,
     "tables": [
         {
@@ -2107,14 +2107,14 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
-                "schedule_queued": {
+                "schedule_running": {
                     "allow_null": false,
                     "auto_increment": false,
                     "binary": false,
                     "decimals": null,
                     "default": "0",
                     "length": 11,
-                    "name": "schedule_queued",
+                    "name": "schedule_running",
                     "type": "INT",
                     "unsigned": false,
                     "values": [],

@@ -765,7 +765,7 @@ class _CustomLog extends ExportableRecord
 				],
 				'tableConfig' => array(
 					'perPage' => isset( $this->data['default_per_page'] ) ? $this->data['default_per_page'] : 50,
-					'sortBy' => isset( $this->data['default_sortby'] ) ? 'entry_' . $this->data['default_sortby'] : 'entry_timestamp',
+					'sortBy' => isset( $this->data['default_sortby'] ) ? $this->data['default_sortby'] : 'entry_timestamp',
 					'sortOrder' => isset( $this->data['default_sortorder'] ) ? $this->data['default_sortorder'] : 'DESC',
 					'columns' => array(
 						'entry_timestamp' => __( 'Date/Time', 'mwp-rules' ),

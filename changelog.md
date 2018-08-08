@@ -6,6 +6,41 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.1.2] - 2018-08-01
+
+### Added
+
+- Array value search condition now has setting for case insensitivity
+- New 'checkbox' config preset widget
+- Any class that extends `MWP\Framework\Pattern\ActiveRecord` can now automagically register a full set of ECA's with rules via static method `registerRulesECAs()`
+- Token selector now available on the action scheduling unique key form input
+- Added support for storing references to known objects in the class map for later loading
+
+### Changed
+
+- Event argument selection is now always available in condition/action config, even if no event args can be matched to 2 levels
+
+### Fixed
+
+- Fixed scheduled action controller not conforming to proper database schema
+- Fixed custom log entries not showing after editing default sort order on log
+- Fixed non-working token replacement on action scheduling unique key
+- Fixed non-working scheduled action unique key management
+- Fixed scheduled actions not working when operating on stored objects
+- Fixed custom filters not showing on custom events page
+
+
+## [1.1.1] - 2018-07-17
+
+### Changed
+
+- Improved the capabilities of the string comparision core condition to handle checking against arrays
+
+### Fixed
+
+- Fixed broken show/hide form rows on post/comment update action config forms
+
+
 ## [1.1.0] - 2018-07-09
 
 ### Added
@@ -18,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - Changed to work with MWP Framework 2.1.x
+
 
 ## [1.0.5] - 2018-06-20
 
@@ -38,6 +74,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Error caused when using the token evaluator function in custom php actions/conditions
 - Base compare setting for conditions was not saving to the rule
 
+
 ## [1.0.4] - 2018-06-13
 
 ### Added
@@ -47,6 +84,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Custom events and custom actions now have separate management screens
 - Custom actions can have rules assigned to them which comprise their core functionality
 - Added multisite support which moves rules administration to the network admin and allows rules to target specific sites
+
 
 ## [1.0.3] - 2018-06-01
 
@@ -64,6 +102,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 - Corrected active record class map generation output
+
 
 ## [1.0.2] - 2018-05-30
 
@@ -113,9 +152,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Completed the incomplete 'update filter value' action
 
+
 ## [1.0.0] - 2018-04-28
 
 - First public release 
+
 
 ## [0.9.2] - 2018-02-28
 

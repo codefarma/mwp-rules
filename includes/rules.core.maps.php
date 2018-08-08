@@ -50,7 +50,7 @@ add_filter( 'rules_global_arguments', function( $globals )
 			'class' => 'MWP\Rules\WP\Url',
 			'label' => 'Current URL',
 			'getter' => function() {
-				return new WP\Url( add_query_arg() );
+				return new WP\Url( add_query_arg( [] ) );
 			}
 		),
 	));
@@ -62,6 +62,17 @@ add_filter( 'rules_global_arguments', function( $globals )
 add_filter( 'rules_class_map', function( $map ) 
 {
 	return array_replace_recursive( $map, array(
+		'stdClass' => array(
+			'label' => 'Plain Object',
+			'loader' => function( $val ) {
+				if ( is_array( $val ) ) {
+					return (object) $val;
+				}
+			},
+			'reference' => function( $object ) {
+				return [ (array) $object ];
+			},
+		),
 		'MWP\Rules\WP\Site' => array(
 			'label' => 'Site',
 			'mappings' => array(
@@ -158,6 +169,9 @@ add_filter( 'rules_class_map', function( $map )
 			'loader' => function( $val ) {
 				return new \MWP\Rules\WP\Url( $val );
 			},
+			'reference' => function( $url ) {
+				return $url->url;
+			},
 			'mappings' => array(
 				'link' => array(
 					'argtype' => 'string',
@@ -239,13 +253,18 @@ add_filter( 'rules_class_map', function( $map )
 		'DateTime' => array(
 			'label' => 'Date/Time',
 			'loader' => function( $val, $type, $key ) {
-				if ( $type == 'int' ) {
-					$date = new \DateTime;
-					$date->setTimestamp( (int) $val );
-					return $date;
+				if ( isset( $val ) ) {
+					if ( $type == 'int' ) {
+						$date = new \DateTime;
+						$date->setTimestamp( (int) $val );
+						return $date;
+					}
+					
+					return new \DateTime( $val );
 				}
-				
-				return new \DateTime( $val );
+			},
+			'reference' => function( $date ) {
+				return $date->getTimestamp();
 			},
 			'mappings' => array( 
 				'timestamp' => array(
@@ -391,6 +410,9 @@ add_filter( 'rules_class_map', function( $map )
 					case 'string': return get_user_by($key, $val);
 				}
 			},
+			'reference' => function( $user ) {
+				return (int) $user->ID;
+			},
 			'mappings' => array(
 				'id' => array(
 					'argtype' => 'int',
@@ -535,6 +557,9 @@ add_filter( 'rules_class_map', function( $map )
 			'label' => 'Post',
 			'loader' => function( $val ) {
 				return get_post( $val );
+			},
+			'reference' => function( $post ) {
+				return $post->ID;
 			},
 			'mappings' => array(
 				'id' => array(
@@ -728,6 +753,9 @@ add_filter( 'rules_class_map', function( $map )
 				}
 				return null;
 			},
+			'reference' => function( $post_type ) {
+				return $post_type->name;
+			},
 			'mappings' => array(
 				'name' => array(
 					'label' => 'Name',
@@ -795,6 +823,9 @@ add_filter( 'rules_class_map', function( $map )
 			'label' => 'Comment',
 			'loader' => function( $comment_id ) {
 				return get_comment( $comment_id );
+			},
+			'reference' => function( $comment ) {
+				return $comment->comment_ID;
 			},
 			'mappings' => array(
 				'id' => array(
@@ -891,6 +922,9 @@ add_filter( 'rules_class_map', function( $map )
 			'loader' => function( $val, $type, $key ) {
 				return get_taxonomy( $val );
 			},
+			'reference' => function( $taxonomy ) {
+				return $taxonomy->name;
+			},
 			'mappings' => array(
 				'name' => array(
 					'argtype' => 'string',
@@ -964,6 +998,9 @@ add_filter( 'rules_class_map', function( $map )
 				if ( ! is_wp_error( $term ) ) {
 					return $term;
 				}
+			},
+			'reference' => function( $term ) {
+				return $term->term_id;
 			},
 			'mappings' => array(
 				'id' => array(

@@ -70,7 +70,7 @@ class _Url
 				$query = array();
 				foreach( explode( '&', $value ) as $pair ) {
 					$parts = explode( '=', $pair );
-					$query[ $parts[0] ] = $parts[1];
+					@$query[ $parts[0] ] = $parts[1];
 				}
 				$value = $query;
 			}

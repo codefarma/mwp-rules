@@ -199,6 +199,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function whenPluginsLoaded()
 	{
+		/* Get cached information about the plugins/expansions providing ECA's */
 		$stored_providers = $this->getECAProviders();
 		
 		/* Include ECA expansion packs */
@@ -245,6 +246,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			}
 		}
 		
+		/* If our providers cache has been updated, save it */
 		if ( $stored_providers !== $this->providers ) {
 			$this->setECAProviders( $this->providers );
 		}
@@ -1028,7 +1030,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	 * Get Class Conversion Mappings
 	 * 
 	 * @param 	string|NULL		$class		A specific class to return conversions for, NULL for all
-	 * @return	array						Class conversion definitions
+	 * @return	array|NULL					Class conversion definitions
 	 */
 	public function getClassMappings( $class=NULL )
 	{
@@ -1209,7 +1211,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
-	 * Get the identifier and optional key for an argument
+	 * Get the identifier and optional key for an class specification
 	 *
 	 * @param	string			$identifier			The identifier in the form of identifier[key]
 	 * @return	array
@@ -1256,7 +1258,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		if ( in_array( 'mixed', array_keys( $target_types ) ) or in_array( $source_argument['argtype'], array_keys( $target_types ) ) ) {
 			$is_compliant = true;
 			$target_type = ! empty( $target_types ) ? ( in_array( $source_argument['argtype'], array_keys( $target_types ) ) ? $target_types[ $source_argument['argtype'] ] : $target_types['mixed'] ) : array();
-			if ( isset( $target_type['classes'] ) ) {
+			if ( isset( $target_type['classes'] ) and ! empty( $target_type['classes'] ) ) {
 				$is_compliant = false;
 				if ( isset( $source_argument['class'] ) ) {
 					foreach( (array) $target_type['classes'] as $target_class ) {
@@ -1275,10 +1277,10 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 
 	/**
-	 * Check For Class Compliance
+	 * Check For Class Compliance (Can argument with type $class be used as input to arguments that need $classes)
 	 *
-	 * @param	string 		$class		Class to check compliance
-	 * @param	string|array	$classes	A classname or array of classnames to validate against
+	 * @param	string 		        $class      Class to check compliance
+	 * @param	string|array	    $classes    A classname or array of classnames to validate against
 	 * @return	bool				Will return TRUE if $class is the same as or is a subclass of any $classes
 	 */
 	public function isClassCompliant( $class, $classes )
@@ -1286,17 +1288,23 @@ class _Plugin extends \MWP\Framework\Plugin
 		list( $class, $class_key ) = $this->parseIdentifier( $class );
 		$compliant = FALSE;
 		
-		foreach ( (array) $classes as $_class )
-		{
-			if ( ltrim( $_class, '\\' ) === ltrim( $class, '\\' ) )
-			{
+		foreach ( (array) $classes as $_class ) {
+			list( $_class, $_class_key ) = $this->parseIdentifier( $_class );
+			
+			if ( ltrim( $_class, '\\' ) === ltrim( $class, '\\' ) ) {
 				$compliant = TRUE;
-				break;
+			}
+			else if ( is_subclass_of( $class, $_class ) ) {
+				$compliant = TRUE;
 			}
 			
-			if ( is_subclass_of( $class, $_class ) )
-			{
-				$compliant = TRUE;
+			if ( $compliant and ( $_class_key and $class_key ) ) {
+				if ( $class_key != $_class_key ) {
+					$compliant = FALSE;
+				}
+			}
+			
+			if ( $compliant ) {
 				break;
 			}
 		}
@@ -1560,6 +1568,24 @@ class _Plugin extends \MWP\Framework\Plugin
 				);
 				break;
 			
+			/* Checkbox Field */
+			case 'checkbox':
+			
+				$config = array(
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'checkbox', array_replace_recursive( array(
+							'label' => __( 'Enable', 'mwp-rules' ),
+							'value' => 1,
+							'data' => isset( $values[ $field_name ] ) ? (bool) $values[ $field_name ] : false,
+						),
+						$options ));
+					},
+					'getArg' => function( $values ) use ( $field_name ) {
+						return isset( $values[ $field_name ] ) ? (bool) $values[ $field_name ] : NULL;
+					}
+				);
+				break;
+				
 			/* Simple Textarea Field */
 			case 'textarea':
 			
@@ -1582,12 +1608,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			
 				$config = array(
 					'form' => function( $form, $values ) use ( $field_name, $options ) {
-						$values[ $field_name ] = isset( $values[ $field_name ] ) ? $values[ $field_name ] : time();
 						$form->addField( $field_name, 'datetime', array_replace_recursive( array(
 							'label' => __( 'Date/Time', 'mwp-rules' ),
 							'view_timezone' => get_option( 'timezone_string' ) ?: 'UTC',
 							'input' => 'timestamp',
-							'data' => $values[ $field_name ],
+							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : NULL,
 						), 
 						$options ));
 					},
@@ -1597,14 +1622,15 @@ class _Plugin extends \MWP\Framework\Plugin
 						}
 					},
 					'getArg' => function( $values ) use ( $field_name ) {
-						$date = new \DateTime();
-						$date->setTimestamp( isset( $values[ $field_name ] ) ? (int) $values[ $field_name ] : 0 );
-						
-						return $date;
+						if ( isset( $values[ $field_name ] ) ) {
+							$date = new \DateTime();
+							$date->setTimestamp( (int) $values[ $field_name ] );
+							return $date;
+						}
 					},
 				);
 				break;
-
+				
 			/* Individual User */
 			case 'user':
 			
@@ -1956,7 +1982,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		 * Delete any existing action with the same unique key
 		 */
 		if ( isset( $unique_key ) and trim( $unique_key ) != '' ) {
-			foreach( ScheduledAction::loadWhere( 'schedule_unique_key=?', trim( $unique_key ) ) as $existing ) {
+			foreach( ScheduledAction::loadWhere( array( 'schedule_unique_key=%s', trim( $unique_key ) ) ) as $existing ) {
 				$existing->delete();
 			}
 		}
@@ -2058,10 +2084,23 @@ class _Plugin extends \MWP\Framework\Plugin
 			return $arg;
 		}
 		
-		$arg_class = get_class( $arg );
-		$data = apply_filters( 'rules_store_object', NULL, $arg, $arg_class );
-
-		return ( $data !== NULL ) ? array( '_obj_class' => $arg_class, 'data' => $data ) : array( '_obj_class' => 'stdClass', 'data' => (array) $arg );
+		if ( $object_store = apply_filters( 'rules_store_object', NULL, $arg ) ) {
+			return $object_store;
+		}
+		
+		$data = NULL;
+		$arg_class = get_class( $arg );		
+		$mapped = $this->getClassMappings( $arg_class );
+		
+		if ( $mapped ) {
+			if ( isset( $mapped['reference'] ) and is_callable( $mapped['reference'] ) ) {
+				$data = call_user_func( $mapped['reference'], $arg );
+			}
+		}
+		
+		$object_store = ( $data !== NULL ) ? array( '_obj_class' => $arg_class, 'data' => $data ) : array( '_obj_class' => $arg_class, 'data' => $data, 'saved_data' => (array) $arg );
+		
+		return $object_store;
 	}
 
 	/**
@@ -2077,7 +2116,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		}
 		
 		/* If the array is not a stored object reference, walk through elements recursively to restore values */
-		if ( ! isset ( $arg[ '_obj_class' ] ) ) {
+		if ( ! isset ( $arg['_obj_class'] ) ) {
 			$arg_array = array();
 			
 			foreach ( $arg as $k => $_arg ) {
@@ -2087,7 +2126,36 @@ class _Plugin extends \MWP\Framework\Plugin
 			return $arg_array;
 		}
 		
-		return apply_filters( 'rules_restore_object', NULL, $arg['data'], $arg['_obj_class'] ) ?: (object) $arg['data'];
+		if ( $object = apply_filters( 'rules_restore_object', NULL, $arg ) ) {
+			return $object;
+		}
+		
+		$typeMap = array(
+			'object' => 'object',
+			'integer' => 'int',
+			'double' => 'float',
+			'boolean' => 'bool',
+			'string' => 'string',
+			'array' => 'array',
+			'NULL' => '',
+		);
+		
+		$mapped = $this->getClassMappings( $arg['_obj_class'] );
+		if ( $mapped ) {
+			if ( isset( $mapped['loader'] ) and is_callable( $mapped['loader'] ) ) {
+				if ( isset( $arg['data'] ) ) {
+					if ( is_array( $arg['data'] ) ) {
+						list( $val, $key ) = $arg['data'];
+					} else {
+						$val = $arg['data'];
+						$key = NULL;
+					}
+					
+					return call_user_func( $mapped['loader'], $val, $typeMap[gettype($val)], $key );
+				}
+			}
+		}
+		
 	}
 	
 	/**

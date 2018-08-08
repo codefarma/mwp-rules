@@ -63,4 +63,14 @@ class _BaseDefinition
 	{
 		return isset( $this->callback ) and is_callable( $this->callback );
 	}
+	
+	/**
+	 * Avoid PHP Warnings on non existant properties
+	 *
+	 * @return	NULL
+	 */
+	public function __get( $key )
+	{
+		return NULL;
+	}
 }

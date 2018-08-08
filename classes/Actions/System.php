@@ -677,8 +677,8 @@ class _System
 				),
 				'callback' => function( $action_key ) {
 					if ( $action_key ) {
-						$count = \MWP\Rules\ScheduledAction::countWhere( array( 'schedule_key=%s', $action_key ) );
-						\MWP\Rules\ScheduledAction::deleteWhere( array( 'schedule_key=%s', $action_key ) );
+						$count = \MWP\Rules\ScheduledAction::countWhere( array( 'schedule_unique_key=%s', $action_key ) );
+						\MWP\Rules\ScheduledAction::deleteWhere( array( 'schedule_unique_key=%s', $action_key ) );
 						return 'Deleted ' . $count . ' scheduled actions.';
 					}
 					
