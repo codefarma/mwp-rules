@@ -14,6 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
+use MWP\Rules;
+
 /**
  * Schedule Controller Class
  */
@@ -58,13 +60,11 @@ class _ScheduleController extends BaseController
 						}
 					},
 					'action' => function( $row ) {
-						if ( $row['schedule_action_id'] ) {
-							try {
-								$action = \MWP\Rules\Action::load( $row['schedule_action_id'] );
-								return '<a href="' . $action->url() . '">' . esc_html( $action->title ) . '</a>';
-							}
-							catch( \OutOfRangeException $e ) { }
+						try {
+							$action = $row['schedule_action_id'] ? Rules\Action::load( $row['schedule_action_id'] ) : Rules\Hook::load( $row['schedule_custom_id'] );
+							return '<a href="' . $action->url() . '">' . esc_html( $action->title ) . '</a>';
 						}
+						catch( \OutOfRangeException $e ) { }
 					},
 					'schedule_time' => function( $row ) {
 						return get_date_from_gmt( date( 'Y-m-d H:i:s', $row['schedule_time'] ), 'F j, Y H:i:s' );

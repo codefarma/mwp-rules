@@ -1967,7 +1967,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	/**
 	 * Schedule An Action
 	 *
-	 * @param 	\MWP\Rules\Action	$action			The action to schedule
+	 * @param 	Action|Hook			$action			The action to schedule
 	 * @param	int					$time			The timestamp of when the action is scheduled
 	 * @param	array				$args			The arguments to send to the action
 	 * @param	array				$event_args		The arguments from the event
@@ -1976,7 +1976,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	 * @param	string|NULL			$unique_key		A unique key to identify the action for later updating/removal
 	 * @return	mixed								A message to log to the database if debugging is on
 	 */
-	public function scheduleAction( $action, $time, $args, $event_args, $thread, $parentThread, $unique_key=NULL )
+	public function scheduleAction( $action, $time, $args=[], $event_args=[], $thread=NULL, $parentThread=NULL, $unique_key=NULL )
 	{
 		/**
 		 * Delete any existing action with the same unique key
@@ -1987,17 +1987,19 @@ class _Plugin extends \MWP\Framework\Plugin
 			}
 		}
 		
+		$type_id = $action instanceof Action ? 'action_id' : 'custom_id';
+		
 		$scheduled_action                = new ScheduledAction;		
 		$scheduled_action->time          = $time;
-		$scheduled_action->action_id     = $action->id;
+		$scheduled_action->$type_id      = $action->id();
 		$scheduled_action->thread        = $thread;
 		$scheduled_action->parent_thread = $parentThread;
 		$scheduled_action->created       = time();
 		$scheduled_action->unique_key    = trim( $unique_key );
 		
 		$db_args = array();
-		foreach ( $args as $arg ) {
-			$db_args[] = $this->storeArg( $arg );
+		foreach ( $args as $key => $arg ) {
+			$db_args[ $key ] = $this->storeArg( $arg );
 		}
 		
 		$db_event_args = array();
@@ -2012,7 +2014,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		
 		$scheduled_action->save();
 		
-		return "Action Scheduled (ID#{$scheduled_action->id})";
+		return $scheduled_action;
 	}
 	
 	/**

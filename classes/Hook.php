@@ -491,26 +491,27 @@ class _Hook extends ExportableRecord
 			return $form;
 		}
 		
-		$form->addTab( 'scheduling', array(
-			'title' => __( 'Scheduling', 'mwp-rules' ),
+		$form->addTab( 'schedule', array(
+			'title' => __( 'Schedule', 'mwp-rules' ),
 		));
 		
 		$form->addField( 'schedule_time', 'datetime', array(
 			'label' => __( 'Scheduled Date/Time', 'mwp-rules' ),
 			'input' => 'timestamp',
+			'view_timezone' => get_option('timezone_string') ?: 'UTC',
 			'data' => time(),
 		));
 		
-		$form->addField( 'recurrance', 'choice', array(
+		$form->addField( 'recurrance_type', 'choice', array(
 			'label' => __( 'Recurrance', 'mwp-rules' ),
 			'choices' => array(
-				'One Time Only' => 'none',
+				'One Time Only' => 'once',
 				'Repeating Interval' => 'repeating',
 			),
 			'toggles' => array(
 				'repeating' => array( 'show' => array( '#schedule_minutes', '#schedule_hours', '#schedule_days', '#schedule_months' ) ),
 			),
-			'data' => 'none',
+			'data' => 'once',
 			'required' => true,
 			'expanded' => true,
 		));
@@ -520,13 +521,36 @@ class _Hook extends ExportableRecord
 		$form->addField( 'schedule_days', 'integer', array( 'label' => __( 'Days', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_days' ), 'data' => 0 ) );
 		$form->addField( 'schedule_months', 'integer', array( 'label' => __( 'Months', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_months' ), 'data' => 0 ) );
 		
-		$form->addTab( 'data', array(
-			'title' => __( 'Action Data', 'mwp-rules' ),
+		if ( is_multisite() and is_network_admin() ) {
+			$site_options = array();
+			foreach( get_sites() as $site ) {
+				$site_options[ $site->blogname ] = $site->id;
+			}
+			
+			$form->addField( 'site_id', 'choice', array( 
+				'row_prefix' => '<h2>Network Configuration</h2><hr>',
+				'row_attr' => array( 'id' => 'sites' ),
+				'label' => __( 'Select Site', 'mwp-rules' ),
+				'description' => __( 'Choose which site this action is being scheduled for. (Also requires the Automation Rules plugin to be enabled on the site.)', 'mwp-rules' ),
+				'choices' => $site_options,
+				'data' => null,
+				'multiple' => false,
+				'expanded' => true,
+				'required' => true,
+			));
+		}
+
+		$form->addTab( 'inputs', array(
+			'title' => __( 'Action Inputs', 'mwp-rules' ),
 		));
 		
 		foreach( $this->getArguments() as $argument ) {
 			$argument->addFormWidget( $form, [] );
 		}
+		
+		$form->addField( 'submit', 'submit', array(
+			'label' => __( 'Submit', 'mwp-rules' ),
+		), '');
 		
 		return $form;
 	}
@@ -539,6 +563,34 @@ class _Hook extends ExportableRecord
 	 */
 	public function processScheduleForm( $values )
 	{
+		$plugin = $this->getPlugin();
+		$arguments = $this->getArguments();
+		
+		$args = array_combine( array_column( $arguments, 'varname' ), array_map( function( $a ) use ( $values ) {
+			return $a->getArg( $a->getWidgetFormValues( $values['inputs'] ) );
+		}, $arguments ) );
+		
+		/* Multisite compatibility */
+		if ( isset( $values['schedule']['site_id'] ) ) {
+			switch_to_blog( $values['schedule']['site_id'] );
+		}
+		
+		$scheduled_action = $plugin->scheduleAction( $this, $values['schedule']['schedule_time'], $args );
+		$data = $scheduled_action->data;
+		$data = array_merge( $data, array(
+			'recurrance' => $values['schedule']['recurrance_type'],
+			'minutes'    => $values['schedule']['schedule_minutes'],
+			'hours'      => $values['schedule']['schedule_hours'],
+			'days'       => $values['schedule']['schedule_days'],
+			'months'     => $values['schedule']['schedule_months'],
+		));
+		$scheduled_action->data = $data;
+		$scheduled_action->save();
+		
+		/* Multisite compatibility */
+		if ( isset( $values['schedule']['site_id'] ) ) {
+			restore_current_blog();
+		}
 		
 	}
 	

@@ -967,9 +967,21 @@ class _Argument extends ExportableRecord
 			$saved_values = $this->getSavedValues( 'default' );
 		}
 		
+		return $this->getArg( $saved_values );
+	}
+	
+	/**
+	 * Convert a saved form state to an argument
+	 *
+	 * @param	array		$values				Form values
+	 * @return	mixed
+	 */
+	public function getArg( $values )
+	{
+		$preset = $this->getPreset();
+		
 		if ( isset( $preset['getArg'] ) and is_callable( $preset['getArg'] ) ) {
-			$getArg = $preset['getArg'];
-			return $getArg( $saved_values, [], $this );
+			return call_user_func( $preset['getArg'], $values, [], $this );
 		}
 		
 		return NULL;

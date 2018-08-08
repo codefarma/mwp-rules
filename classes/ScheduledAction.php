@@ -115,6 +115,7 @@ class _ScheduledAction extends ActiveRecord
 			'row_attr' => array( 'id' => 'schedule_time' ),
 			'label' => __( 'Date/Time', 'mwp-rules' ),
 			'input' => 'timestamp',
+			'view_timezone' => get_option('timezone_string') ?: 'UTC',
 			'data' => $this->time,
 		));
 		
@@ -221,17 +222,18 @@ class _ScheduledAction extends ActiveRecord
 		 */
 		else if ( $this->custom_id )
 		{
-			foreach ( (array) $action_data['args'] as $key => $arg ) {
-				$args[ $key ] = $plugin->restoreArg( $arg );
-			}
-			
 			try
 			{
 				$hook = Hook::load( $this->custom_id );
-				$deleteWhenDone = isset( $action_data['frequency'] ) ? $action_data['frequency'] !== 'repeat' : true;			
+				$deleteWhenDone = isset( $action_data['recurrance'] ) ? $action_data['recurrance'] !== 'repeating' : true;
+				$args = array_map( function( $a ) use ( $action_data, $plugin ) { 
+					if ( isset( $action_data['args'][ $a->varname ] ) ) {
+						return $plugin->restoreArg( $action_data['args'][ $a->varname ] );
+					}
+				}, $hook->getArguments() );				
 				
 				/* Process as bulk action */
-				if ( $bulk_arg = $action_data['bulk_option'] ) 
+				if ( isset( $action_data['bulk_option'] ) and $bulk_arg = $action_data['bulk_option'] ) 
 				{
 					/* Init bulk data if needed */
 					if ( ! isset( $action_data['bulk_data'] ) ) {

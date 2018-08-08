@@ -739,8 +739,7 @@ abstract class _GenericOperation extends ExportableRecord
 									
 							}
 							
-							if ( $future_time > time() )
-							{
+							if ( $future_time > time() ) {
 								$thread = $parentThread = NULL;
 								
 								if ( $rule = $this->rule() ) {
@@ -749,7 +748,8 @@ abstract class _GenericOperation extends ExportableRecord
 								}
 								
 								$unique_key = $this->schedule_key ? $this->replaceTokens( $this->schedule_key, $arg_map ) : NULL;
-								$result = $rulesPlugin->scheduleAction( $this, $future_time, $operation_args, $arg_map, $thread, $parentThread, $unique_key );
+								$scheduled_action = $rulesPlugin->scheduleAction( $this, $future_time, $operation_args, $arg_map, $thread, $parentThread, $unique_key );
+								$result = "Action Scheduled (ID#{$scheduled_action->id})";
 							}
 							
 						}
