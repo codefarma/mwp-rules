@@ -698,7 +698,7 @@ class _Argument extends ExportableRecord
 	}
 	
 	/**
-	 * Get the values to save created by the widget
+	 * Get the values submitted by the form widget
 	 *
 	 * @param	array			$values				Values from the submitted form
 	 * @return	array								Processed values to save
@@ -716,6 +716,23 @@ class _Argument extends ExportableRecord
 		return $widget_values;
 	}
 	
+	/**
+	 * Convert widget form values into an argument
+	 *
+	 * @param	array		$values				Form values
+	 * @return	mixed
+	 */
+	public function getArg( $values )
+	{
+		$preset = $this->getPreset();
+		
+		if ( isset( $preset['getArg'] ) and is_callable( $preset['getArg'] ) ) {
+			return call_user_func( $preset['getArg'], $values, [], $this );
+		}
+		
+		return NULL;
+	}
+
 	/**
 	 * @var	array
 	 */
@@ -968,23 +985,6 @@ class _Argument extends ExportableRecord
 		}
 		
 		return $this->getArg( $saved_values );
-	}
-	
-	/**
-	 * Convert a saved form state to an argument
-	 *
-	 * @param	array		$values				Form values
-	 * @return	mixed
-	 */
-	public function getArg( $values )
-	{
-		$preset = $this->getPreset();
-		
-		if ( isset( $preset['getArg'] ) and is_callable( $preset['getArg'] ) ) {
-			return call_user_func( $preset['getArg'], $values, [], $this );
-		}
-		
-		return NULL;
 	}
 	
 	/**

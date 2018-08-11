@@ -225,14 +225,36 @@ class _ScheduledAction extends ActiveRecord
 			try
 			{
 				$hook = Hook::load( $this->custom_id );
+				$arguments = $hook->getArguments();
 				$deleteWhenDone = isset( $action_data['recurrance'] ) ? $action_data['recurrance'] !== 'repeating' : true;
-				$args = array_map( function( $a ) use ( $action_data, $plugin ) { 
-					if ( isset( $action_data['args'][ $a->varname ] ) ) {
-						return $plugin->restoreArg( $action_data['args'][ $a->varname ] );
-					}
-				}, $hook->getArguments() );				
 				
-				/* Process as bulk action */
+				/* If the custom scheduled action was manually scheduled, it will have config_data used to obtain the arguments */
+				if ( isset( $action_data['config_data'] ) ) {
+					$args = array_combine( array_column( $arguments, 'varname' ), array_map( function( $a ) use ( $action_data ) {
+						if ( isset( $action_data['config_data'][ $a->varname . '_argconfig_source' ] ) and $action_data['config_data'][ $a->varname . '_argconfig_source' ] == 'phpcode' ) {
+							if ( isset( $action_data['config_data'][ $a->varname . '_phpcode' ] ) ) {
+								$evaluate = rules_evaluation_closure( [ 'scheduled_action' => $this ] );
+								return $evaluate( $action_data['config_data'][ $a->varname . '_phpcode' ] );
+							}
+						}
+						else {
+							return isset( $action_data['config_data']['arguments'][ $a->varname ] ) ? $a->getArg( $action_data['config_data']['arguments'][ $a->varname ] ) : NULL;
+						}
+					}, $arguments ) );					
+				}
+				
+				/* Otherwise, load the arguments from standard storage */
+				else {
+					$args = array_map( function( $a ) use ( $action_data, $plugin ) { 
+						if ( isset( $action_data['args'][ $a->varname ] ) ) {
+							return $plugin->restoreArg( $action_data['args'][ $a->varname ] );
+						}
+					}, $arguments );
+				}
+				
+				/**
+				 * Process as bulk action 
+				 */
 				if ( isset( $action_data['bulk_option'] ) and $bulk_arg = $action_data['bulk_option'] ) 
 				{
 					/* Init bulk data if needed */
@@ -258,7 +280,9 @@ class _ScheduledAction extends ActiveRecord
 					}
 				}
 				
-				/* Process as regular action */
+				/**
+				 * Process as regular action 
+				 */
 				else {
 					call_user_func_array( 'do_action', array_merge( [ $hook->hook ], array_values( $args ) ) );
 					$this->reschedule();

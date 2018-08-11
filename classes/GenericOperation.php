@@ -170,10 +170,7 @@ abstract class _GenericOperation extends ExportableRecord
 						}
 					}
 					
-					//if ( ! empty( $usable_event_data ) ) 
-					{
-						$arg_sources[ 'Event / Global Data' ] = 'event';
-					}
+					$arg_sources[ 'Event / Global Data' ] = 'event';
 					
 					if ( $has_manual_config ) {
 						$arg_sources[ 'Manual Configuration' ] = 'manual';
@@ -199,7 +196,7 @@ abstract class _GenericOperation extends ExportableRecord
 						'label' => __( 'Source', 'mwp-rules' ),
 						'choices' => $arg_sources,
 						'data' => isset( $operation->data[ $argNameKey . '_source' ] ) ? $operation->data[ $argNameKey . '_source' ] : $default_source,
-						'required' => true,
+						'required' => ! empty( $arg_sources ),
 						'toggles' => array(
 							'event' => array( 'show' => '#' . $argNameKey . '_eventArg' ),
 							'manual' => array( 'show' => '#' . $argNameKey . '_manualConfig' ),
@@ -214,44 +211,35 @@ abstract class _GenericOperation extends ExportableRecord
 					 */
 					if ( $has_manual_config )
 					{				
-						/**
-						 * Add manual configuration form fields from definition
-						 *
-						 * Note: Callbacks should return an array with the ID's of their
-						 * added form fields so we know what to toggle.
-						 */
+						/* Add manual configuration form fields from definition */
 						$form->addHtml( '__manual_config_start_' . $arg_name, '<div id="' . $argNameKey . '_manualConfig">' );
-						$_fields = call_user_func_array( $arg[ 'configuration' ][ 'form' ], array( $form, $operation->data, $operation ) );
+						call_user_func_array( $arg[ 'configuration' ][ 'form' ], array( $form, $operation->data, $operation ) );
 						$form->addHtml( '__manual_config_end_' . $arg_name, '</div>' );
 					}
 					
 					/**
 					 * EVENT ARGUMENTS 
 					 *
-					 * Are there any arguments to use?
 					 */
-					//if ( ! empty( $usable_event_data ) ) 
-					{
-						$form->addField( $argNameKey . '_eventArg', 'text', array(
-							'field_prefix' => $operation->getDataSelector( $arg_name ),
-							'row_attr' => array( 'id' => $argNameKey . '_eventArg', 'data-view-model' => 'mwp-rules' ),
-							'attr' => array( 'data-role' => 'token-select', 'data-opkey' => $optype, 'data-opid' => $operation->id(), 'data-bind' => 'jquery: { 
-								selectize: {
-									plugins: [\'restore_on_backspace\'],
-									optgroups: ' . json_encode( $usable_event_data_optgroups ) . ',
-									options: ' . json_encode( $usable_event_data_objects ) . ',
-									persist: true,
-									maxItems: 1,
-									highlight: false,
-									hideSelected: false,
-									create: true
-								}
-							}'),
-							'label' => __( 'Data To Use', 'mwp-rules' ),
-							'required' => ! empty( $usable_event_data ),
-							'data' => ( isset( $operation->data[ $argNameKey . '_eventArg' ] ) and $operation->data[ $argNameKey . '_eventArg' ] ) ? $operation->data[ $argNameKey . '_eventArg' ] : reset( $usable_event_data ),
-						));
-					}
+					$form->addField( $argNameKey . '_eventArg', 'text', array(
+						'field_prefix' => $operation->getDataSelector( $arg_name ),
+						'row_attr' => array( 'id' => $argNameKey . '_eventArg', 'data-view-model' => 'mwp-rules' ),
+						'attr' => array( 'data-role' => 'token-select', 'data-opkey' => $optype, 'data-opid' => $operation->id(), 'data-bind' => 'jquery: { 
+							selectize: {
+								plugins: [\'restore_on_backspace\'],
+								optgroups: ' . json_encode( $usable_event_data_optgroups ) . ',
+								options: ' . json_encode( $usable_event_data_objects ) . ',
+								persist: true,
+								maxItems: 1,
+								highlight: false,
+								hideSelected: false,
+								create: true
+							}
+						}'),
+						'label' => __( 'Data To Use', 'mwp-rules' ),
+						'required' => ! empty( $usable_event_data ),
+						'data' => ( isset( $operation->data[ $argNameKey . '_eventArg' ] ) and $operation->data[ $argNameKey . '_eventArg' ] ) ? $operation->data[ $argNameKey . '_eventArg' ] : reset( $usable_event_data ),
+					));
 					
 					/**
 					 * PHP CODE

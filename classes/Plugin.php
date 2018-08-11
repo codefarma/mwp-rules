@@ -2025,7 +2025,7 @@ class _Plugin extends \MWP\Framework\Plugin
 	public function updateActionRunner()
 	{
 		if ( $_next_action = ScheduledAction::getNextAction() ) {
-			$tasks = Task::loadWhere( array( 'task_action=%s AND task_completed=0 AND task_fails<3', 'rules_action_runner' ) );
+			$tasks = Task::loadWhere( array( 'task_action=%s AND task_completed=0 AND task_fails<3 AND task_blog_id=%d', 'rules_action_runner', get_current_blog_id() ) );
 			
 			if ( $task = array_shift( $tasks ) ) {
 				if ( ! $task->running ) {

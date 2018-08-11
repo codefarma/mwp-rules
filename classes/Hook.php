@@ -217,7 +217,7 @@ class _Hook extends ExportableRecord
 		$hook_actions = array(
 			'edit' => '',
 			'schedule' => array(
-				'title' => __( 'Schedule Execution', 'mwp-rules' ),
+				'title' => __( 'Schedule Action', 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-time',
 				'params' => array(
 					'do' => 'edit',
@@ -545,7 +545,28 @@ class _Hook extends ExportableRecord
 		));
 		
 		foreach( $this->getArguments() as $argument ) {
+			$_var = $argument->varname;
+			$form->addHeading( $_var . '_argconfig_header', $argument->title );
+			$form->addField( $_var . '_argconfig_source', 'choice', array(
+				'label' => __( 'Data Source', 'mwp-rules' ),
+				'choices' => array( 'Manual' => 'manual', 'PHP Code' => 'phpcode' ),
+				'toggles' => array(
+					'manual' => array( 'show' => array( '#' . $_var . '_manual_wrapper' ) ),
+					'phpcode' => array( 'show' => array( '#' . $_var . '_phpcode' ) ),
+				),
+				'required' => true,
+			));
+			$form->addField( $_var . '_phpcode', 'textarea', array(
+				'row_attr' => array(  'id' => $_var . '_phpcode', 'data-view-model' => 'mwp-rules' ),
+				'label' => __( 'Custom PHP Code', 'mwp-rules' ),
+				'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
+				'data' => "// <?php \n\nreturn;",
+				'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 'return_args' => [ "<code>{$argument->type}</code>" . ( $argument->class ? ' (' . esc_html( $argument->class ). ')' : '' ) . ( $argument->description ? ' - ' . $argument->description : '' ) ] ) ),
+				'required' => false,
+			));
+			$form->addHtml( $_var . '_manual_start', '<div id="' . $_var . '_manual_wrapper' . '">' );
 			$argument->addFormWidget( $form, [] );
+			$form->addHtml( $_var . '_manual_end', '</div>' );
 		}
 		
 		$form->addField( 'submit', 'submit', array(
@@ -565,17 +586,19 @@ class _Hook extends ExportableRecord
 	{
 		$plugin = $this->getPlugin();
 		$arguments = $this->getArguments();
+		$config_data = $values['inputs'];
 		
-		$args = array_combine( array_column( $arguments, 'varname' ), array_map( function( $a ) use ( $values ) {
-			return $a->getArg( $a->getWidgetFormValues( $values['inputs'] ) );
-		}, $arguments ) );
+		foreach( $arguments as $argument ) {
+			$config_data['arguments'][ $argument->varname ] = $argument->getWidgetFormValues( $values['inputs'] );
+			unset( $config_data[ $argument->varname . '_widget' ] );
+		}
 		
 		/* Multisite compatibility */
 		if ( isset( $values['schedule']['site_id'] ) ) {
 			switch_to_blog( $values['schedule']['site_id'] );
 		}
 		
-		$scheduled_action = $plugin->scheduleAction( $this, $values['schedule']['schedule_time'], $args );
+		$scheduled_action = $plugin->scheduleAction( $this, $values['schedule']['schedule_time'], [] );
 		$data = $scheduled_action->data;
 		$data = array_merge( $data, array(
 			'recurrance' => $values['schedule']['recurrance_type'],
@@ -583,6 +606,7 @@ class _Hook extends ExportableRecord
 			'hours'      => $values['schedule']['schedule_hours'],
 			'days'       => $values['schedule']['schedule_days'],
 			'months'     => $values['schedule']['schedule_months'],
+			'config_data' => $config_data,
 		));
 		$scheduled_action->data = $data;
 		$scheduled_action->save();
@@ -591,7 +615,6 @@ class _Hook extends ExportableRecord
 		if ( isset( $values['schedule']['site_id'] ) ) {
 			restore_current_blog();
 		}
-		
 	}
 	
 	/**
