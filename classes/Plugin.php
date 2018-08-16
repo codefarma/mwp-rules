@@ -506,8 +506,12 @@ class _Plugin extends \MWP\Framework\Plugin
 			return $this->plugin_list;
 		}
 		
-		$active_plugins = get_option('active_plugins');
-		$this->plugin_list = array_combine( array_map( function($p) { return explode('/',$p)[0]; }, $active_plugins ), $active_plugins );
+		if ( ! function_exists( 'get_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+		
+		$plugin_list = array_keys( get_plugins() );
+		$this->plugin_list = array_combine( array_map( function($p) { return explode('/',$p)[0]; }, $plugin_list ), $plugin_list );
 		
 		return $this->plugin_list;
 	}
