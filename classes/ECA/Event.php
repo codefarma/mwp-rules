@@ -71,13 +71,17 @@ class _Event extends BaseDefinition
 	 */
 	public function deployRule( $rule )
 	{
+		/**
+		 * The event needs to be wrapped with beginning and ending callbacks so that all
+		 * actions from executed rules can be successfully accumulated until the end of the event
+		 */
 		if ( ! $this->event_wrapped ) {
 			if ( $this->type == "filter" ) {
-				add_filter( $this->hook, array( $this, 'begin' ), -999 );
-				add_filter( $this->hook, array( $this, 'finish' ), 999 );
+				add_filter( $this->hook, array( $this, 'begin' ), -2147483645 );
+				add_filter( $this->hook, array( $this, 'finish' ), 2147483645 );
 			} else {
-				add_action( $this->hook, array( $this, 'begin' ), -999 );
-				add_action( $this->hook, array( $this, 'finish' ), 999 );			
+				add_action( $this->hook, array( $this, 'begin' ), -2147483645 );
+				add_action( $this->hook, array( $this, 'finish' ), 2147483645 );			
 			}
 			
 			$this->event_wrapped = true;
@@ -85,8 +89,8 @@ class _Event extends BaseDefinition
 		
 		if ( ! in_array( $rule, $this->rules ) ) {
 			switch( $rule->event_type ) {
-				case 'action': add_action( $rule->event_hook, array( $rule, 'invoke' ), $rule->priority, 999 ); break;
-				case 'filter': add_filter( $rule->event_hook, array( $rule, 'invoke' ), $rule->priority, 999 ); break;
+				case 'action': add_action( $rule->event_hook, array( $rule, 'invoke' ), $rule->priority, 2147483645 ); break;
+				case 'filter': add_filter( $rule->event_hook, array( $rule, 'invoke' ), $rule->priority, 2147483645 ); break;
 			}
 			$this->rules[] = $rule;
 		}
