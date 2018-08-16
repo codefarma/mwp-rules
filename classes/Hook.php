@@ -546,10 +546,14 @@ class _Hook extends ExportableRecord
 		
 		foreach( $this->getArguments() as $argument ) {
 			$_var = $argument->varname;
+			$choices = array( 'Manual' => 'manual', 'PHP Code' => 'phpcode' );
+			if ( ! $argument->widget ) {
+				unset( $choices['Manual'] );
+			}
 			$form->addHeading( $_var . '_argconfig_header', $argument->title );
 			$form->addField( $_var . '_argconfig_source', 'choice', array(
 				'label' => __( 'Data Source', 'mwp-rules' ),
-				'choices' => array( 'Manual' => 'manual', 'PHP Code' => 'phpcode' ),
+				'choices' => $choices,
 				'toggles' => array(
 					'manual' => array( 'show' => array( '#' . $_var . '_manual_wrapper' ) ),
 					'phpcode' => array( 'show' => array( '#' . $_var . '_phpcode' ) ),
