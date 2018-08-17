@@ -108,19 +108,29 @@ class MWPRulesConditionsTest extends WP_UnitTestCase
 		$condition = $this->plugin->getCondition( 'rules_string_comparison' );
 		$this->assertTrue( $condition instanceof \MWP\Rules\ECA\Condition );
 		
-		$this->assertTrue( call_user_func( $condition->callback, 'string', 'string', array( 'rules_comparison_type' => 'equals' ) ) );
-		$this->assertTrue( call_user_func( $condition->callback, '1', 1, array( 'rules_comparison_type' => 'equals' ) ) );
-		$this->assertFalse( call_user_func( $condition->callback, 'string', 'STRING', array( 'rules_comparison_type' => 'equals' ) ) );
+		$this->assertTrue( call_user_func( $condition->callback, 'string', 'string', [], 0, array( 'rules_comparison_type' => 'equals' ) ) );
+		$this->assertTrue( call_user_func( $condition->callback, '1', 1, [], 0, array( 'rules_comparison_type' => 'equals' ) ) );
+		$this->assertFalse( call_user_func( $condition->callback, 'string', 'STRING', [], 0, array( 'rules_comparison_type' => 'equals' ) ) );
 		
-		$this->assertTrue( call_user_func( $condition->callback, 'string cheese', 'string', array( 'rules_comparison_type' => 'startswith' ) ) );
-		$this->assertFalse( call_user_func( $condition->callback, 'string cheese', 'cheese', array( 'rules_comparison_type' => 'startswith' ) ) );
+		$this->assertTrue( call_user_func( $condition->callback, 'string cheese', 'string', [], 0, array( 'rules_comparison_type' => 'startswith' ) ) );
+		$this->assertFalse( call_user_func( $condition->callback, 'string cheese', 'cheese', [], 0, array( 'rules_comparison_type' => 'startswith' ) ) );
 
-		$this->assertFalse( call_user_func( $condition->callback, 'string cheese', 'string', array( 'rules_comparison_type' => 'endswith' ) ) );
-		$this->assertTrue( call_user_func( $condition->callback, 'string cheese', 'cheese', array( 'rules_comparison_type' => 'endswith' ) ) );
+		$this->assertFalse( call_user_func( $condition->callback, 'string cheese', 'string', [], 0, array( 'rules_comparison_type' => 'endswith' ) ) );
+		$this->assertTrue( call_user_func( $condition->callback, 'string cheese', 'cheese', [], 0, array( 'rules_comparison_type' => 'endswith' ) ) );
 
-		$this->assertTrue( call_user_func( $condition->callback, 'string cheese', 'string', array( 'rules_comparison_type' => 'contains' ) ) );
-		$this->assertTrue( call_user_func( $condition->callback, 'string cheese', 'cheese', array( 'rules_comparison_type' => 'contains' ) ) );
-		$this->assertFalse( call_user_func( $condition->callback, 'string cheese', 'cheddar', array( 'rules_comparison_type' => 'contains' ) ) );
+		$this->assertTrue( call_user_func( $condition->callback, 'string cheese', 'string', [], 0, array( 'rules_comparison_type' => 'contains' ) ) );
+		$this->assertTrue( call_user_func( $condition->callback, 'string cheese', 'cheese', [], 0, array( 'rules_comparison_type' => 'contains' ) ) );
+		$this->assertFalse( call_user_func( $condition->callback, 'string cheese', 'cheddar', [], 0, array( 'rules_comparison_type' => 'contains' ) ) );
+		
+		$this->assertTrue( call_user_func( $condition->callback, 'string cheese', '', ['string','cheddar'], 0, array( 'rules_comparison_type' => 'contains_any' ) ) );
+		$this->assertFalse( call_user_func( $condition->callback, 'string cheese', '', ['cheddar'], 0, array( 'rules_comparison_type' => 'contains_any' ) ) );
+		$this->assertFalse( call_user_func( $condition->callback, 'string cheese', '', ['string','cheddar'], 0, array( 'rules_comparison_type' => 'contains_all' ) ) );
+		$this->assertTrue( call_user_func( $condition->callback, 'string cheese', '', ['string','cheese'], 0, array( 'rules_comparison_type' => 'contains_all' ) ) );
+		
+		$this->assertFalse( call_user_func( $condition->callback, 'string cheese', '', ['string','cheddar'], 1, array( 'rules_comparison_type' => 'contains_more' ) ) );
+		$this->assertTrue( call_user_func( $condition->callback, 'string cheese', '', ['string','cheddar'], 1, array( 'rules_comparison_type' => 'contains_exact' ) ) );
+		$this->assertFalse( call_user_func( $condition->callback, 'string cheese', '', ['string','cheese'], 1, array( 'rules_comparison_type' => 'contains_exact' ) ) );
+		$this->assertTrue( call_user_func( $condition->callback, 'string cheese', '', ['string','cheese'], 1, array( 'rules_comparison_type' => 'contains_more' ) ) );
 	}
 	
 	/**
