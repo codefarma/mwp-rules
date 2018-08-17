@@ -43,13 +43,15 @@ $rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0 AND rule_c
 		  <?php foreach( $rules as $rule ) : ?>
 			<tr>
 				<td>
-					<a class="nounderline" href="<?php echo $rule->url() ?>"><strong class="text-info"><?php echo esc_html( $rule->title ) ?></strong></a>  
-					<i class="glyphicon glyphicon-triangle-right"></i> When 
-					<?php if ( $rule->event() ) : ?>
-						<strong><?php echo esc_html( $rule->event()->title ) ?></strong>,
-					<?php else: ?>
-						<strong class="text-danger">An Unknown Event Occurs</strong>,
-					<?php endif; ?> 
+					<a class="nounderline rules-ellipsis" style="max-width: 23%" href="<?php echo $rule->url() ?>" title="<?php echo esc_attr( $rule->title ) ?>"><strong class="text-info"><?php echo esc_html( $rule->title ) ?></strong></a>  
+					<i class="glyphicon glyphicon-triangle-right"></i> 
+					<span class="rules-ellipsis" style="max-width: 23%">When 
+						<?php if ( $rule->event() ) : ?>
+							<strong title="<?php echo esc_attr( $rule->event()->title ) ?>"><?php echo esc_html( $rule->event()->title ) ?></strong>,
+						<?php else: ?>
+							<strong class="text-danger">An Unknown Event Occurs</strong>,
+						<?php endif; ?> 
+					</span>
 					<?php if ( count( $conditions = array_filter( $rule->getConditions(), function( $c ) { return $c->enabled; } ) ) ) { ?>
 						Under 
 							<a class="nounderline" href="<?php echo $rule->url(['_tab'=>'rule_conditions']) ?>">
@@ -57,27 +59,25 @@ $rules = Rules\Rule::loadWhere('rule_bundle_id=0 AND rule_parent_id=0 AND rule_c
 							</a>
 					<?php } ?>
 					Then 
-					<a class="nounderline" href="<?php echo $rule->url(['_tab'=>'rule_actions']) ?>">
+					<?php 
+						if ( count( $actions = array_filter( $rule->getActions(), function( $a ) { return (bool) $a->enabled; } ) ) > 0 ) {
+							$_action = array_shift( $actions );
+							$title = esc_html( $_action->title );
+						} else {
+							$title = __( 'Do Nothing' );
+						}
+					?>
+					<a class="nounderline rules-ellipsis" style="max-width: 23%" title="<?php echo esc_attr( $title ) ?>" href="<?php echo $rule->url(['_tab'=>'rule_actions']) ?>">
 						<strong class="text-success">
-							<?php 
-								if ( count( $actions = array_filter( $rule->getActions(), function( $a ) { return (bool) $a->enabled; } ) ) > 0 ) {
-									$_action = array_shift( $actions );
-									$title = esc_html( $_action->title );
-								} else {
-									$title = __( 'Do Nothing' );
-								}
-								echo esc_html( $title ) 
-							?>
+							<?php echo esc_html( $title ) ?>
 						</strong>
 					</a> 
 					<?php if ( count( $actions ) > 1 ) { ?> and more... <?php } ?>
 					<?php if ( count( $rule->children() ) > 0 ) { ?> <strong>+ <?php echo count( $rule->children() ) ?> <a href="<?php echo $rule->url(['_tab'=>'rule_subrules']) ?>">Sub-rules</a></strong><?php } ?>
 				</td>
-				<td class="text-right">
+				<td class="text-right" style="min-width: 140px">
 					<?php echo ( $rule->debug ? ' <a href="' . $rule->url(['_tab'=>'rule_debug_console']) . '" class="nounderline"><span class="text-warning">(debug)</span></a>' : '' ) ?> 
-					<span class="label label-<?php echo $rule->enabled ? 'success' : 'danger' ?> rules-pointer" data-rules-enabled-toggle="rule" data-rules-id="<?php echo $rule->id() ?>">
-						<?php echo $rule->enabled ? 'ENABLED' : 'DISABLED' ?>
-					</span> 
+					<span class="label label-<?php echo $rule->enabled ? 'success' : 'danger' ?> rules-pointer" data-rules-enabled-toggle="rule" data-rules-id="<?php echo $rule->id() ?>"><?php echo $rule->enabled ? 'ENABLED' : 'DISABLED' ?></span> 
 				</td>
 			</tr>
 			</tr>

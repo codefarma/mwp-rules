@@ -265,7 +265,7 @@ a.nounderline:hover {
 }
 
 .mwp-rules-form .event-arguments ul.array-keys {
-	margin:0 0 0 20px;
+	margin:5px 0 0 20px;
 	list-style-type: square;
 }
 
@@ -340,6 +340,18 @@ a.nounderline:hover {
 
 .mwp-rules-form .tokens-list ul li {
 	margin-bottom: 3px;
+}
+
+/* Reusable Styles */
+@media screen and (min-width: 900px) {
+	.rules-ellipsis {
+		display: inline-block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		vertical-align: top;
+		max-width: 100%;
+	}
 }
 
 /* Bootstrap Tweaks */
