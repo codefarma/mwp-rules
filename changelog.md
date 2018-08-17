@@ -4,7 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.3] - 2018-08-17
+
+### Added
+
+- Custom actions can now be scheduled manually
+- Token browser now shows mapped array keys for event args
+
+### Changed
+
+- Removed manual config form option for custom action arguments that do not have a config widget
+- Widened the hook priority support for rule deployments
+
+### Fixed
+
+- Auto detect provider for ecas registered by plugins that are network enabled
+
 
 ## [1.1.2] - 2018-08-01
 

@@ -5,7 +5,7 @@ Tags: rules, automation, programming
 Requires at least: 4.7
 Tested up to: 4.9.6
 Requires PHP: 5.6
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,24 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
  
 
 == Changelog ==
+
+1.1.3
+=====
+
+### Added
+
+- Custom actions can now be scheduled manually
+- Token browser now shows mapped array keys for event args
+
+### Changed
+
+- Removed manual config form option for custom action arguments that do not have a config widget
+- Widened the hook priority support for rule deployments
+
+### Fixed
+
+- Auto detect provider for ecas registered by plugins that are network enabled
+
 
 1.1.2
 =====
