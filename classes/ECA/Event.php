@@ -257,7 +257,7 @@ class _Event extends BaseDefinition
 		}
 		
 		$arg_groups = array(
-			'event' => $this->arguments ?: array(),
+			'event' => $this->arguments ? $rulesPlugin->getExpandedArguments( $this->arguments ) : array(),
 			'bundle' => $bundle_args,
 			'global' => $global_args,
 		);
@@ -268,13 +268,12 @@ class _Event extends BaseDefinition
 				/* Create tokens for directly accessible arguments */
 				if ( $rulesPlugin->isArgumentCompliant( $argument, $target_argument ) ) {
 					switch( $group ) {
-						case 'event': $tokens[ 'event:' . $arg_name ] = '(' . $argument['argtype'] . ') ' . "The value of the '" . $arg_name . "' argument"; break;
+						case 'event': $tokens[ 'event:' . $arg_name ] = isset( $argument['label'] ) ? '(' . $argument['argtype'] . ') ' . ucfirst( strtolower( $argument['label'] ) ) : '(' . $argument['argtype'] . ') ' . "The value of the '" . $arg_name . "' argument"; break;
 						case 'global': $tokens[ 'global:' . $arg_name ] = isset( $argument['label'] ) ? '(' . $argument['argtype'] . ') ' . ucfirst( strtolower( $argument['label'] ) ) : "The global '" . $arg_name . "' value"; break;
 						case 'bundle': $tokens[ 'bundle:' . $arg_name ] = isset( $argument['label'] ) ? '(' . $argument['argtype'] . ') ' . ucfirst( strtolower( $argument['label'] ) ) : "The bundle '" . $arg_name . "' setting value"; break;
 					}
 				}
 				
-				/* Create tokens for derivative arguments also */
 				foreach ( $rulesPlugin->getDerivativeTokens( $argument, $target_argument, $depth, $include_arbitrary ) as $tokenized_key => $derivative_argument ) {						
 					switch ( $group ) {
 						case 'global':

@@ -247,7 +247,13 @@ class _Token
 	public static function createFromResources( $tokenString, $resources )
 	{
 		$data = static::parseDataFromResources( $tokenString, $resources );
-		return static::create( $data['value'], $data['parsed']['token_path'], $data['argument'] );
+		$token = static::create( $data['value'], $data['parsed']['token_path'], $data['argument'] );
+		
+		if ( isset( $data['errors'] ) ) {
+			$token->history['errors'] = $data['errors'];
+		}
+		
+		return $token;
 	}
 	
 	/**
@@ -261,11 +267,12 @@ class _Token
 	{
 		$token_pieces = explode( ':', $tokenString );
 		$source = array_shift( $token_pieces );
-		$source_key = array_shift( $token_pieces );
+		list( $source_key, $source_key_index ) = Rules\Plugin::instance()->parseIdentifier( array_shift( $token_pieces ) );
 		$data = [
 			'parsed' => [
 				'source' => $source,
 				'source_key' => $source_key,
+				'source_key_index' => $source_key_index,
 				'token_path' => implode(':', $token_pieces),
 			],
 			'value' => NULL,
@@ -279,6 +286,9 @@ class _Token
 					if ( $data['argument'] = $resources['event']->getArgument( $source_key ) ) {
 						if ( isset( $resources['event_args'] ) and is_array( $resources['event_args'] ) and array_key_exists( $source_key, $resources['event_args'] ) ) {
 							$data['value'] = $resources['event_args'][ $source_key ];
+							if ( isset( $source_key_index ) and is_array( $data['value'] ) ) {
+								$data['value'] = isset( $data['value'][ $source_key_index ] ) ? $data['value'][ $source_key_index ] : NULL;
+							}
 						} else {
 							$data['errors'][] = 'The provided event args do not contain a value for the requested argument.';
 						}
@@ -315,6 +325,9 @@ class _Token
 					$data['errors'][] = 'No bundle was provided as a resource';
 				}
 				break;
+				
+			default:
+				$data['errors'][] = '"' . $source . '" is not a valid data source prefix';
 		}
 		
 		return $data;
