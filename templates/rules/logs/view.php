@@ -38,13 +38,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 	
-	<h3 class="mwp-bootstrap" style="margin-bottom: -30px"><i class="glyphicon glyphicon-filter"></i> Conditions</h3>
+	<h3 class="mwp-bootstrap" style="margin-bottom: -20px"><i class="glyphicon glyphicon-filter"></i> Conditions</h3>
 	<?php echo $conditions->getDisplay() ?>
 	
-	<h3 class="mwp-bootstrap" style="margin-bottom: -30px"><i class="glyphicon glyphicon-flash"></i> Actions</h3>
+	<h3 class="mwp-bootstrap" style="margin-bottom: -20px"><i class="glyphicon glyphicon-flash"></i> Actions</h3>
 	<?php echo $actions->getDisplay() ?>
 	
-	<h3 class="mwp-bootstrap" style="margin-bottom: -30px"><i class="glyphicon glyphicon-link"></i> Linked Rules</h3>
+	<h3 class="mwp-bootstrap" style="margin-bottom: -20px"><i class="glyphicon glyphicon-link"></i> Linked Rules</h3>
 	<?php echo $subrules->getDisplay() ?>
 	
 </div>
