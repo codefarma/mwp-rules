@@ -1069,6 +1069,31 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 
 	/**
+	 * Get a list of arguments, and add in any sub mappings for array types with defined keys
+	 * 
+	 * @param	array		$arguments					The list of arguments to expand
+	 * @return	array
+	 */
+	public function getExpandedArguments( $arguments )
+	{
+		$expanded_arguments = array();
+		
+		foreach( $arguments as $key => $argument ) {
+			$expanded_arguments[ $key ] = $argument;
+			if ( isset( $argument['argtype'] ) and $argument['argtype'] == 'array' ) {
+				$default_argument = isset( $argument['keys']['default'] ) && is_array( $argument['keys']['default'] ) ? $argument['keys']['default'] : array();
+				if ( isset( $argument['keys']['mappings'] ) and is_array( $argument['keys']['mappings'] ) ) {
+					foreach( $argument['keys']['mappings'] as $mapped_key => $mapped_argument ) {
+						$expanded_arguments[ $key . '[' . $mapped_key . ']' ] = array_merge( $default_argument, (array) $mapped_argument );
+					}
+				}
+			}
+		}
+		
+		return $expanded_arguments;
+	}
+
+	/**
 	 * Get possible derivative arguments using the class map
 	 *
 	 * Based on the arguments provided, returns a map of subsequent arguments that can be derived

@@ -155,31 +155,6 @@ class _AjaxHandlers extends \MWP\Framework\Pattern\Singleton
 	}
 	
 	/**
-	 * Get a list of arguments, and add in any sub mappings for array types with defined keys
-	 * 
-	 * @param	array		$arguments					The list of arguments to expand
-	 * @return	array
-	 */
-	public function getExpandedArguments( $arguments )
-	{
-		$expanded_arguments = array();
-		
-		foreach( $arguments as $key => $argument ) {
-			$expanded_arguments[ $key ] = $argument;
-			if ( isset( $argument['argtype'] ) and $argument['argtype'] == 'array' ) {
-				$default_argument = isset( $argument['keys']['default'] ) && is_array( $argument['keys']['default'] ) ? $argument['keys']['default'] : array();
-				if ( isset( $argument['keys']['mappings'] ) and is_array( $argument['keys']['mappings'] ) ) {
-					foreach( $argument['keys']['mappings'] as $mapped_key => $mapped_argument ) {
-						$expanded_arguments[ $key . '[' . $mapped_key . ']' ] = array_merge( $default_argument, (array) $mapped_argument );
-					}
-				}
-			}
-		}
-		
-		return $expanded_arguments;
-	}
-	
-	/**
 	 * Load a set of available tokens
 	 *
 	 * @MWP\WordPress\AjaxHandler( action="mwp_rules_get_tokens", for={"users"} )
@@ -217,7 +192,7 @@ class _AjaxHandlers extends \MWP\Framework\Pattern\Singleton
 			if ( $event_type = $request->get('event_type') and $event_hook = $request->get('event_hook') ) {
 				if ( $event = $plugin->getEvent( $event_type, $event_hook ) ) {
 					if ( $event->arguments ) {
-						$arguments = $this->getExpandedArguments( $event->arguments );
+						$arguments = $plugin->getExpandedArguments( $event->arguments );
 						$nodes[] = [
 							'text' => 'Event Data',
 							'selectable' => false,
