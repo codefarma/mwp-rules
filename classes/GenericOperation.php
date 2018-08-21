@@ -325,9 +325,11 @@ abstract class _GenericOperation extends ExportableRecord
 			if ( isset( $definition->configuration['saveValues'] ) and is_callable( $definition->configuration['saveValues'] ) ) {
 				call_user_func( $definition->configuration['saveValues'], $values, $this );
 			}
-			foreach( $definition->arguments as $arg ) {
-				if ( isset( $arg['configuration']['saveValues'] ) and is_callable( $arg['configuration']['saveValues'] ) ) {
-					call_user_func( $arg['configuration']['saveValues'], $values, $this );
+			if ( $definition->arguments ) {
+				foreach( $definition->arguments as $arg ) {
+					if ( isset( $arg['configuration']['saveValues'] ) and is_callable( $arg['configuration']['saveValues'] ) ) {
+						call_user_func( $arg['configuration']['saveValues'], $values, $this );
+					}
 				}
 			}
 		}
