@@ -81,12 +81,9 @@ class _AjaxHandlers extends \MWP\Framework\Pattern\Singleton
 			if ( 
 				class_exists( $recordClass ) 
 				and is_subclass_of( $recordClass, 'MWP\Framework\Pattern\ActiveRecord' ) 
-				and isset( $recordClass::$sequence_col ) 
-				and isset( $recordClass::$parent_col ) 
-			) {
-				$sequence_col = $recordClass::$sequence_col;
-				$parent_col = $recordClass::$parent_col;
-				
+				and $sequence_col = $recordClass::_getSequenceCol()
+				and $parent_col = $recordClass::_getParentCol()
+			) {				
 				$recursiveRelocate = function( $record, $index, $parent ) use ( $recordClass, $sequence_col, $parent_col, &$recursiveRelocate ) 
 				{
 					$_record = $recordClass::load( $record['id'] );
