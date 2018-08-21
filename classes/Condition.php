@@ -200,7 +200,7 @@ class _Condition extends GenericOperation
 					'AND' => 'and',
 					'OR' => 'or',
 				),
-				'data' => $condition->compare_mode ?: 'and',
+				'data' => $condition->group_compare ?: 'and',
 				'required' => true,
 				'expanded' => true,
 				'description' => "
@@ -266,16 +266,14 @@ class _Condition extends GenericOperation
 			/**
 			 * We already have a winner
 			 */
-			if ( $result and $compareMode == 'or' )
-			{
+			if ( $result and $compareMode == 'or' ) {
 				return TRUE;
 			}
 			
 			/**
 			 * We have already failed
 			 */
-			if ( ! $result and $compareMode == 'and' )
-			{
+			if ( ! $result and $compareMode == 'and' ) {
 				return FALSE;
 			}
 			
@@ -285,27 +283,23 @@ class _Condition extends GenericOperation
 			
 			foreach ( $this->children() as $condition )
 			{
-				if ( $condition->enabled )
-				{
-					$conditionsCount++;
+				if ( $condition->enabled ) {
+
 					$_result = call_user_func_array( array( $condition, 'invoke' ), func_get_args() );
 					
-					if ( $_result and $compareMode == 'or' ) 
-					{
+					if ( $_result and $compareMode == 'or' ) {
 						$result = TRUE;
 						break;
 					}
 
-					if ( ! $_result and $compareMode == 'and' )
-					{
+					if ( ! $_result and $compareMode == 'and' ) {
 						$result = FALSE;
 						break;
 					}
 				}
 				else
 				{
-					if ( $rule = $this->rule() and $rule->debug )
-					{
+					if ( $rule = $this->rule() and $rule->debug ) {
 						$plugin->rulesLog( $rule->event(), $rule, $condition, '--', 'Condition not evaluated (disabled)' );
 					}
 				}
