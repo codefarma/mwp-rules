@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
+use MWP\Framework\Framework;
 use MWP\Framework\Pattern\ActiveRecord;
 use MWP\Rules\Condition;
 use MWP\Rules\Action;
@@ -283,6 +284,7 @@ class _Rule extends ExportableRecord
 	protected function buildEditForm()
 	{
 		$plugin = $this->getPlugin();
+		$request = Framework::instance()->getRequest();
 		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		$rule = $this;
 		
@@ -558,6 +560,12 @@ class _Rule extends ExportableRecord
 		$rulesTable = $rulesController->createDisplayTable();
 		$rulesTable->bulkActions = array();
 		unset( $rulesTable->columns['rule_event_hook'] );
+		
+		/* Read table inputs */
+		if ( $request->get('_tab') == 'rule_subrules' ) {
+			$rulesTable->read_inputs();
+		}
+		
 		$rulesTable->prepare_items( array( 'rule_parent_id=%d', $rule->id ) );
 		
 		$form->addHtml( 'subrules_table', $plugin->getTemplateContent( 'rules/subrules/table_wrapper', array(
@@ -586,6 +594,12 @@ class _Rule extends ExportableRecord
 			$logsController = $plugin->getLogsController();
 			$logsTable = $logsController->createDisplayTable();
 			unset( $logsTable->columns['id'], $logsTable->columns['event_hook'], $logsTable->columns['rule_id'] );
+			
+			/* Read table inputs */
+			if ( $request->get('_tab') == 'rule_debug_console' ) {
+				$logsTable->read_inputs();
+			}
+			
 			$logsTable->prepare_items( array( 'op_id=0 AND rule_id=%d', $rule->id ) );
 			
 			$form->addHtml( 'rule_debug_logs', $logsTable->getDisplay(), 'rule_debug_console' );			
