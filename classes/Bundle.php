@@ -609,7 +609,7 @@ class _Bundle extends ExportableRecord
 	 */
 	public function url( $params=array() )
 	{
-		return $this->getPlugin()->getBundlesController( $this->getApp() )->getUrl( array( 'id' => $this->id(), 'do' => 'edit' ) + $params );
+		return $this->getPlugin()->getBundlesController( $this->getApp() )->getUrl( array_merge( array( 'id' => $this->id(), 'do' => 'edit' ), $params ) );
 	}
 	
 	/**
