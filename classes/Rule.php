@@ -867,8 +867,7 @@ class _Rule extends ExportableRecord
 							}
 							else
 							{
-								if ( $this->debug )
-								{
+								if ( $this->debug ) {
 									$plugin->rulesLog( $this->event(), $_rule, NULL, '--', 'Rule not evaluated (disabled)' );
 								}
 							}
@@ -896,8 +895,7 @@ class _Rule extends ExportableRecord
 							}
 							else
 							{
-								if ( $this->debug )
-								{
+								if ( $this->debug ) {
 									$plugin->rulesLog( $this->event(), $this, $action, '--', 'Action not taken (disabled)' );
 								}
 							}

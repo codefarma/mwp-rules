@@ -1492,6 +1492,12 @@ class _Plugin extends \MWP\Framework\Plugin
 			'datetime' => array(
 				'label' => 'Date and Time Input',
 			),
+			'date' => array(
+				'label' => 'Date Input',
+			),
+			'time' => array(
+				'label' => 'Time Input',
+			),
 			'user' => array(
 				'label' => 'User Select',
 			),
@@ -1660,6 +1666,62 @@ class _Plugin extends \MWP\Framework\Plugin
 				);
 				break;
 				
+			/* Date */
+			case 'date':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'date', array_replace_recursive( array(
+							'label' => __( 'Date', 'mwp-rules' ),
+							'view_timezone' => get_option( 'timezone_string' ) ?: 'UTC',
+							'input' => 'timestamp',
+							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : NULL,
+						), 
+						$options ));
+					},
+					'saveValues' => function( &$values, $operation ) use ( $field_name ) {	
+						if ( isset( $values[ $field_name ] ) and $values[ $field_name ] instanceof \DateTime ) {
+							$values[ $field_name ] = $values[ $field_name ]->getTimestamp();
+						}
+					},
+					'getArg' => function( $values ) use ( $field_name ) {
+						if ( isset( $values[ $field_name ] ) ) {
+							$date = new \DateTime();
+							$date->setTimestamp( (int) $values[ $field_name ] );
+							return $date;
+						}
+					},
+				);
+				break;
+
+			/* Time */
+			case 'time':
+			
+				$config = array(
+					'form' => function( $form, $values ) use ( $field_name, $options ) {
+						$form->addField( $field_name, 'time', array_replace_recursive( array(
+							'label' => __( 'Time', 'mwp-rules' ),
+							'view_timezone' => get_option( 'timezone_string' ) ?: 'UTC',
+							'input' => 'timestamp',
+							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : NULL,
+						), 
+						$options ));
+					},
+					'saveValues' => function( &$values, $operation ) use ( $field_name ) {	
+						if ( isset( $values[ $field_name ] ) and $values[ $field_name ] instanceof \DateTime ) {
+							$values[ $field_name ] = $values[ $field_name ]->getTimestamp();
+						}
+					},
+					'getArg' => function( $values ) use ( $field_name ) {
+						if ( isset( $values[ $field_name ] ) ) {
+							$date = new \DateTime();
+							$date->setTimestamp( (int) $values[ $field_name ] );
+							return $date;
+						}
+					},
+				);
+				break;
+
 			/* Individual User */
 			case 'user':
 			
