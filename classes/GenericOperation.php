@@ -993,7 +993,7 @@ abstract class _GenericOperation extends ExportableRecord
 		}
 		
 		$params = array_merge( array( 'target' => array( 'argtypes' => [ 'string', 'float', 'int', 'bool' ] ) ), $params );
-		$default_title = __( 'Browse Data Replacement Tokens', 'mwp-rules' );
+		$default_title = __( 'Insert Data Replacement Token', 'mwp-rules' );
 		$default_done_label = __( 'Insert', 'mwp-rules' );
 		$wrap_tokens = true;
 		$default_callback = "function( node, tokens, tree, dialog ) { 
@@ -1007,7 +1007,7 @@ abstract class _GenericOperation extends ExportableRecord
 			$definition = $this->definition();
 			if ( isset( $definition->arguments[ $arg_name ] ) ) {
 				$arg = $definition->arguments[ $arg_name ];
-				$default_title = __( 'Choose the data to use for ', 'mwp-rules' ) . ( isset( $arg['label'] ) ? $arg['label'] : $arg_name );
+				$default_title = __( 'Choose the data to use for: ', 'mwp-rules' ) . ( isset( $arg['label'] ) ? $arg['label'] : $arg_name );
 				$default_done_label = __( 'Select', 'mwp-rules' );
 				$wrap_tokens = false;
 				$default_callback = "function( node, tokens, tree, dialog ) {

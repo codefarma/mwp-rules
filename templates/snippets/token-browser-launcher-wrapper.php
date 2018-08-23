@@ -24,4 +24,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 ?>
-<div style="position: absolute; right: -5px;"><?php echo $html ?></div>
+<div class="token-launcher-wrapper"><?php echo $html ?></div>

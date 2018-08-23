@@ -30,12 +30,13 @@ unset( $config['callback'] );
 ?>
 
 <div class="mwp-bootstrap" data-view-model="mwp-rules">
+	<i class="glyphicon glyphicon-arrow-left"></i>
 	<a title="<?php echo isset( $config['title'] ) ? $config['title'] : '' ?>" href="javascript:;" data-bind="
 		tokenSelector: {
 			<?php if ( $callback ) : ?>callback: <?php echo $callback ?>,<?php endif ?>
 			options: <?php echo $config ? esc_attr( json_encode( $config ) ) : '{}' ?>,
 			params: <?php echo $params ? esc_attr( json_encode( $params ) ) : '{}' ?>
 		}">
-		<i class="glyphicon glyphicon-modal-window"></i>
+		<i class="glyphicon glyphicon-th"></i>
 	</a>
 </div>
