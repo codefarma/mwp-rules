@@ -283,6 +283,58 @@ return <<<'JSON'
                     "columns": [
                         "rule_uuid"
                     ]
+                },
+                "rule_bundle_id": {
+                    "type": "key",
+                    "name": "rule_bundle_id",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "rule_bundle_id"
+                    ]
+                },
+                "rule_parent_id": {
+                    "type": "key",
+                    "name": "rule_parent_id",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "rule_parent_id"
+                    ]
+                },
+                "rule_event": {
+                    "type": "key",
+                    "name": "rule_event",
+                    "length": [
+                        191,
+                        null
+                    ],
+                    "columns": [
+                        "rule_event_hook",
+                        "rule_event_type"
+                    ]
+                },
+                "rule_custom_internal": {
+                    "type": "key",
+                    "name": "rule_custom_internal",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "rule_custom_internal"
+                    ]
+                },
+                "rule_enabled": {
+                    "type": "key",
+                    "name": "rule_enabled",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "rule_enabled"
+                    ]
                 }
             }
         },
@@ -484,6 +536,26 @@ return <<<'JSON'
                     ],
                     "columns": [
                         "condition_uuid"
+                    ]
+                },
+                "condition_rule_id": {
+                    "type": "key",
+                    "name": "condition_rule_id",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "condition_rule_id"
+                    ]
+                },
+                "condition_parent_id": {
+                    "type": "key",
+                    "name": "condition_parent_id",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "condition_parent_id"
                     ]
                 }
             }
@@ -780,6 +852,16 @@ return <<<'JSON'
                     "columns": [
                         "action_uuid"
                     ]
+                },
+                "action_rule_id": {
+                    "type": "key",
+                    "name": "action_rule_id",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "action_rule_id"
+                    ]
                 }
             }
         },
@@ -987,6 +1069,18 @@ return <<<'JSON'
                     ],
                     "columns": [
                         "argument_id"
+                    ]
+                },
+                "argument_parent": {
+                    "type": "key",
+                    "name": "argument_parent",
+                    "length": [
+                        null,
+                        null
+                    ],
+                    "columns": [
+                        "argument_parent_id",
+                        "argument_parent_type"
                     ]
                 }
             }
@@ -1383,6 +1477,36 @@ return <<<'JSON'
                     "columns": [
                         "id"
                     ]
+                },
+                "thread": {
+                    "type": "key",
+                    "name": "thread",
+                    "length": [
+                        191
+                    ],
+                    "columns": [
+                        "thread"
+                    ]
+                },
+                "rule_id": {
+                    "type": "key",
+                    "name": "rule_id",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "rule_id"
+                    ]
+                },
+                "time": {
+                    "type": "key",
+                    "name": "time",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "time"
+                    ]
                 }
             }
         },
@@ -1734,6 +1858,16 @@ return <<<'JSON'
                     ],
                     "columns": [
                         "bundle_uuid"
+                    ]
+                },
+                "bundle_app_id": {
+                    "type": "key",
+                    "name": "bundle_app_id",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "bundle_app_id"
                     ]
                 }
             }
@@ -2185,6 +2319,26 @@ return <<<'JSON'
                     ],
                     "columns": [
                         "schedule_id"
+                    ]
+                },
+                "schedule_time": {
+                    "type": "key",
+                    "name": "schedule_time",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "schedule_time"
+                    ]
+                },
+                "schedule_unique_key": {
+                    "type": "key",
+                    "name": "schedule_unique_key",
+                    "length": [
+                        191
+                    ],
+                    "columns": [
+                        "schedule_unique_key"
                     ]
                 }
             }
