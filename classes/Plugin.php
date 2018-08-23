@@ -1362,6 +1362,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		$this->config_preset_options = apply_filters( 'rules_config_preset_options', array(
 			'text' => array(
 				'label' => 'Text Field',
+				'argtypes' => ['string'],
 				'config' => array(
 					'form' => function( $name, $form, $values, $argument ) {
 						$form->addField( $name . '_placeholder', 'text', array(
@@ -1378,6 +1379,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			),
 			'checkbox' => array(
 				'label' => 'Checkbox',
+				'argtypes' => ['bool'],
 			),
 			'choice' => array(
 				'label' => 'Choice Field',
@@ -1472,9 +1474,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			),
 			'integer' => array( 
 				'label' => 'Integer Input',
+				'argtypes' => ['int'],
 			),
 			'textarea' => array(
 				'label' => 'Text Area',
+				'argtypes' => ['string'],
 				'config' => array(
 					'form' => function( $name, $form, $values, $argument ) {
 						$form->addField( $name . '_placeholder', 'textarea', array(
@@ -1491,45 +1495,80 @@ class _Plugin extends \MWP\Framework\Plugin
 			),
 			'datetime' => array(
 				'label' => 'Date and Time Input',
+				'argtypes' => ['object'],
+				'classes' => ['DateTime'],
 			),
 			'date' => array(
 				'label' => 'Date Input',
+				'argtypes' => ['object'],
+				'classes' => ['DateTime'],
 			),
 			'time' => array(
 				'label' => 'Time Input',
+				'argtypes' => ['object'],
+				'classes' => ['DateTime'],
 			),
 			'user' => array(
 				'label' => 'User Select',
+				'argtypes' => ['object'],
+				'classes' => ['WP_User'],
 			),
 			'users' => array(
 				'label' => 'Multiple Users Select',
+				'argtypes' => ['array'],
+				'classes' => ['WP_User'],
 			),
 			'post' => array(
 				'label' => 'Single Post',
+				'argtypes' => ['object'],
+				'classes' => ['WP_Post'],
 			),
 			'posts' => array(
 				'label' => 'Multiple Posts',
+				'argtypes' => ['array'],
+				'classes' => ['WP_Posts'],
 			),
 			'comment' => array(
 				'label' => 'Single Comment',
+				'argtypes' => ['object'],
+				'classes' => ['WP_Comment'],
 			),
 			'comments' => array(
 				'label' => 'Multiple Comments',
+				'argtypes' => ['array'],
+				'classes' => ['WP_Comment'],
+			),
+			'taxonomy' => array(
+				'label' => 'Single Taxonomy',
+				'argtypes' => ['object'],
+				'classes' => ['WP_Taxonomy'],
+			),
+			'taxonomies' => array(
+				'label' => 'Multiple Taxonomies',
+				'argtypes' => ['array'],
+				'classes' => ['WP_Taxonomy'],
 			),
 			'term' => array(
 				'label' => 'Single Taxonomy Term',
+				'argtypes' => ['object'],
+				'classes' => ['WP_Term'],
 			),
 			'terms' => array(
 				'label' => 'Multiple Taxonomy Terms',
+				'argtypes' => ['array'],
+				'classes' => ['WP_Term'],
 			),
 			'array' => array(
-				'label' => 'Indexed Array',
+				'label' => 'Array',
+				'argtypes' => ['array'],
 			),
 			'key_array' => array(
-				'label' => 'Associative Array',
+				'label' => 'Array with keys',
+				'argtypes' => ['array'],
 			),
 			'meta_values' => array(
-				'label' => 'Meta Values',
+				'label' => 'Meta Key/Value Pairs',
+				'argtypes' => ['array'],
 			),
 		));
 		
@@ -1592,13 +1631,14 @@ class _Plugin extends \MWP\Framework\Plugin
 				$config = array(
 					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
 						$form->addField( $field_name, 'text', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'Text', 'mwp-rules' ),
 							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
 						),
 						$options ));
 					},
-					'getArg' => function( $values ) use ( $field_name ) {
-						return isset( $values[ $field_name ] ) ? $values[ $field_name ] : NULL;
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						return isset( $values[ $field_name ] ) ? $operation->replaceTokens( $values[$field_name], $arg_map ) : NULL;
 					}
 				);
 				break;
@@ -1627,13 +1667,14 @@ class _Plugin extends \MWP\Framework\Plugin
 				$config = array(
 					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'Text', 'mwp-rules' ),
 							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
 						),
 						$options ));
 					},
-					'getArg' => function( $values ) use ( $field_name ) {
-						return isset( $values[ $field_name ] ) ? $values[ $field_name ] : NULL;
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						return isset( $values[ $field_name ] ) ? $operation->replaceTokens( $values[$field_name], $arg_map ) : NULL;
 					}
 				);
 				break;
@@ -1642,7 +1683,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'datetime':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
 						$form->addField( $field_name, 'datetime', array_replace_recursive( array(
 							'label' => __( 'Date/Time', 'mwp-rules' ),
 							'view_timezone' => get_option( 'timezone_string' ) ?: 'UTC',
@@ -1670,7 +1711,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'date':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
 						$form->addField( $field_name, 'date', array_replace_recursive( array(
 							'label' => __( 'Date', 'mwp-rules' ),
 							'view_timezone' => get_option( 'timezone_string' ) ?: 'UTC',
@@ -1698,7 +1739,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'time':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
 						$form->addField( $field_name, 'time', array_replace_recursive( array(
 							'label' => __( 'Time', 'mwp-rules' ),
 							'view_timezone' => get_option( 'timezone_string' ) ?: 'UTC',
@@ -1726,10 +1767,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'user':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Select a user by field value (id, slug, email, or login). i.e. "id: 1" or "login: administrator"', 'mwp-rules' ) . "</div>";
 						$form->addField( $field_name, 'text', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'User', 'mwp-rules' ),
-							'description' => __( 'Select a user by field value (id, slug, email, or login). i.e. "id: 1" or "login: administrator"', 'mwp-rules' ),
 							'attr' => array( 'placeholder' => 'id: 1' ),
 							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
 						),
@@ -1751,10 +1793,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'users':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Enter each user selection on a new line identified by field value (id, slug, email, or login). i.e. "id: 1" or "login: administrator"', 'mwp-rules' ) . "<hr><strong>" . __( 'Example', 'mwp-rules' ) . ":</strong><pre>login: administrator&#10;id: 102</pre></div>";
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'Users', 'mwp-rules' ),
-							'description' => __( 'Enter each user selection on a new line identified by field value (id, slug, email, or login). i.e. "id: 1" or "login: administrator"', 'mwp-rules' ),
 							'attr' => array( 'placeholder' => "id: 1&#10;id: 2" ),
 							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
 						),
@@ -1781,10 +1824,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'post':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Select a post by field value (id). i.e. "id: 1"', 'mwp-rules' ) . "</div>";
 						$form->addField( $field_name, 'text', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'Post', 'mwp-rules' ),
-							'description' => __( 'Select a post by field value (id). i.e. "id: 1"', 'mwp-rules' ),
 							'attr' => array( 'placeholder' => 'id: 1' ),
 							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
 						),
@@ -1805,10 +1849,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'posts':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Enter each post selection on a new line identified by field value (id). i.e. "id: 1"', 'mwp-rules' ) . "</div>";
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'Posts', 'mwp-rules' ),
-							'description' => __( 'Enter each post selection on a new line identified by field value (id). i.e. "id: 1"', 'mwp-rules' ),
 							'attr' => array( 'placeholder' => "id: 1&#10;id: 2" ),
 							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
 						),
@@ -1835,10 +1880,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'comment':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Select a comment by field value (id). i.e. "id: 1"', 'mwp-rules' ) . "</div>";
 						$form->addField( $field_name, 'text', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'Comment', 'mwp-rules' ),
-							'description' => __( 'Select a comment by field value (id). i.e. "id: 1"', 'mwp-rules' ),
 							'attr' => array( 'placeholder' => 'id: 1' ),
 							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
 						),
@@ -1859,10 +1905,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'comments':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Enter each comment selection on a new line identified by field value (id). i.e. "id: 1"', 'mwp-rules' ) . "</div>";
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'Comments', 'mwp-rules' ),
-							'description' => __( 'Enter each comment selection on a new line identified by field value (id). i.e. "id: 1"', 'mwp-rules' ),
 							'attr' => array( 'placeholder' => "id: 1&#10;id: 2" ),
 							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
 						),
@@ -1889,10 +1936,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'array':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Enter values one per line.', 'mwp-rules' ) . "</div>";
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'Values', 'mwp-rules' ),
-							'description' => __( 'Enter values one per line.', 'mwp-rules' ),
 							'attr' => array( 'placeholder' => 'Value1&#10;Value2', 'rows' => 6 ),
 							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
 						),
@@ -1914,10 +1962,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'key_array':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Enter keyed values one per line, in the format of "key: value".', 'mwp-rules' ) . "</div>";
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'Key/Value Pairs', 'mwp-rules' ),
-							'description' => __( 'Enter keyed values one per line, in the format of "key: value".', 'mwp-rules' ),
 							'attr' => array( 'placeholder' => 'key1: Value 1&#10;key2: Value 2', 'rows' => 6 ),
 							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
 						),
@@ -1946,10 +1995,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'meta_values':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Enter meta values one per line, in the format of "meta_key: meta_value".', 'mwp-rules' ) . "</div>";
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'Meta Values', 'mwp-rules' ),
-							'description' => __( 'Enter meta values one per line, in the format of "meta_key: meta_value".', 'mwp-rules' ),
 							'attr' => array( 'placeholder' => 'meta_key: meta_value', 'rows' => 6 ),
 							'data' => isset( $values[ $field_name ] ) ? $values[ $field_name ] : '',
 						),
@@ -1974,14 +2024,71 @@ class _Plugin extends \MWP\Framework\Plugin
 				);
 				break;
 				
+			/* Individual Taxonomy */
+			case 'taxonomy':
+			
+				$config = array(
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Select a taxonomy by field value (name). i.e. "name: category"', 'mwp-rules' ) . "</div>";
+						$form->addField( $field_name, 'text', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
+							'label' => __( 'Taxonomy', 'mwp-rules' ),
+							'attr' => array( 'placeholder' => 'name: taxonomy_name' ),
+							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$pieces = explode( ':', $operation->replaceTokens( $values[$field_name], $arg_map ) );
+						$field = trim( array_shift( $pieces ) );
+						$attribute = trim( implode( ':', $pieces ) );
+						if ( in_array( $field, array( 'name' ) ) ) {
+							return get_taxonomy( $attribute ) ?: null;
+						}
+					},
+				);
+				break;
+			
+			/* Multiple Taxonomies */
+			case 'taxonomies':
+			
+				$config = array(
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Enter each taxonomy selection on a new line identified by field value (name).', 'mwp-rules' ) . "<hr><strong>" . __( 'Example', 'mwp-rules' ) . ":</strong><pre>name: category&#10;name: tags</pre>" . "</div>";
+						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
+							'label' => __( 'Taxonomy Terms', 'mwp-rules' ),
+							'attr' => array( 'placeholder' => "name: taxonomy_one&#10;name: taxonomy_two" ),
+							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
+						),
+						$options ));
+					},
+					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
+						$strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$taxonomies = array();
+						foreach( $strings as $string ) {
+							$pieces = explode( ':', $string );
+							$field = trim( array_shift( $pieces ) );
+							$attribute = trim( implode( ':', $pieces ) );
+							if ( in_array( $field, array( 'name' ) ) ) {
+								$taxonomies[] = get_taxonomy( $attribute );
+							}
+						}
+						
+						return array_filter( $taxonomies );
+					},
+				);
+				break;
+
 			/* Individual Term */
 			case 'term':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Select a term by field value (id, slug, or name). When identifying a term by it\'s slug or name, you must also specify the taxonomy to get it from.', 'mwp-rules' ) . "<hr><strong>" . __( 'Example', 'mwp-rules' ) . ":</strong><pre>id: 1&#10;slug: taxonomy_name/term-slug&#10;name: taxonomy_name/Term Name</pre>" . "</div>";
 						$form->addField( $field_name, 'text', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'Taxonomy Term', 'mwp-rules' ),
-							'description' => "<div class='alert alert-info'>" . __( 'Select a term by field value (id, slug, or name). When identifying a term by it\'s slug or name, you must also specify the taxonomy to get it from.', 'mwp-rules' ) . "</div>" . __( 'Examples:', 'mwp-rules' ) . "<br><br><pre>id: 1&#10;slug: taxonomy_name/term-slug&#10;name: taxonomy_name/Term Name</pre>",
 							'attr' => array( 'placeholder' => 'id: 1' ),
 							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
 						),
@@ -2008,10 +2115,11 @@ class _Plugin extends \MWP\Framework\Plugin
 			case 'terms':
 			
 				$config = array(
-					'form' => function( $form, $values ) use ( $field_name, $options ) {
+					'form' => function( $form, $values, $operation ) use ( $field_name, $options ) {
+						$options['description'] = ( isset( $options['description'] ) ? $options['description'] : '' ) . "<div class='alert alert-info desc-info'>" . __( 'Enter each term selection on a new line identified by field value (id, slug, or name). When identifying a term by it\'s slug or name, you must also specify the taxonomy to get it from.', 'mwp-rules' ) . "<hr><strong>" . __( 'Example:', 'mwp-rules' ) . ":</strong><pre>id: 1&#10;slug: taxonomy_name/term-slug&#10;name: taxonomy_name/Term Name</pre>" . "</div>";
 						$form->addField( $field_name, 'textarea', array_replace_recursive( array(
+							'field_prefix' => is_callable( array( $operation, 'getTokenSelector' ) ) ? $operation->getTokenSelector() : null,
 							'label' => __( 'Taxonomy Terms', 'mwp-rules' ),
-							'description' => "<div class='alert alert-info'>" . __( 'Enter each term selection on a new line identified by field value (id, slug, or name). When identifying a term by it\'s slug or name, you must also specify the taxonomy to get it from.', 'mwp-rules' ) . "</div>" . __( 'Examples:', 'mwp-rules' ) . "<br><br><pre>id: 1&#10;slug: taxonomy_name/term-slug&#10;name: taxonomy_name/Term Name</pre>",
 							'attr' => array( 'placeholder' => "id: 1&#10;id: 2" ),
 							'data' => isset( $values[$field_name] ) ? $values[$field_name] : '',
 						),
