@@ -38,9 +38,11 @@ class _Bundle extends ExportableRecord
     protected static $columns = array(
         'id',
 		'uuid' => [ 'type' => 'varchar', 'length' => 25 ],
-		'title' => [ 'type' => 'varchar', 'length' => 1028, 'allow_null' => false ],
+		'title' => [ 'type' => 'varchar', 'length' => 255, 'allow_null' => false ],
 		'weight' => [ 'type' => 'int', 'length' => 11, 'default' => '0', 'allow_null' => false ],
 		'description' => [ 'type' => 'text', 'default' => '' ],
+		'creator' => [ 'type' => 'varchar', 'length' => 255 ],
+		'documentation' => [ 'type' => 'text', 'default' => '' ],
 		'enabled' => [ 'type' => 'tinyint', 'length' => 1, 'default' => '1', 'allow_null' => false ],
 		'imported' => [ 'type' => 'int', 'length' => 11, 'default' => '0', 'allow_null' => false ],
 		'app_id' => [ 'type' => 'bigint', 'length' => 20, 'default' => '0', 'allow_null' => false ],

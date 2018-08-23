@@ -36,16 +36,17 @@ class _App extends ExportableRecord
      */
     protected static $columns = array(
         'id',
-		'uuid',
-		'title',
-		'description',
-		'weight',
-		'enabled',
-		'creator',
-		'imported',
-		'version',
-		'data' => array( 'format' => 'JSON' ),
-		'sites',
+		'uuid' => [ 'type' => 'varchar', 'length' => 25 ],
+		'title' => [ 'type' => 'varchar', 'length' => 255, 'allow_null' => false ],
+		'weight' => [ 'type' => 'int', 'length' => 11, 'default' => '0', 'allow_null' => false ],
+		'description' => [ 'type' => 'text', 'default' => '' ],
+		'creator' => [ 'type' => 'varchar', 'length' => 255 ],
+		'documentation' => [ 'type' => 'text', 'default' => '' ],
+		'enabled' => [ 'type' => 'tinyint', 'length' => 1, 'default' => '1', 'allow_null' => false ],
+		'imported' => [ 'type' => 'int', 'length' => 11, 'default' => '0', 'allow_null' => false ],
+		'version' => [ 'type' => 'varchar', 'length' => 56 ],
+		'data' => [ 'type' => 'text', 'format' => 'JSON' ],
+		'sites' => [ 'type' => 'varchar', 'length' => 2048, 'default' => '', 'allow_null' => false ],
     );
 
     /**
