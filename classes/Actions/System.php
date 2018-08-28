@@ -156,18 +156,10 @@ class _System
 						'argtypes' => array(
 							'string' => array( 'description' => 'The email message to send' ),
 						),
-						'configuration' => array(
-							'form' => function( $form, $values ) {
-								$form->addField( 'rules_email_message', 'textarea', array(
-									'label' => __( 'Message', 'mwp-rules' ),
-									'description' => __( 'Enter the email message to send.', 'mwp-rules' ),
-									'data' => isset( $values['rules_email_message'] ) ? $values['rules_email_message'] : '',
-								));
-							},
-							'getArg' => function( $values ) {
-								return $values['rules_email_message'];
-							},
-						),						
+						'configuration' => $plugin->configPreset('textarea', 'rules_email_message', array(
+							'label' => __( 'Message', 'mwp-rules' ),
+							'description' => __( 'Enter the email message to send.', 'mwp-rules' ),							
+						)),
 					),
 					'headers' => array(
 						'label' => 'Email Headers',
@@ -176,18 +168,10 @@ class _System
 							'array' => array( 'description' => 'An array of email headers to send' ),
 							'string' => array( 'description' => 'A list of headers to send each on a new line in the format "Header-Name: header-value"' ),
 						),
-						'configuration' => array(
-							'form' => function( $form, $values ) {
-								$form->addField( 'rules_email_headers', 'textarea', array(
-									'label' => __( 'Headers', 'mwp-rules' ),
-									'description' => __( 'Enter one email header per line in the format "Header-Name: header-value".', 'mwp-rules' ),
-									'data' => isset( $values['rules_email_headers'] ) ? $values['rules_email_headers'] : '',
-								));
-							},
-							'getArg' => function( $values ) {
-								return explode( "\n", str_replace( "\r\n", "\n", $values['rules_email_headers'] ) );
-							},
-						),
+						'configuration' => $plugin->configPreset('textarea', 'rules_email_headers', array(
+							'label' => __( 'Headers', 'mwp-rules' ),
+							'description' => __( 'Enter one email header per line in the format "Header-Name: header-value".', 'mwp-rules' ),
+						)),
 					),
 					'attachments' => array(
 						'label' => 'Email Attachments',
@@ -196,18 +180,10 @@ class _System
 							'array' => array( 'description' => 'An array of paths for files to attach' ),
 							'string' => array( 'description' => 'A list of paths of files to attach, separated ' ),
 						),
-						'configuration' => array(
-							'form' => function( $form, $values ) {
-								$form->addField( 'rules_email_attachments', 'textarea', array(
-									'label' => __( 'Attachments', 'mwp-rules' ),
-									'description' => __( 'Enter one file path per line of attachments to send with this email. i.e. "/var/www/html/wp-content/uploads/filename.pdf".', 'mwp-rules' ),
-									'data' => isset( $values['rules_email_attachments'] ) ? $values['rules_email_attachments'] : '',
-								));
-							},
-							'getArg' => function( $values ) {
-								return explode( "\n", str_replace( "\r\n", "\n", $values['rules_email_attachments'] ) );
-							},
-						),
+						'configuration' => $plugin->configPreset('textarea', 'rules_email_attachments', array(
+							'label' => __( 'Attachments', 'mwp-rules' ),
+							'description' => __( 'Enter one file path per line of attachments to send with this email. i.e. "/var/www/html/wp-content/uploads/filename.pdf".', 'mwp-rules' ),
+						)),
 					),
 				),
 				'callback' => function( $to, $subject, $message, $headers, $attachments, $values ) 
