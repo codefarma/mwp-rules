@@ -260,6 +260,30 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
+	 * Add the rules dashboard link to the admin bar
+	 *
+	 * @MWP\WordPress\Action( for="admin_bar_menu", priority=21 )
+	 *
+	 * @param	WP_Admin_Bar		$wp_admin_bar			The admin bar instance
+	 * @return	array
+	 */
+	public function addRulesToNetworkAdminBar( $wp_admin_bar )
+	{
+		if ( ! is_user_logged_in() || ! is_multisite() ) {
+			return;
+		}
+
+		if ( current_user_can( 'manage_network' ) ) {
+			$wp_admin_bar->add_menu( array(
+				'parent' => 'network-admin',
+				'id'     => 'network-admin-rules',
+				'title'  => __( 'Rules Engine', 'mwp-rules' ),
+				'href'   => $this->getDashboardController()->getUrl(),
+			) );			
+		}
+	}
+	
+	/**
 	 * Get custom hooks cache
 	 *
 	 * @return array
@@ -388,14 +412,17 @@ class _Plugin extends \MWP\Framework\Plugin
 		$_next_action = ScheduledAction::getNextAction();
 		
 		if ( ! $_next_action ) {
+			$task->log( 'No more scheduled actions to run.' );
 			return $task->complete();
 		}
 		
 		if ( $_next_action->time > time() ) {
+			$task->log( 'Rescheduling for next action in the queue.' );
 			$task->next_start = $_next_action->time;
 			return;
 		}
 		
+		$task->log( 'Executing scheduled action: ' . $_next_action->id() );
 		$_next_action->execute();
 	}
 	
