@@ -362,6 +362,12 @@ class _Bundle extends ExportableRecord
 			'required' => false,
 		), 'bundle_details' );
 		
+		$form->addField( 'creator', 'text', array(
+			'label' => __( 'Creator', 'mwp-rules' ),
+			'data' => $this->creator,
+			'required' => false,
+		), 'bundle_details' );
+		
 		$form->addField( 'enabled', 'checkbox', array(
 			'label' => __( 'Enabled', 'mwp-rules' ),
 			'description' => __( 'Choose whether this bundle is enabled or not.', 'mwp-rules' ),

@@ -82,10 +82,14 @@ class _BundlesController extends ExportableController
 				),
 				'columns' => array(
 					'bundle_title'   => __( 'Bundle', 'mwp-rules' ),
+					'bundle_creator' => __( 'Creator', 'mwp-rules' ),
 					'overview'       => __( 'Overview', 'mwp-rules' ),
 					'bundle_enabled' => __( 'Status', 'mwp-rules' ),
 					'_row_actions'   => '',
 					'drag_handle'    => '',
+				),
+				'sortable' => array(
+					'bundle_creator' => 'bundle_creator',
 				),
 				'handlers' => array(
 					'drag_handle' => function( $row ) {
