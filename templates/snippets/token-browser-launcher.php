@@ -30,7 +30,6 @@ unset( $config['callback'] );
 ?>
 
 <div class="mwp-bootstrap" data-view-model="mwp-rules">
-	<i class="glyphicon glyphicon-arrow-left"></i>
 	<a title="<?php echo isset( $config['title'] ) ? $config['title'] : '' ?>" href="javascript:;" data-bind="
 		tokenSelector: {
 			<?php if ( $callback ) : ?>callback: <?php echo $callback ?>,<?php endif ?>
