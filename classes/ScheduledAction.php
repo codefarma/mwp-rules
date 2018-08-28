@@ -100,6 +100,7 @@ class _ScheduledAction extends ActiveRecord
 	{
 		$plugin = $this->getPlugin();
 		$form = static::createForm( 'schedule', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
+		$data = $this->data;
 		
 		$form->addField( 'schedule_type', 'choice', array(
 			'label' => __( 'Scheduled Time', 'mwp-rules' ),
@@ -118,6 +119,25 @@ class _ScheduledAction extends ActiveRecord
 			'view_timezone' => get_option('timezone_string') ?: 'UTC',
 			'data' => $this->time,
 		));
+		
+		$form->addField( 'recurrance_type', 'choice', array(
+			'label' => __( 'Recurrance', 'mwp-rules' ),
+			'choices' => array(
+				'One Time Only' => 'once',
+				'Repeating Interval' => 'repeating',
+			),
+			'toggles' => array(
+				'repeating' => array( 'show' => array( '#schedule_minutes', '#schedule_hours', '#schedule_days', '#schedule_months' ) ),
+			),
+			'data' => isset( $data['recurrance'] ) ? $data['recurrance'] : 'once',
+			'required' => true,
+			'expanded' => true,
+		));
+		
+		$form->addField( 'recurrance_minutes', 'integer', array( 'label' => __( 'Minutes', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_minutes' ), 'data' => isset( $data['minutes'] ) ? $data['minutes'] : 0 ) );
+		$form->addField( 'recurrance_hours', 'integer', array( 'label' => __( 'Hours', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_hours' ), 'data' => isset( $data['hours'] ) ? $data['hours'] : 0 ) );
+		$form->addField( 'recurrance_days', 'integer', array( 'label' => __( 'Days', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_days' ), 'data' => isset( $data['days'] ) ? $data['days'] : 0 ) );
+		$form->addField( 'recurrance_months', 'integer', array( 'label' => __( 'Months', 'mwp-rules' ), 'row_attr' => array( 'id' => 'schedule_months' ), 'data' => isset( $data['months'] ) ? $data['months'] : 0 ) );
 		
 		$form->addField( 'submit', 'submit', array(
 			'label' => __( 'Save', 'mwp-rules' ),
@@ -138,6 +158,29 @@ class _ScheduledAction extends ActiveRecord
 			$values['time'] = time();
 		}
 		
+		$data = $this->data ?: array();
+		
+		if ( isset( $values['recurrance_type'] ) ) {
+			$data['recurrance'] = $values['recurrance_type'];
+		}
+		
+		if ( isset( $values['recurrance_minutes'] ) ) {
+			$data['minutes'] = $values['recurrance_minutes'];
+		}
+		
+		if ( isset( $values['recurrance_minutes'] ) ) {
+			$data['hours'] = $values['recurrance_hours'];
+		}
+		
+		if ( isset( $values['recurrance_minutes'] ) ) {
+			$data['days'] = $values['recurrance_days'];
+		}
+		
+		if ( isset( $values['recurrance_minutes'] ) ) {
+			$data['months'] = $values['recurrance_months'];
+		}
+		$this->data = $data;
+		
 		parent::processEditForm( $values );
 	}
 	
@@ -145,7 +188,7 @@ class _ScheduledAction extends ActiveRecord
 	 * Execute the Scheduled Action
 	 *
 	 */
-	public function execute()
+	public function execute( $task=NULL )
 	{
 		if ( $this->running ) {
 			return;
@@ -200,9 +243,15 @@ class _ScheduledAction extends ActiveRecord
 							}
 						}
 						catch( \Throwable $t ) {
+							if ( isset( $task ) ) {
+								$task->log( 'Error Exception: ' . $t->getMessage() . '. Check the rules system log for more details.' );
+							}
 							$plugin->rulesLog( $event, $action->rule(), $action, $t->getMessage(), 'Error Exception', 1 );
 						}
 						catch( \Exception $e ) {
+							if ( isset( $task ) ) {
+								$task->log( 'Error Exception: ' . $t->getMessage() . '. Check the rules system log for more details.' );
+							}
 							$plugin->rulesLog( $event, $action->rule(), $action, $e->getMessage(), 'Error Exception', 1 );
 						}
 					}
@@ -214,7 +263,11 @@ class _ScheduledAction extends ActiveRecord
 					}
 				}
 			}
-			catch ( \OutOfRangeException $e ) { }
+			catch ( \OutOfRangeException $e ) { 
+				if ( isset( $task ) ) {
+					$task->log( 'Exception: ' . $e->getMessage() );
+				}
+			}
 		}
 
 		/**
@@ -288,7 +341,11 @@ class _ScheduledAction extends ActiveRecord
 					$this->reschedule();
 				}
 			}
-			catch( \OutOfRangeException $e ) { }
+			catch( \OutOfRangeException $e ) { 
+				if ( isset( $task ) ) {
+					$task->log( 'Custom action has been deleted. It could not be loaded.' );
+				}
+			}
 		}
 
 		if ( $deleteWhenDone ) {
