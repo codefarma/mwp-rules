@@ -42,6 +42,7 @@ class _ScheduleController extends BaseController
 					'type' => __( 'Type', 'mwp-rules' ),
 					'action' => __( 'Action Description', 'mwp-rules' ),
 					'schedule_time' => __( 'Scheduled Time', 'mwp-rules' ),
+					'recurrance' => __( 'Recurrance', 'mwp-rules' ),
 					'schedule_unique_key' => __( 'Keyphrase', 'mwp-rules' ),
 					'schedule_created' => __( 'Created On', 'mwp-rules' ),
 					'schedule_running' => __( 'Status', 'mwp-rules' ),
@@ -68,6 +69,18 @@ class _ScheduleController extends BaseController
 					},
 					'schedule_time' => function( $row ) {
 						return get_date_from_gmt( date( 'Y-m-d H:i:s', $row['schedule_time'] ), 'F j, Y H:i:s' );
+					},
+					'recurrance' => function( $row ) {
+						$data = json_decode( $row['schedule_data'], true );
+						if ( isset( $data['recurrance'] ) and $data['recurrance'] == 'repeating' ) {
+							$arr = [];
+							$arr[] = ( isset( $data['months'] ) and $data['months'] ) ? $data['months'] . ' months' : '';
+							$arr[] = ( isset( $data['days'] ) and $data['days'] ) ? $data['days'] . ' days' : '';
+							$arr[] = ( isset( $data['hours'] ) and $data['hours'] ) ? $data['hours'] . ' hours' : '';
+							$arr[] = ( isset( $data['minutes'] ) and $data['minutes'] ) ? $data['minutes'] . ' minutes' : '';
+							return 'Every ' . implode(', ', array_filter( $arr ) );
+						}
+						return 'Once';						
 					},
 					'schedule_created' => function( $row ) {
 						return get_date_from_gmt( date( 'Y-m-d H:i:s', $row['schedule_created'] ), 'F j, Y H:i:s' );
