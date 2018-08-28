@@ -67,16 +67,9 @@ class _System
 	{	
 		rules_register_events( array(
 			
-			/* Pre setup theme */
-			array( 'action', 'setup_theme', array(
-				'title' => 'Theme Is Being Setup (Before)',
-				'description' => 'Fires before the theme is loaded.',
-				'group' => 'Initialization',
-			)),
-			
 			/* Post setup theme */
 			array( 'action', 'after_setup_theme', array(
-				'title' => 'Theme Is Being Setup (After)',
+				'title' => 'Theme Is Being Setup',
 				'description' => 'Fires after the theme is loaded.',
 				'group' => 'Initialization',
 			)),
