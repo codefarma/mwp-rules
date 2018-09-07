@@ -1831,7 +1831,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$user_strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$user_strings = array_map( 'trim', explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) ) );
 						$users = array();
 						foreach( $user_strings as $user_string ) {
 							$pieces = explode( ':', $user_string );
@@ -1887,7 +1887,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$post_strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$post_strings = array_map( 'trim', explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) ) );
 						$posts = array();
 						foreach( $post_strings as $post_string ) {
 							$pieces = explode( ':', $post_string );
@@ -1943,7 +1943,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$comment_strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$comment_strings = array_map( 'trim', explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) ) );
 						$comments = array();
 						foreach( $comment_strings as $comment_string ) {
 							$pieces = explode( ':', $comment_string );
@@ -1974,13 +1974,11 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$array_values = array();
-						$strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
-						foreach( $strings as $value ) {
-							$array_values[] = $value;
+						if ( ! isset( $values[ $field_name ] ) ) {
+							return array();
 						}
-						
-						return $array_values;
+
+						return array_map( 'trim', explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) ) );
 					}
 				);
 				break;
@@ -2001,7 +1999,7 @@ class _Plugin extends \MWP\Framework\Plugin
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
 						$key_array = array();
-						$strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$strings = array_map( 'trim', explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) ) );
 						foreach( $strings as $string ) {
 							if ( strpos( $string, ':' ) !== false ) {
 								$pieces = explode( ':', $string );
@@ -2034,7 +2032,7 @@ class _Plugin extends \MWP\Framework\Plugin
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
 						$meta_values = array();
-						$meta_strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$meta_strings = array_map( 'trim', explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) ) );
 						foreach( $meta_strings as $meta_string ) {
 							if ( strpos( $meta_string, ':' ) !== false ) {
 								$pieces = explode( ':', $meta_string );
@@ -2091,7 +2089,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$strings = array_map( 'trim', explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) ) );
 						$taxonomies = array();
 						foreach( $strings as $string ) {
 							$pieces = explode( ':', $string );
@@ -2153,7 +2151,7 @@ class _Plugin extends \MWP\Framework\Plugin
 						$options ));
 					},
 					'getArg' => function( $values, $arg_map, $operation ) use ( $field_name ) {
-						$term_strings = explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) );
+						$term_strings = array_map( 'trim', explode( "\n", $operation->replaceTokens( $values[ $field_name ], $arg_map ) ) );
 						$terms = array();
 						foreach( $term_strings as $term_string ) {
 							$pieces = explode( ':', $term_string );
