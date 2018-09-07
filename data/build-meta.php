@@ -1,7 +1,7 @@
 <?php
 return <<<'JSON'
 {
-    "framework_version": "2.1.3",
+    "framework_version": "2.1.4",
     "framework_bundled": true,
     "tables": [
         {
@@ -75,11 +75,11 @@ return <<<'JSON'
                     "zerofill": false
                 },
                 "rule_parent_id": {
-                    "allow_null": true,
+                    "allow_null": false,
                     "auto_increment": false,
                     "binary": false,
                     "decimals": null,
-                    "default": null,
+                    "default": "0",
                     "length": 20,
                     "name": "rule_parent_id",
                     "type": "BIGINT",
