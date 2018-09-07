@@ -45,11 +45,23 @@ abstract class _ExportableRecord extends ActiveRecord
 	 */
 	public static function processBulkAction( $action, array $records )
 	{
+		if ( empty( $records ) ) {
+			return;
+		}
+		
+		$parts = explode( '\\', get_class( $records[0] ) );
+		$entity = strtolower( array_pop( $parts ) );
+		
+		if ( $entity == 'hook' ) {
+			$entity = $records[0]->isCustom() ? 'action' : 'event';
+		}
+		
 		switch( $action ) {
 			case 'export':
 				$package = Plugin::instance()->createPackage( $records );
 				$package_title = count( $records ) == 1 ? sanitize_title( $records[0]->title ) : sanitize_title( current_time( 'mysql' ) );
-				header('Content-disposition: attachment; filename=' . $package_title . '-rules.json');
+				$package_suffix = count( $records ) > 1 ? $entity . 's' : $entity;
+				header('Content-disposition: attachment; filename=' . $package_title . '-' . $package_suffix . '.json');
 				header('Content-type: application/json');
 				echo json_encode( $package, JSON_PRETTY_PRINT );
 				exit;
