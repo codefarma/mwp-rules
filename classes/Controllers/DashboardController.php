@@ -71,12 +71,11 @@ class _DashboardController extends Controller
 	{
 		$form = $this->plugin->createForm( 'rules_package_import' );
 		
-		$form->addHeading( 'package_heading', 'Install Packaged Automations' );
+		//$form->addHeading( 'package_heading', 'Install Packaged Automations' );
 		
 		$form->addField( 'package', 'file', array(
-			'row_attr' => [ 'style' => 'margin: 45px 0' ],
 			'label' => __( 'Automations File', 'mwp-rules' ),
-			'description' => __( 'Select the automations file to install.', 'mwp-rules' ),
+			'description' => __( 'Select an automations file to upload and install.', 'mwp-rules' ),
 			'required' => true,
 		));
 		
@@ -106,7 +105,7 @@ class _DashboardController extends Controller
 			}
 		}
 		
-		echo $this->wrap( __( 'Upload A Package', 'mwp-rules' ), $form->render() );
+		echo $this->wrap( __( 'Install Automations', 'mwp-rules' ), $this->plugin->getTemplateContent( 'dashboard/layout/installer', [ 'upload_form' => $form ] ) );
 	}
 	
 	/**

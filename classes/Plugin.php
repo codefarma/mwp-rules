@@ -561,6 +561,42 @@ class _Plugin extends \MWP\Framework\Plugin
 	}
 	
 	/**
+	 * Get all available rule packages bundled with plugins
+	 *
+	 * @return	array
+	 */
+	public function getPluginRulesPackages()
+	{
+		$rules_packages = array();
+		$plugin = $this;
+		
+		foreach( $this->getPluginList() as $slug => $plugin_file ) {
+			if ( is_dir( WP_PLUGIN_DIR . '/' . $slug . '/rules' ) ) {
+				$packages = array_filter( 
+					array_map( function( $file ) use ( $plugin, $slug, $plugin_file ) { 
+						try {
+							return Package::loadFromFile( $file );
+						}
+						catch( \Exception $e ) { }
+					}, glob( WP_PLUGIN_DIR . '/' . $slug . '/rules/*.json' 
+				)));
+				
+				if ( ! empty( $packages ) ) {
+					$rules_packages[] = array(
+						'source' => [ 
+							'type' => 'plugin',
+							'data' => $this->getPluginData( WP_PLUGIN_DIR . '/' . $plugin_file ),
+						],
+						'packages' => $packages,
+					);
+				}
+			}
+		}
+		
+		return $rules_packages;
+	}
+	
+	/**
 	 * @var	array
 	 */
 	protected $themes = array();
@@ -629,7 +665,7 @@ class _Plugin extends \MWP\Framework\Plugin
 			return $this->plugin_data[ $plugin_file ];
 		}
 		
-		$this->plugin_data[ $plugin_file ] = get_plugin_data( $plugin_file );
+		$this->plugin_data[ $plugin_file ] = get_plugin_data( $plugin_file, false );
 		
 		return $this->plugin_data[ $plugin_file ];
 	}
@@ -2538,12 +2574,10 @@ class _Plugin extends \MWP\Framework\Plugin
 		$package['hooks'] = array_merge( $package['hooks'], array_map( function( $hook ) { return $hook->getExportData(); }, array_values( $this->getHooksFromExportData( $package ) ) ) );
 		$package['logs'] = array_merge( $package['logs'], array_map( function( $log ) { return $log->getExportData(); }, array_values( $this->getLogsFromExportData( $package ) ) ) );
 		
-		/* I like tidy */
 		if ( empty( $package['hooks'] ) ) {
 			unset( $package['hooks'] );
 		}
 		
-		/* Tidy is nice */
 		if ( empty( $package['logs'] ) ) {
 			unset( $package['logs'] );
 		}
@@ -2554,51 +2588,16 @@ class _Plugin extends \MWP\Framework\Plugin
 	/**
 	 * Import a package
 	 *
-	 * @param	array			$package			The package data to import
+	 * @param	array			$package_data			The package data to import
 	 * @throws  \ErrorException
 	 * @return	array
 	 */
-	public function importPackage( $package )
+	public function importPackage( $package_data )
 	{
-		if ( ! isset( $package['rules_version'] ) ) {
-			throw new \ErrorException( 'The import data does not appear to be a rules package.' );
-		}
-		
-		$results = [];
-		
-		if ( isset( $package['hooks'] ) ) {
-			foreach( $package['hooks'] as $hook ) {
-				$results = array_merge_recursive( $results, Hook::import( $hook ) );
-			}
-		}
-		
-		if ( isset( $package['logs'] ) ) {
-			foreach( $package['logs'] as $log ) {
-				$results = array_merge_recursive( $results, CustomLog::import( $log ) );
-			}
-		}
-		
-		if ( isset( $package['rules'] ) ) {
-			foreach( $package['rules'] as $rule ) {
-				$results = array_merge_recursive( $results, Rule::import( $rule ) );
-			}
-		}
-		
-		if ( isset( $package['bundles'] ) ) {
-			foreach( $package['bundles'] as $bundle ) {
-				$results = array_merge_recursive( $results, Bundle::import( $bundle ) );
-			}
-		}
-		
-		if ( isset( $package['apps'] ) ) {
-			foreach( $package['apps'] as $app ) {
-				$results = array_merge_recursive( $results, App::import( $app ) );
-			}
-		}
-		
-		return $results;
+		$package = new Package( $package_data );		
+		return $package->importAll();
 	}
-
+	
 	/**
 	 * Recursion Protection
 	 */

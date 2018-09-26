@@ -5,7 +5,7 @@
  * Description: Automate new features and processes for any WordPress site through the use of simple "rules".
  * Author: Code Farma
  * Author URI: https://www.codefarma.com
- * Version: 1.1.3
+ * Version: 1.1.4
  */
 namespace MWP\Rules;
 

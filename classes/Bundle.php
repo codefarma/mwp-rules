@@ -379,7 +379,7 @@ class _Bundle extends ExportableRecord
 			$form->addField( 'sites_select', 'choice', array(
 				'row_prefix' => '<h2>Network Configuration</h2><hr>',
 				'label' => __( 'Site Selection', 'mwp-rules' ),
-				'description' => __( 'Choose which sites this rule will apply to. (Also requires the Automation Rules plugin to be enabled on the site.)', 'mwp-rules' ),
+				'description' => __( 'Choose which sites this bundle will apply to. (Also requires the Automation Rules plugin to be enabled on the site.)', 'mwp-rules' ),
 				'choices' => array(
 					__( 'All Sites', 'mwp-rules' ) => 'all',
 					__( 'Specific Sites', 'mwp-rules' ) => 'specific',
