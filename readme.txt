@@ -3,9 +3,9 @@ Contributors: codefarma
 Donate link: http://www.codefarma.com/
 Tags: rules, automation, programming
 Requires at least: 4.7
-Tested up to: 4.9.6
+Tested up to: 5.0.2
 Requires PHP: 5.6
-Stable tag: 1.1.3
+Stable tag: 1.1.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,38 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
  
 
 == Changelog ==
+
+1.1.4
+=====
+
+### Added
+
+- Date/Time config widget presets
+- Taxonomy config widget presets
+- A creator field can now be specified for rule bundles
+
+
+### Changed
+
+- Token browser launch button re-styled
+- Performance improvements via new table indexes
+- Email action now supports token replacements
+- Recurring action schedule is now visible on scheduled actions table
+- Removed 'before_setup_theme' rule event since it is unhookable by rules
+- Rules Engine link appears in network admin menu for multisite installs
+- Downloaded rules files now have a suffix that matches the type of rule package
+- Flushing the system logs table now just truncates the table instead of iterating and deleting
+
+### Fixed 
+
+- Bug causing rule conditions not to be re-organizable
+- Bug getting bundle url with custom parameters via code
+- Bug causing condition 'compare' mode not to save
+- Bug causing table on rules debug tabs to not be pageable
+- Bug with line endings being present on arrays entered through input widgets
+- Bug with null rule_parent_id causing rules to not be visible in tables
+- Bug causing post meta crud events to not be available for use by rules
+
 
 1.1.3
 =====

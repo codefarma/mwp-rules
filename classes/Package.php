@@ -6,7 +6,7 @@
  *
  * @package:  Automation Rules
  * @author:   Code Farma
- * @since:    {build_version}
+ * @since:    1.1.4
  */
 namespace MWP\Rules;
 
