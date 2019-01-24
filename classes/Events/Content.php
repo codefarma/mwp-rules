@@ -163,7 +163,7 @@ class _Content
 			)),
 			
 			/* Post Meta Added */
-			array( 'action', 'added_user_meta', array(
+			array( 'action', 'added_post_meta', array(
 				'title' => 'Post Meta Has Been Added',
 				'description' => 'This event occurs when post meta data is added for the first time.',
 				'group' => 'Post',
@@ -176,7 +176,7 @@ class _Content
 			)),
 			
 			/* Post Meta Updated */
-			array( 'action', 'updated_user_meta', array(
+			array( 'action', 'updated_post_meta', array(
 				'title' => 'Post Meta Has Been Updated',
 				'description' => 'This event occurs after post meta data has been successfully updated.',
 				'group' => 'Post',
@@ -189,7 +189,7 @@ class _Content
 			)),
 			
 			/* Post Meta Deleted */
-			array( 'action', 'deleted_user_meta', array(
+			array( 'action', 'deleted_post_meta', array(
 				'title' => 'Post Meta Has Been Deleted',
 				'description' => 'This event occurs after post meta data has been deleted.',
 				'group' => 'Post',
