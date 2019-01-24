@@ -961,7 +961,7 @@ class _CustomLog extends ExportableRecord
 	public function flushLogs()
 	{
 		$recordClass = $this->getRecordClass();
-		$recordClass::deleteWhere('1');
+		$this->getPlugin()->getDb()->query( "TRUNCATE TABLE " . $recordClass::_getTable(true) );
 	}
 	
 }
