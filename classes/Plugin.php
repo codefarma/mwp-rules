@@ -700,8 +700,10 @@ class _Plugin extends \MWP\Framework\Plugin
 	 */
 	public function getCallerDetails( $stack_depth=0 )
 	{
+		$debug_backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
+		
 		do {
-			$caller = array_slice( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ), $stack_depth, 1 )[0];
+			$caller = array_slice( $debug_backtrace, $stack_depth, 1 )[0];
 		} 
 		while( 
 			substr( $caller['file'], -13 ) === "eval()'d code" && 
