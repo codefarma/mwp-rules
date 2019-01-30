@@ -150,6 +150,7 @@ class _Package
 	public function importAll()
 	{
 		$results = [];
+		$package_data = $this->getPackageData();
 		
 		if ( isset( $package_data['hooks'] ) ) {
 			foreach( $package_data['hooks'] as $hook ) {
