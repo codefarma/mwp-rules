@@ -277,7 +277,7 @@ class _Event extends BaseDefinition
 				foreach ( $rulesPlugin->getDerivativeTokens( $argument, $target_argument, $depth, $include_arbitrary ) as $tokenized_key => $derivative_argument ) {						
 					switch ( $group ) {
 						case 'global':
-							if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) { continue; }
+							if ( ! isset( $argument['getter'] ) or ! is_callable( $argument['getter'] ) ) { break; }
 							$tokens[ 'global:' . $arg_name . ":" . $tokenized_key ] = '(' . $derivative_argument['argtype'] . ') ' . $derivative_argument['label'];
 							break;
 						default:
