@@ -1,0 +1,1 @@
+<?php return unserialize('a:1:{i:0;O:20:"MWP\\WordPress\\Script":5:{s:4:"deps";a:3:{i:0;s:14:"codemirror-xml";i:1;s:21:"codemirror-javascript";i:2;s:14:"codemirror-css";}s:3:"ver";N;s:6:"footer";b:0;s:6:"always";b:0;s:6:"handle";s:20:"codemirror-htmlmixed";}}');
