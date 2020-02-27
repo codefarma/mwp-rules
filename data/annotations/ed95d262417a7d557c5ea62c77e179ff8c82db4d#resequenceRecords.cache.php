@@ -1,0 +1,1 @@
+<?php return unserialize('a:1:{i:0;O:25:"MWP\\WordPress\\AjaxHandler":2:{s:6:"action";s:26:"mwp_rules_relocate_records";s:3:"for";a:1:{i:0;s:5:"users";}}}');
