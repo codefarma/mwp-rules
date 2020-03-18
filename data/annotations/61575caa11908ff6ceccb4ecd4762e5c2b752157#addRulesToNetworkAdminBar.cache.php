@@ -1,0 +1,1 @@
+<?php return unserialize('a:1:{i:0;O:20:"MWP\\WordPress\\Action":4:{s:3:"for";s:14:"admin_bar_menu";s:8:"priority";i:21;s:4:"args";i:1;s:6:"output";b:0;}}');
