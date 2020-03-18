@@ -538,19 +538,19 @@ class _System
 											$new_value = array_values( $new_value );
 											break;
 										case 'add':
-											$new_value = $existing_value + $meta_value;
+											$new_value = @($existing_value + $meta_value);
 											break;
 										case 'subtract':
-											$new_value = $existing_value - $meta_value;
+											$new_value = @($existing_value - $meta_value);
 											break;
 										case 'multiply':
-											$new_value = $existing_value * $meta_value;
+											$new_value = @($existing_value * $meta_value);
 											break;
 										case 'divide':
 											if ( $meta_value == 0 ) {
 												return array( 'error' => 'Division by zero is not possible.', 'meta_value' => $meta_value );
 											}
-											$new_value = $existing_value / $meta_value;
+											$new_value = @($existing_value / $meta_value);
 											break;
 									}
 									

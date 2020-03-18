@@ -5,7 +5,7 @@
  * Description: Automate new features and processes for any WordPress site through the use of simple "rules".
  * Author: Code Farma
  * Author URI: https://www.codefarma.com
- * Version: 1.1.4
+ * Version: 1.2.0
  */
 namespace MWP\Rules;
 
@@ -23,7 +23,7 @@ use MWP\Rules\Log as RuleLog;
 use MWP\WordPress\AdminPage;
 
 /* Autoloaders */
-include_once 'includes/plugin-bootstrap.php';
+include_once __DIR__ . '/includes/plugin-bootstrap.php';
 
 /**
  * This plugin uses the MWP Application Framework to init.
