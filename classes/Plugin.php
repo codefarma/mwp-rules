@@ -252,11 +252,14 @@ class _Plugin extends \MWP\Framework\Plugin
 		}
 		
 		/* Connect all enabled first level rules to their hooks */
+		$_suppress = Rule::getDb()->suppress_errors;
+		Rule::getDb()->suppress_errors = true;
 		foreach( Rule::loadWhere( array( 'rule_enabled=1 AND rule_parent_id=0' ), 'rule_priority ASC, rule_weight ASC' ) as $rule ) {
 			if ( $rule->isActive() ) {
 				$rule->deploy();
 			}
 		}
+		Rule::getDb()->suppress_errors = $_suppress;
 	}
 	
 	/**

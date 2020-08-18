@@ -695,9 +695,12 @@ class _CustomLog extends ExportableRecord
 	 */
 	public static function createRecordControllers()
 	{
+		$_suppress = static::getDb()->suppress_errors;
+		static::getDb()->suppress_errors = true;
 		foreach( static::loadWhere('1') as $log ) {
 			$log->getRecordController();
 		}
+		static::getDb()->suppress_errors = $_suppress;
 	}
 	
 	/**
