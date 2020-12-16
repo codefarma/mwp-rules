@@ -3,9 +3,9 @@ Contributors: codefarma
 Donate link: http://www.codefarma.com/
 Tags: rules, automation, programming
 Requires at least: 4.7
-Tested up to: 5.0.2
+Tested up to: 5.6
 Requires PHP: 5.6
-Stable tag: 1.1.4
+Stable tag: 1.2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,14 @@ Multiple "rules" can be grouped together into "automation bundles", which is a c
  
 
 == Changelog ==
+
+1.2.3
+=====
+
+### Fixed
+
+- Updated MWP Framework to 1.2.11 for compat with latest Woo
+
 
 1.1.4
 =====
