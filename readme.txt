@@ -3,7 +3,7 @@ Contributors: codefarma
 Donate link: http://www.codefarma.com/
 Tags: rules, automation, programming
 Requires at least: 4.7
-Tested up to: 5.6
+Tested up to: 
 Requires PHP: 5.6
 Stable tag: 1.2.3
 License: GPLv2 or later
