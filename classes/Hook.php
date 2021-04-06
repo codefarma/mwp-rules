@@ -430,7 +430,7 @@ class _Hook extends ExportableRecord
 				$rulesController->setHook( $this );
 				$rulesTable = $rulesController->createDisplayTable([ 
 					'perPage' => 1000,
-					'hardFilters' => array( array( "rule_custom_internal=%d AND rule_event_type=%s AND rule_event_hook=%s", 1, 'action', $this->hook ) ),
+					'hardFilters' => array( array( "rule_custom_internal=%d AND rule_event_type=%s AND rule_event_hook=%s AND rule_parent_id=0", 1, 'action', $this->hook ) ),
 					'bulkActions' => [],
 				]);
 				$rulesTable->prepare_items();
