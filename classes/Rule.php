@@ -628,6 +628,13 @@ class _Rule extends ExportableRecord
 					wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $bundle->id(), '_tab' => 'bundle_rules' ) ) );
 					exit;
 				}
+
+				if ( $rule->custom_internal ) {
+					$hook = $rule->getContainer();
+					$controller = $plugin->getHooksController('actions');
+					wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $hook->id(), '_tab' => 'hook_rules' ) ) );
+					exit;
+				}
 			});
 		}
 		
