@@ -630,11 +630,25 @@ add_filter( 'rules_class_map', function( $map )
 						return apply_filters( 'the_content', $post->post_content );
 					}
 				),
+				'content_raw' => array(
+					'argtype' => 'string',
+					'label' => 'Post Content (Raw)',
+					'getter' => function( $post ) {
+						return $post->post_content;
+					}
+				),
 				'excerpt' => array(
 					'argtype' => 'string',
 					'label' => 'Post Excerpt',
 					'getter' => function( $post ) {
 						return apply_filters( 'the_excerpt', $post->post_excerpt );
+					}
+				),
+				'excerpt_raw' => array(
+					'argtype' => 'string',
+					'label' => 'Post Excerpt (Raw)',
+					'getter' => function( $post ) {
+						return $post->post_excerpt;
 					}
 				),
 				'status' => array(
@@ -879,6 +893,13 @@ add_filter( 'rules_class_map', function( $map )
 					'label' => 'Comment Content',
 					'getter' => function( $comment ) {
 						return apply_filters( 'get_comment_text', $comment->comment_content, $comment, array() );
+					}
+				),
+				'content_raw' => array(
+					'argtype' => 'string',
+					'label' => 'Comment Content (Raw)',
+					'getter' => function( $comment ) {
+						return $comment->comment_content;
 					}
 				),
 				'parent' => array(
