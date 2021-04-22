@@ -449,6 +449,12 @@ class _Hook extends ExportableRecord
 					'table' => $rulesTable,
 					'controller' => $rulesController,
 				)));
+
+				if ( $this->enable_api ) {
+				    $form->addTab( 'api_settings', array(
+				        'title' => __( 'API Settings', 'mwp-rules' ),
+                    ));
+                }
 			}
 			
 		} else {
