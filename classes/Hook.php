@@ -406,7 +406,7 @@ class _Hook extends ExportableRecord
 
 		if ( $this->type == 'custom' ) {
 		    $form->addField( 'enable_api', 'checkbox', array(
-		        'label' => __( 'Enable API?', 'mwp-rules' ),
+		        'label' => __( 'Enable API', 'mwp-rules' ),
                 'description' => __( 'Allow this action to be triggered via the WordPress API' ),
                 'data' => (bool) $this->enable_api,
                 'required' => false,
