@@ -454,6 +454,8 @@ class _Hook extends ExportableRecord
 				    $form->addTab( 'api_settings', array(
 				        'title' => __( 'API Settings', 'mwp-rules' ),
                     ));
+
+				    // @todo: add API settings fields (REST routes, allowed user roles, etc.)
                 }
 			}
 			
