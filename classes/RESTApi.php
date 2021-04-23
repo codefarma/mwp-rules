@@ -67,23 +67,31 @@ class _RESTApi extends Singleton
      */
 	private function validate ( $type, $value )
     {
+        $validated = false;
+
         switch ( $type ) {
             case 'int':
             case 'float':
-                return is_numeric($value);
+                $validated = is_numeric($value);
+                break;
 
             case 'string':
-                return is_string($value);
+                $validated = is_string($value);
+                break;
 
             case 'object':
-                return is_object(json_decode($value));
+                $validated = is_object(json_decode($value));
+                break;
 
             case 'bool':
             case 'array':
             case 'mixed':
             default:
-                return is_scalar($value);
+                $validated = is_scalar($value);
+                break;
         }
+
+        return apply_filters( 'mwp_rules_validated_value', $validated, $type, $value );
     }
 
     /**
@@ -96,29 +104,32 @@ class _RESTApi extends Singleton
      */
     private function sanitize ( $type, $value, $info )
     {
+        $sanitized = $value;
+
         switch ( $type ) {
             case 'int':
-                $value = intval($value);
+                $sanitized = intval($value);
                 break;
 
             case 'float':
-                $value = floatval($value);
+                $sanitized = floatval($value);
                 break;
 
             case 'object':
-                $value = json_decode($value);
+                $sanitized = json_decode($value);
                 break;
 
             case 'bool':
-                if ( strtolower($value) === "false" ) {
-                    $value = false;
+                $_value = $value;
+                if ( strtolower($_value) === "false" ) {
+                    $_value = false;
                 }
 
-                $value = boolval($value);
+                $sanitized = boolval($_value);
                 break;
 
             case 'array':
-                $value = explode(",", $value);
+                $sanitized = explode(",", $value);
                 break;
 
             case 'string':
@@ -127,7 +138,7 @@ class _RESTApi extends Singleton
                 break;
         }
 
-        return $value;
+        return apply_filters( 'mwp_rules_sanitized_value', $sanitized, $type, $value, $info );
     }
 
     /**
@@ -199,7 +210,7 @@ class _RESTApi extends Singleton
     {
         $argTypes = isset($details['argtypes']) ? $details['argtypes'] : array();
 
-        return array(
+        return apply_filters( 'mwp_rules_arg_config', array(
             'required' => isset($details['required']) && $details['required'],
             'validate_callback' => function( $param ) use ( $argTypes ) {
                 return $this->validateParam($param, $argTypes);
@@ -207,7 +218,7 @@ class _RESTApi extends Singleton
             'sanitize_callback' => function( $param ) use ( $argTypes ) {
                 return $this->sanitizeValue($param, $argTypes);
             }
-        );
+        ), $details );
     }
 
     /**
