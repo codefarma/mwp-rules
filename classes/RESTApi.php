@@ -59,6 +59,78 @@ class _RESTApi extends Singleton
 	}
 
     /**
+     * Validate a value against the given type.
+     *
+     * @param $type
+     * @param $value
+     * @return bool
+     */
+	private function validate ( $type, $value )
+    {
+        switch ( $type ) {
+            case 'int':
+            case 'float':
+                return is_numeric($value);
+
+            case 'string':
+                return is_string($value);
+
+            case 'object':
+                return is_object(json_decode($value));
+
+            case 'bool':
+            case 'array':
+            case 'mixed':
+            default:
+                return is_scalar($value);
+        }
+    }
+
+    /**
+     * Sanitize a value according to the given type.
+     *
+     * @param $type
+     * @param $value
+     * @param $info
+     * @return bool
+     */
+    private function sanitize ( $type, $value, $info )
+    {
+        switch ( $type ) {
+            case 'int':
+                $value = intval($value);
+                break;
+
+            case 'float':
+                $value = floatval($value);
+                break;
+
+            case 'object':
+                $value = json_decode($value);
+                break;
+
+            case 'bool':
+                if ( strtolower($value) === "false" ) {
+                    $value = false;
+                }
+
+                $value = boolval($value);
+                break;
+
+            case 'array':
+                $value = explode(",", $value);
+                break;
+
+            case 'string':
+            case 'mixed':
+            default:
+                break;
+        }
+
+        return $value;
+    }
+
+    /**
      * Register API endpoints for custom actions.
      *
      * @MWP\WordPress\Action( for="rest_api_init" )
@@ -67,47 +139,112 @@ class _RESTApi extends Singleton
     {
         $custom_hooks = $this->getPlugin()->getCustomHooks();
 
-        if ( isset( $custom_hooks['actions'] ) ) {
-            foreach( $custom_hooks['actions'] as $hook => $info ) {
-                if ( isset( $info['definition'] ) ) {
-                    $definition = $info['definition'];
+        if ( !isset( $custom_hooks['actions'] ) || !is_array( $custom_hooks['actions'] ) ) {
+            return;
+        }
 
-                    if ( isset( $definition['hook_data'] ) ) {
-                        if ($definition['hook_data']['hook_enable_api'] == "1") {
-                            $route = '/'.$hook.'/';
-                            if ( $arguments = $definition['arguments'] ) {
-                                foreach ( $arguments as $arg => $details ) {
-                                    var_dump($details);
-                                    $route .= '(?P<'.$arg.'>\d+)'; // @todo: do not hard-code the argument type; get from $details
-                                }
-                            }
+        foreach( $custom_hooks['actions'] as $hook => $info ) {
+            if ( !isset( $info['definition'] ) || !is_array( $info['definition'] ) ) {
+                continue;
+            }
 
-                            register_rest_route('mwp-rules/v1', $route, array(
-                                'methods' => 'GET', // @todo: get from configuration
-                                'callback' => function ( \WP_REST_Request $request ) use ( $hook ) {
-                                    call_user_func_array(
-                                        'do_action',
-                                        array_merge(array($hook), array_values($request->get_params()))
-                                    );
+            $definition = $info['definition'];
+            if ( !isset( $definition['hook_data'] ) || !is_array( $definition['hook_data'] ) ) {
+                continue;
+            }
 
-                                    $response = new \WP_REST_Response();
-                                    $response->set_data('Success');
-                                    $response->set_status(200);
+            $hook_data = $definition['hook_data'];
+            if ( !isset( $hook_data['hook_enable_api'] ) || $hook_data['hook_enable_api'] != "1" ) {
+                continue;
+            }
 
-                                    return $response; // @todo: determine return result programmatically
-                                },
-//                                 @todo: validate args, add permission check(https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-custom-endpoints/)
-//                                'args' => array()
-//                                'permission_callback' => function ( \WP_REST_Request $request ) {
-//                                    return current_user_can( 'edit_posts' ); // @todo: get from configuration
-//                                },
-                            ));
-
-                        }
-                    }
+            $rest_args = array();
+            if ( isset( $definition['arguments'] ) && is_array( $definition['arguments'] ) ) {
+                foreach ( $definition['arguments'] as $arg => $details ) {
+                    $rest_args[$arg] = $this->getArgConfig($details);
                 }
             }
+
+            $route = '/'.$hook.'/';
+            register_rest_route('mwp-rules/v1', $route, array(
+                'methods' => 'GET', // @todo: get from configuration
+                'callback' => function ( \WP_REST_Request $request ) use ( $hook ) {
+                    call_user_func_array(
+                        'do_action',
+                        array_merge(array($hook), array_values($request->get_params()))
+                    );
+
+                    // @todo: determine return result programmatically
+                    $response = new \WP_REST_Response();
+                    $response->set_data(array( 'result' => 'success' ));
+                    $response->set_status(201);
+
+                    return $response;
+                },
+                'args' => $rest_args,
+//                'permission_callback' => function ( \WP_REST_Request $request ) {
+//                    return current_user_can( 'edit_others_posts' ); // @todo: get from configuration
+//                },
+            ));
         }
     }
+
+    /**
+     * Get argument configuration settings formatted for a WP REST endpoint.
+     *
+     * @param $details array    The argument details as configured in the custom action
+     * @return array
+     */
+    public function getArgConfig ( $details )
+    {
+        $argTypes = isset($details['argtypes']) ? $details['argtypes'] : array();
+
+        return array(
+            'required' => isset($details['required']) && $details['required'],
+            'validate_callback' => function( $param ) use ( $argTypes ) {
+                return $this->validateParam($param, $argTypes);
+            },
+            'sanitize_callback' => function( $param ) use ( $argTypes ) {
+                return $this->sanitizeValue($param, $argTypes);
+            }
+        );
+    }
+
+    /**
+     * Validate a value given a set of types.
+     *
+     * @param $value string|int     The value to be validated
+     * @param $argTypes array       The types to be validated against
+     * @return bool
+     */
+    public function validateParam( $value, $argTypes )
+    {
+        foreach ( $argTypes as $type => $info ) {
+            if ( $this->validate($type, $value) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Sanitize a value given a set of types.
+     *
+     * @param $value string|int     The value to be sanitized
+     * @param $argTypes array       The types to be sanitized against
+     * @return mixed
+     */
+    public function sanitizeValue( $value, $argTypes )
+    {
+        foreach ( $argTypes as $type => $info ) {
+            if ( $this->validate($type, $value) ) {
+                return $this->sanitize($type, $value, $info);
+            }
+        }
+
+        return $value;
+    }
+
 
 }
