@@ -176,9 +176,11 @@ class _RESTApi extends Singleton
                 }
             }
 
+            $api_roles = explode(",", $hook_data['hook_api_roles']);
             $route = '/'.$hook.'/';
+
             register_rest_route('mwp-rules/v1', $route, array(
-                'methods' => 'GET', // @todo: get from configuration
+                'methods' => $this->getRESTMethods($hook_data['hook_api_methods']),
                 'callback' => function ( \WP_REST_Request $request ) use ( $hook ) {
                     call_user_func_array(
                         'do_action',
@@ -193,11 +195,57 @@ class _RESTApi extends Singleton
                     return $response;
                 },
                 'args' => $rest_args,
-//                'permission_callback' => function ( \WP_REST_Request $request ) {
-//                    return current_user_can( 'edit_others_posts' ); // @todo: get from configuration
-//                },
+                'permission_callback' => function ( \WP_REST_Request $request ) use ($api_roles) {
+                    return $this->checkRESTPermissions($api_roles);
+                },
             ));
         }
+    }
+
+    /**
+     * Get an array of REST methods.
+     *
+     * @param string|null $methods  A comma-separated list of REST operations (e.g. 'get,post,delete')
+     * @return string
+     */
+    public function getRESTMethods ( $methods=null )
+    {
+        if ( !$methods ) {
+            return \WP_REST_Server::READABLE;
+        }
+
+        return apply_filters( 'mwp_rules_rest_methods', implode(",", array_map( function ( $m ) {
+            $RESTMethods = array(
+                'get'       => \WP_REST_Server::READABLE,
+                'post'      => \WP_REST_Server::EDITABLE,
+                'delete'    => \WP_REST_Server::DELETABLE
+            );
+
+            return $RESTMethods[$m];
+        }, explode(",", $methods) ) ) );
+    }
+
+    /**
+     * Check the current user's assigned roles against those configured on the custom action
+     * to determine whether to allow access to the REST endpoint.
+     *
+     * @param $roles array  List of slugs for allowed user roles (e.g. administrator, editor, etc)
+     * @return bool         Whether the current user is permitted to access the REST endpoint
+     */
+    public function checkRESTPermissions( $roles )
+    {
+        $user = wp_get_current_user();
+        if ( empty( $user ) ) {
+            return apply_filters( 'mwp_rules_rest_permissions', false, $user, $roles );
+        }
+
+        foreach ( $user->roles as $role ) {
+            if ( in_array( $role, $roles ) ) {
+                return apply_filters( 'mwp_rules_rest_permissions', true, $user, $roles );
+            }
+        }
+
+        return apply_filters( 'mwp_rules_rest_permissions', false, $user, $roles );
     }
 
     /**
