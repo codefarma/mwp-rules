@@ -47,6 +47,7 @@ class _Hook extends ExportableRecord
 		'hook',
 		'category',
 		'imported',
+        'api_roles'
     );
 
     /**
@@ -455,7 +456,38 @@ class _Hook extends ExportableRecord
 				        'title' => __( 'API Settings', 'mwp-rules' ),
                     ));
 
-				    // @todo: add API settings fields (REST routes, allowed user roles, etc.)
+                    $form->addField( 'api_methods', 'choice', array(
+                        'row_attr' => array( 'id' => 'hook_type' ),
+                        'label' => __( 'REST Methods', 'mwp-rules' ),
+                        'choices' => array(
+                            'GET' => 'get',
+                            'POST' => 'post',
+                            'DELETE' => 'delete'
+                        ),
+                        'data' => $this->api_methods ? explode(',', $this->api_methods) : array( 'get' ),
+                        'description' => __( 'Choose supported REST methods.', 'mwp-rules' ),
+                        'multiple' => true,
+                        'expanded' => true,
+                        'required' => false,
+                    ), 'api_settings' );
+
+                    global $wp_roles;
+
+                    $apiRoles = array();
+                    foreach ( $wp_roles->roles as $slug => $details ) {
+                        $apiRoles[$details['name']] = $slug;
+                    }
+
+                    $form->addField( 'api_roles', 'choice', array(
+                        'row_attr' => array( 'id' => 'hook_type' ),
+                        'label' => __( 'User Roles', 'mwp-rules' ),
+                        'choices' => $apiRoles,
+                        'data' => $this->api_roles ? explode(',', $this->api_roles) : array(),
+                        'description' => __( 'Only the selected roles will have API access.', 'mwp-rules' ),
+                        'multiple' => true,
+                        'expanded' => true,
+                        'required' => false,
+                    ), 'api_settings' );
                 }
 			}
 			
@@ -484,6 +516,18 @@ class _Hook extends ExportableRecord
 	protected function processEditForm( $values )
 	{
 		$_values = $values['hook_details'];
+
+		if ( isset($values['api_settings']) ) {
+            if ( isset($values['api_settings']['api_methods']) && is_array($values['api_settings']['api_methods']) ) {
+                $values['api_settings']['api_methods'] = implode(',', $values['api_settings']['api_methods']);
+            }
+
+            if ( isset($values['api_settings']['api_roles']) && is_array($values['api_settings']['api_roles']) ) {
+                $values['api_settings']['api_roles'] = implode(',', $values['api_settings']['api_roles']);
+            }
+
+		    $_values = array_merge($_values, $values['api_settings']);
+        }
 		
 		if ( ! $this->id() and $this->type == 'custom' ) {
 			$this->hook = uniqid( 'rules/action/' );
