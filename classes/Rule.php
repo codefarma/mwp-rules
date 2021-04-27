@@ -58,8 +58,8 @@ class _Rule extends ExportableRecord
 		'imported'         => [ 'type' => 'int', 'length' => 11 ],
  		'custom_internal'  => [ 'type' => 'tinyint', 'length' => 1, 'default' => 0, 'allow_null' => false ],
 		'sites'            => [ 'type' => 'varchar', 'length' => 2048, 'default' => '', 'allow_null' => false ],
-		'create_date' => [ 'type' => 'int'],
-		'modified_date' => [ 'type' => 'int'],
+		'create_date' => [ 'type' => 'int', 'length' => 11],
+		'modified_date' => [ 'type' => 'int', 'length' => 11],
 		'system_user' => [ 'type' => 'int','length' => 25],
 		'description'   => [ 'type' => 'text']
     );
@@ -362,7 +362,6 @@ class _Rule extends ExportableRecord
 				'row_attr' => array( 'data-bind' => 'init: function() { 
 					var container = jQuery(this); 
 					var wp_editor_input = container.find("textarea.wp-editor-area");
-					console.log(wp_editor_input); 
 					var description_input = container.find("[data-role=description-input]");
 					wp_editor_input.attr("name", description_input.attr("name"));
 					description_input.remove();
@@ -1285,7 +1284,6 @@ class _Rule extends ExportableRecord
 
 		if ( ! $this->id() ) {
 			$this->create_date = time();
-			$this->modified_date = time();
 			$this->system_user = $this->getSystemUser();
 
 		}
