@@ -18,6 +18,7 @@ use MWP\Framework\Framework;
 use MWP\Framework\Pattern\ActiveRecord;
 use MWP\Rules\Condition;
 use MWP\Rules\Action;
+use MWP\Rules\ECA\Token;
 
 /**
  * Rule Class
@@ -288,6 +289,7 @@ class _Rule extends ExportableRecord
 		$request = Framework::instance()->getRequest();
 		$form = static::createForm( 'edit', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		$rule = $this;
+		$rule_data = $this->data;
 		
 		/* Display details for the app/bundle/parent */
 		$form->addHtml( 'rule_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
@@ -556,7 +558,185 @@ class _Rule extends ExportableRecord
 		$form->addTab( 'rule_subrules', array( 
 			'title' => __( 'Sub-rules', 'mwp-rules' ),
 		));
+
+		$form->addField( 'sub_mode', 'choice', array(
+			'label' => 'Sub-Rule Context',
+			'choices' => array(
+				'Normal - Same context as parent rule.' => 'normal',
+				'Looped - Create a loop context for sub-rules.' => 'loop',
+			),
+			'required' => true,
+			'expanded' => true,
+			'description' => __('If you create a loop context, all sub-rules will be run for each element of an array you choose.', 'mwp-rules'),
+			'data' => isset( $rule_data['sub_mode'] ) ? $rule_data['sub_mode'] : 'normal',
+			'toggles' => array(
+				'loop' => array(
+					'show' => [ '#sub_mode_context_settings' ],
+				)
+			),
+		), 
+		'rule_subrules' );
+
+		/**
+		 * Add sub-rule context configuration
+		 */
+		$form->addHtml( 'sub_mode_context_start', '<div id="sub_mode_context_settings">' );
+		$form->addHeading( 'sub_mode_context_heading', __( 'Loop Context', 'mwp-rules' ) . '  <small><code>array</code></small>', 'rule_subrules' );
+
+		/* Look for event data that can be used to supply the value for this argument */
+		$usable_event_data = array();
+		$usable_event_data_objects = array();
+		$usable_event_data_optgroups = array();
+		$arg = array( 'label' => 'Loop Data Source', 'argtypes' => [ 'array' ] );
+
+		if ( $event = $this->event() ) {
+			$usable_event_data = $event->getArgumentTokens( $arg, NULL, 2, TRUE, $this );
+			foreach( $usable_event_data as $token => &$title ) {
+				$parts = explode(':', $token);
+				
+				if ( ! isset( $usable_event_data_objects[ $parts[0] ] ) ) {
+					$usable_event_data_optgroups[ $parts[0] ] = array(
+						'label' => ucwords( __( $parts[0] . ' Arguments', 'mwp-rules' ) ),
+						'value' => $parts[0],
+					);
+				}
+				
+				$usable_event_data_objects[] = array( 'value' => $token, 'text' => $token, 'optgroup' => $parts[0] );
+				$title = $token; // . ' - ' . $title;
+			}
+			$usable_event_data = array_flip( $usable_event_data );
+			$usable_event_data_optgroups = array_values( $usable_event_data_optgroups );
+			
+			$current_event_arg = isset( $rule_data[ 'sub_mode_context_eventArg' ] ) ? $rule_data[ 'sub_mode_context_eventArg' ] : NULL;
+			if ( isset( $current_event_arg ) and ! in_array( $current_event_arg, array_values( $usable_event_data ) ) ) {
+				$usable_event_data_objects[] = array( 'value' => $current_event_arg, 'text' => $current_event_arg );
+			}
+		}
+
+		$form->addField( 'sub_mode_context_varname', 'text', array(
+			'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
+			'label' => __( 'Machine Name', 'mwp-rules' ),
+			'description' => __( 'Enter an identifier to be used for the loop value. It may only contain alphanumeric characters or underscores. It must also start with a letter.', 'mwp-rules' ),
+			'attr' => array( 
+				'placeholder' => 'var_name', 
+				'data-fixed' => "false",
+				'data-bind' => "init: function() { 
+					var varname = jQuery(this);
+					varname.on('keypress', function (event) {
+						switch (event.keyCode) {
+							case 8:  // Backspace
+								break;
+							case 9:  // Tab
+							case 13: // Enter
+							case 37: // Left
+							case 38: // Up
+							case 39: // Right
+							case 40: // Down
+								return;
+							default:
+								var regex = new RegExp(\"[a-zA-Z0-9_]\");
+								var key = event.key;
+								if (!regex.test(key)) {
+									event.preventDefault();
+									return false;
+								}
+								break;
+						}
+					});
+				}
+			"),
+			'data' => isset( $rule_data[ 'sub_mode_context_varname' ] ) ? $rule_data[ 'sub_mode_context_varname' ] : '',
+			'constraints' => array( function( $data, $context ) {
+				$form_values = $context->getRoot()->getData();
+				if ( $form_values['rule_subrules']['sub_mode'] == 'loop' ) {
+					if ( ! preg_match( "/^([A-Za-z])+([A-Za-z0-9_]+)?$/", $data ) ) {
+						$context->addViolation( __('The machine name must be only alphanumerics or underscores, and must start with a letter.','mwp-rules') ); 
+					}
+				}
+			}),
+		),
+		'rule_subrules' );
+
+		$arg_sources[ 'Event / Global Data' ] = 'event';
+		$arg_sources[ 'Custom PHP Code' ] = 'phpcode';
 		
+		$form->addField( 'sub_mode_context_source', 'choice', array(
+			'label' => __( 'Source', 'mwp-rules' ),
+			'choices' => $arg_sources,
+			'data' => isset( $rule_data[ 'sub_mode_context_source' ] ) ? $rule_data[ 'sub_mode_context_source' ] : 'event',
+			'required' => ! empty( $arg_sources ),
+			'toggles' => array(
+				'event' => array( 'show' => '#' . 'sub_mode_context_eventArg' ),
+				'phpcode' => array( 'show' => '#' . 'sub_mode_context_phpcode' ),
+			),
+		));
+		
+		/**
+		 * EVENT ARGUMENTS 
+		 *
+		 */
+		$form->addField( 'sub_mode_context_eventArg', 'text', array(
+			'field_prefix' => $this->getDataSelector( $arg ),
+			'row_attr' => array( 'id' => 'sub_mode_context_eventArg', 'data-view-model' => 'mwp-rules' ),
+			'attr' => array( 'data-role' => 'token-select', 'data-opkey' => 'rule', 'data-opid' => $this->id(), 'data-bind' => 'jquery: { 
+				selectize: {
+					plugins: [\'restore_on_backspace\'],
+					optgroups: ' . json_encode( $usable_event_data_optgroups ) . ',
+					options: ' . json_encode( $usable_event_data_objects ) . ',
+					persist: true,
+					maxItems: 1,
+					highlight: false,
+					hideSelected: false,
+					create: true
+				}
+			}'),
+			'label' => __( 'Data To Use', 'mwp-rules' ),
+			'required' => ! empty( $usable_event_data ),
+			'data' => ( isset( $rule_data[ 'sub_mode_context_eventArg' ] ) and $rule_data[ 'sub_mode_context_eventArg' ] ) ? $rule_data[ 'sub_mode_context_eventArg' ] : reset( $usable_event_data ),
+		));
+
+		/**
+		 * PHP CODE
+		 *
+		 * Requires return argtype(s) to be specified
+		 */
+		if ( isset( $arg[ 'argtypes' ] ) ) {
+			/**
+			 * Compile argtype info
+			 */
+			$_arg_list 	= array();
+			
+			if ( is_array( $arg[ 'argtypes' ] ) ) {
+				foreach( $arg[ 'argtypes' ] as $_type => $_type_def ) {
+					if ( is_array( $_type_def ) ) {
+						if ( isset ( $_type_def[ 'description' ] ) ) {
+							$_arg_list[] = "<code>{$_type}</code>" . ( isset( $_type_def[ 'classes' ] ) ? ' (' . implode( ',', (array) $_type_def[ 'classes' ] ) . ')' : '' ) . ": {$_type_def[ 'description' ]}";
+						}
+						else {
+							$_arg_list[] = "<code>{$_type}</code>" . ( isset( $_type_def[ 'classes' ] ) ? ' (' . implode( ',', (array) $_type_def[ 'classes' ] ) . ')' : '' );
+						}
+					}
+					else {
+						$_arg_list[] = "<code>{$_type_def}</code>";
+					}
+				}
+			}
+			
+			$form->addField( 'sub_mode_context_phpcode', 'textarea', array(
+				'row_attr' => array(  'id' => 'sub_mode_context_phpcode', 'data-view-model' => 'mwp-rules' ),
+				'label' => __( 'Custom PHP Code', 'mwp-rules' ),
+				'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
+				'data' => isset( $rule_data[ 'sub_mode_context_phpcode' ] ) ? $rule_data[ 'sub_mode_context_phpcode' ] : "// <?php \n\nreturn;",
+				'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 'return_args' => $_arg_list, 'event' => $this->event() ) ),
+				'required' => false,
+			));
+		}
+		
+		/**
+		 * End sub-rule context config
+		 */
+		$form->addHtml( 'sub_mode_context_end', '</div>' );
+
 		$rulesController = $plugin->getRulesController( $this->getContainer() );
 		$rulesTable = $rulesController->createDisplayTable();
 		$rulesTable->bulkActions = array();
@@ -642,6 +822,72 @@ class _Rule extends ExportableRecord
 	}
 
 	/**
+	 * Get the data selector button for this rule
+	 *
+	 * @param	string|null		$arg				The argument this will be used to select an input to it
+	 * @param	array			$config				Custom config options for the dialog
+	 * @param	array			$params				Custom params for the browser
+	 * @return	string
+	 */
+	public function getDataSelector( $arg=null, $config=[], $params=[] )
+	{
+		if ( $event = $this->getEvent() ) {
+			$params['event_type'] = $event->type;
+			$params['event_hook'] = $event->hook;
+		}
+		
+		if ( $bundle = $this->getBundle() ) {
+			$params['bundle_id'] = $bundle->id();
+		}
+		
+		$params = array_merge( array( 'target' => array( 'argtypes' => [ 'string', 'float', 'int', 'bool' ] ) ), $params );
+		$default_title = __( 'Insert Data Replacement Token', 'mwp-rules' );
+		$default_done_label = __( 'Insert', 'mwp-rules' );
+		$wrap_tokens = true;
+		$default_callback = "function( node, tokens, tree, dialog ) { 
+			jQuery(this)
+				.closest('.form-group.row')
+				.find('input[type=text],textarea').eq(0)
+				.insertAtCaret( '{{' + tokens.join(':') + '}}' )
+		}";
+		
+		if ( $arg ) {
+			$default_title = __( 'Choose the data to use for: ', 'mwp-rules' ) . ( isset( $arg['label'] ) ? $arg['label'] : '' );
+			$default_done_label = __( 'Select', 'mwp-rules' );
+			$wrap_tokens = false;
+			$default_callback = "function( node, tokens, tree, dialog ) {
+				var input = jQuery(this)
+					.closest('.form-group.row')
+					.find('input.selectized').eq(0);
+				
+				if (input.length) {
+					var selectize = input[0].selectize;
+					var tokenized_key = tokens.join(':');
+					selectize.addOption( { value: tokenized_key } );
+					selectize.setValue( tokenized_key );
+				}
+			}";
+			$params['target']['argtypes'] = $arg['argtypes'];
+		}
+		
+		$config = array_merge( array( 
+			'title' => $default_title, 
+			'callback' => $default_callback,
+			'done_label' => $default_done_label,
+			'wrap_tokens' => $wrap_tokens,
+			'wrap_html' => true,
+		), $config );
+		
+		$html = Token::getBrowserLauncherHTML( $config, $params );
+		
+		if ( $config['wrap_html'] ) {
+			$html = Plugin::instance()->getTemplateContent( 'snippets/token-browser-launcher-wrapper', [ 'html' => $html ] );
+		}
+		
+		return $html;
+	}
+
+	/**
 	 * Process submitted form values 
 	 *
 	 * @param	array			$values				Submitted form values
@@ -650,6 +896,31 @@ class _Rule extends ExportableRecord
 	protected function processEditForm( $values )
 	{
 		$_values = $values['rule_settings'];
+
+		// Update ad-hoc rule data
+		$rule_data = $this->data ?: array();
+		if ( isset( $values['rule_subrules'] ) ) {
+			$rule_data['sub_mode'] = $values['rule_subrules']['sub_mode'];
+			$rule_data['sub_mode_context_varname'] = $values['rule_subrules']['sub_mode_context_varname'];
+			$rule_data['sub_mode_context_source'] = $values['rule_subrules']['sub_mode_context_source'];
+			$rule_data['sub_mode_context_eventArg'] = $values['rule_subrules']['sub_mode_context_eventArg'];
+			$rule_data['sub_mode_context_phpcode'] = $values['rule_subrules']['sub_mode_context_phpcode'];
+
+			if ( $rule_data['sub_mode_context_source'] == 'event' ) {
+				$resources = [
+					'event' => $this->getEvent(),
+					'bundle' => $this->getBundle(),
+					'rule' => $this,
+				];
+
+				$tokenPath = $rule_data['sub_mode_context_eventArg'];
+				$tokenData = Token::parseDataFromResources($tokenPath, $resources);
+				$reflectionData = Token::getReflection($tokenData['argument'], $tokenData['parsed']['token_path']);
+
+				$rule_data['sub_mode_context_argument'] = $reflectionData['final_argument'];
+			}
+		}
+		$this->data = $rule_data;
 		
 		if ( isset( $_values['sites'] ) and is_array( $_values['sites'] ) ) {
 			$_values['sites'] = implode( ',', $_values['sites'] );
@@ -880,11 +1151,34 @@ class _Rule extends ExportableRecord
 						{
 							if ( $_rule->enabled )
 							{
-								$result = call_user_func_array( array( $_rule, 'invoke' ), $args );
-								
-								if ( $this->event_type == 'filter' ) {
-									$args[0] = $result;
-									$this->filtered_values[ $this->event()->thread ] = $args[0];
+								// Check if rule has a loop context, get the loop array, and iterate
+								if ( $this->isLoopy() ) {
+									$loop_values = $this->getLoopValues();
+									if ( count($loop_values) > 0 ) {
+										foreach( $loop_values as $value ) {
+											$loop_args = array_merge($args, array($value));
+											$result = call_user_func_array( array( $_rule, 'invoke' ), $loop_args );
+											
+											if ( $this->event_type == 'filter' ) {
+												$args[0] = $result;
+												$this->filtered_values[ $this->event()->thread ] = $args[0];
+											}
+										}
+									}
+									else {
+										if ( $this->debug ) {
+											$plugin->rulesLog( $this->event(), $_rule, NULL, '--', 'Rule not evaluated (empty loop context)' );
+										}
+									}
+								}
+								// Execute the rule in normal mode
+								else {
+									$result = call_user_func_array( array( $_rule, 'invoke' ), $args );
+									
+									if ( $this->event_type == 'filter' ) {
+										$args[0] = $result;
+										$this->filtered_values[ $this->event()->thread ] = $args[0];
+									}
 								}
 							}
 							else
@@ -964,6 +1258,63 @@ class _Rule extends ExportableRecord
 			return $filtered_value;
 		}
 		
+	}
+
+	/**
+	 * Check whether sub-rules should have a loop context
+	 *
+	 * @return	bool
+	 */
+	public function isLoopy() {
+		$data = $this->data;
+		return isset( $data['sub_mode'] ) && $data['sub_mode'] == 'loop';
+	}
+
+	/**
+	 * Get the loop values to iterate for sub-rules
+	 *
+	 * @return	array
+	 */
+	public function getLoopValues() {
+		return array();
+	}
+
+
+	/**
+	 * Get the var_name to use for sub-rule loops
+	 *
+	 * @return string|NULL
+	 */
+	public function getLoopContext() {
+		if ( $this->isLoopy() ) {
+			$data = $this->data;
+
+			return array(
+				'var_name' => $data['sub_mode_context_varname'],
+				'argument' => $data['sub_mode_context_argument'] ?? array(
+					'argtype' => 'mixed',
+				),
+			);
+		}
+
+		return NULL;
+	}
+
+	/**
+	 * Get the upward chain of loop contexts for this rule
+	 *
+	 * @return array
+	 */
+	public function getUpwardLoopContext() {
+		$contextChain = [];
+		$parent = $this;
+		while( $parent = $parent->parent() ) {
+			if ( $context = $parent->getLoopContext() ) {
+				array_unshift( $contextChain, $context );
+			}
+		}
+
+		return $contextChain;
 	}
 	
 	/**
