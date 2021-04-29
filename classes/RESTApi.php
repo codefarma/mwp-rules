@@ -63,9 +63,10 @@ class _RESTApi extends Singleton
      *
      * @param $type
      * @param $value
+     * @param $info
      * @return bool
      */
-	private function validate ( $type, $value )
+	private function validate ( $type, $value, $info )
     {
         $validated = false;
 
@@ -82,12 +83,18 @@ class _RESTApi extends Singleton
             case 'object':
                 $validated = is_object($value);
                 if ( !$validated ) {
-                    if ( is_string($value) ) {
-                        $validated = is_object(json_decode($value));
+                    if ( !isset($info['classes']) || !$info['classes'] ) {
+                        if ( is_string($value) ) {
+                            $validated = is_object(json_decode($value));
+                        }
+
+                        if ( is_array($value) ) {
+                            $validated = is_object((object) $value);
+                        }
                     }
 
-                    if ( is_array($value) ) {
-                        $validated = is_object((object) $value);
+                    if ( is_array($info['classes']) ) {
+                        $validated = is_scalar($value);
                     }
                 }
 
@@ -107,7 +114,7 @@ class _RESTApi extends Singleton
                 break;
         }
 
-        return apply_filters( 'mwp_rules_validated_value', $validated, $type, $value );
+        return apply_filters( 'mwp_rules_validated_value', $validated, $type, $value, $info );
     }
 
     /**
@@ -133,12 +140,23 @@ class _RESTApi extends Singleton
 
             case 'object':
                 if ( !is_object($value) ) {
-                    if ( is_string($value) ) {
-                        $sanitized = json_decode($value);
+                    if ( !isset($info['classes']) || !$info['classes'] ) {
+                        if ( is_string($value) ) {
+                            $sanitized = json_decode($value);
+                        }
+
+                        if ( is_array($value) ) {
+                            $sanitized = (object) $value;
+                        }
                     }
 
-                    if ( is_array($value) ) {
-                        $sanitized = (object) $value;
+                    if ( is_array($info['classes']) ) {
+                        foreach ( $info['classes'] as $class ) {
+                            if ( $classMapping = $this->getPlugin()->getClassMappings($class) ) {
+                                $sanitized = $classMapping['loader']($value);
+                                break;
+                            }
+                        }
                     }
                 }
 
@@ -340,7 +358,7 @@ class _RESTApi extends Singleton
     public function validateParam( $value, $argTypes )
     {
         foreach ( $argTypes as $type => $info ) {
-            if ( $this->validate($type, $value) ) {
+            if ( $this->validate($type, $value, $info) ) {
                 return true;
             }
         }
@@ -358,7 +376,7 @@ class _RESTApi extends Singleton
     public function sanitizeValue( $value, $argTypes )
     {
         foreach ( $argTypes as $type => $info ) {
-            if ( $this->validate($type, $value) ) {
+            if ( $this->validate($type, $value, $info) ) {
                 return $this->sanitize($type, $value, $info);
             }
         }
