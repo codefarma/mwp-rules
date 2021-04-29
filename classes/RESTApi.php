@@ -98,6 +98,9 @@ class _RESTApi extends Singleton
                 break;
 
             case 'bool':
+                $validated = is_bool($value) || is_scalar($value);
+                break;
+
             case 'mixed':
             default:
                 $validated = is_scalar($value);
@@ -129,20 +132,40 @@ class _RESTApi extends Singleton
                 break;
 
             case 'object':
-                $sanitized = json_decode($value);
+                if ( !is_object($value) ) {
+                    if ( is_string($value) ) {
+                        $sanitized = json_decode($value);
+                    }
+
+                    if ( is_array($value) ) {
+                        $sanitized = (object) $value;
+                    }
+                }
+
                 break;
 
             case 'bool':
-                $_value = $value;
-                if ( strtolower($_value) === "false" ) {
-                    $_value = false;
+                if ( !is_bool($value) ) {
+                    $_value = $value;
+
+                    if ( is_string($_value) ) {
+                        if ( strtolower($_value) === "false" ) {
+                            $_value = false;
+                        }
+                    }
+
+                    $sanitized = boolval($_value);
                 }
 
-                $sanitized = boolval($_value);
                 break;
 
             case 'array':
-                $sanitized = explode(",", $value);
+                if ( !is_array($value) ) {
+                    if ( is_string($value) ) {
+                        $sanitized = explode(",", $value);
+                    }
+                }
+
                 break;
 
             case 'string':
