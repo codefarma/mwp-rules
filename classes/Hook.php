@@ -360,7 +360,7 @@ class _Hook extends ExportableRecord
 			'title' => __( ( $this->isCustom() ? 'Action' : 'Event' ) . ' Details', 'mwp-rules' ),
 		));
 		
-		if ( $this->type != 'custom' ) {
+		if ( !$this->isCustom() ) {
 			$has_hook_config = true;
 			$form->addField( 'hook', 'text', array(
 				'row_attr' => array( 'id' => 'hook_hook' ),
@@ -405,13 +405,15 @@ class _Hook extends ExportableRecord
 			'required' => false,
 		), 'hook_details' );
 
-		if ( $this->type == 'custom' ) {
-		    $form->addField( 'enable_api', 'checkbox', array(
-		        'label' => __( 'Enable API', 'mwp-rules' ),
-                'description' => __( 'Allow this action to be triggered via the WordPress API' ),
-                'data' => (bool) $this->enable_api,
-                'required' => false,
-            ), 'hook_details');
+		if ( $this->isCustom() ) {
+		    if ( $this->id() && $this->allowREST() ) {
+                $form->addField( 'enable_api', 'checkbox', array(
+                    'label' => __( 'Enable API', 'mwp-rules' ),
+                    'description' => __( 'Allow this action to be triggered via the WordPress API' ),
+                    'data' => (bool) $this->enable_api,
+                    'required' => false,
+                ), 'hook_details');
+            }
         }
 		
 		if ( $this->id() ) {
@@ -535,6 +537,25 @@ class _Hook extends ExportableRecord
 		
 		parent::processEditForm( $_values );
 	}
+
+    /**
+     * Determine whether REST access should be allowed, based on the existence of
+     * configured argument object classes in the class map.
+     *
+     * @return bool
+     */
+	public function allowREST()
+    {
+        foreach( $this->getArguments() as $argument ) {
+            if ( $class = $argument->dataArray()['argument_class'] ) {
+                if ( !$this->getPlugin()->getClassMappings($class) ) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 	
 	/**
 	 * Schedule an action
