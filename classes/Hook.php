@@ -201,16 +201,6 @@ class _Hook extends ExportableRecord
 		
 		return NULL;
 	}
-
-    /**
-     * Get a list of fields to be ignored during export.
-     *
-     * @return array
-     */
-	private function getIgnoredExportFields()
-    {
-        return $this->_ignoredExportFields;
-    }
 	
 	/**
 	 * Get the controller
@@ -760,11 +750,6 @@ class _Hook extends ExportableRecord
 		
 		if ( $this->isCustom() ) {
 			$export['rules'] = array_map( function( $rule ) { return $rule->getExportData(); }, Rule::loadWhere(['rule_parent_id=0 AND rule_custom_internal=1 AND rule_event_type=%s AND rule_event_hook=%s', 'action', $this->hook ]) );
-
-			// Unset any ignored export fields.
-            foreach ( $this->getIgnoredExportFields() as $field ) {
-                unset( $export['data'][ static::_getPrefix() . $field ] );
-            }
 		}
 		
 		return $export;
