@@ -237,17 +237,33 @@ class _RESTApi extends Singleton
             register_rest_route('mwp-rules/v1', $route, array(
                 'methods' => $this->getRESTMethods($hook_data['hook_api_methods']),
                 'callback' => function ( \WP_REST_Request $request ) use ( $hook, $arguments ) {
-                    call_user_func_array(
-                        'do_action',
-                        array_merge(array($hook), $this->getRESTArguments($request, $arguments))
-                    );
+                    try {
+                        call_user_func_array(
+                            'do_action',
+                            array_merge(
+                                array($hook),
+                                $this->getRESTArguments($request, $arguments)
+                            )
+                        );
+                    } catch ( \Exception $e ) {
+                        return new \WP_Error(
+                            'mwp_rest_error',
+                            'An unexpected error has occurred.',
+                            array(
+                                'hook' => $hook,
+                                'request_params' => $request->get_params()
+                            )
+                        );
+                    }
 
-                    // @todo: determine return result programmatically - in the future
+
+                    // @TODO: determine return result programmatically - in the future
                     $response = new \WP_REST_Response();
                     $response->set_data(array( 'result' => 'success' ));
                     $response->set_status(201);
 
                     return $response;
+
                 },
                 'args' => $rest_args,
                 'permission_callback' => function ( \WP_REST_Request $request ) use ( $api_roles ) {
