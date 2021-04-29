@@ -549,6 +549,11 @@ class _Hook extends ExportableRecord
         foreach( $this->getArguments() as $argument ) {
             if ( $class = $argument->dataArray()['argument_class'] ) {
                 if ( !$this->getPlugin()->getClassMappings($class) ) {
+                    if ( $this->enable_api ) {
+                        $this->_setDirectly( 'enable_api', false );
+                        $this->save();
+                    }
+
                     return false;
                 }
             }
