@@ -47,7 +47,7 @@ class _Hook extends ExportableRecord
 		'hook',
 		'category',
 		'imported',
-        'api_roles'
+		'api_roles'
     );
 
     /**
@@ -100,14 +100,14 @@ class _Hook extends ExportableRecord
 	 */
 	public static $lang_delete = 'Delete';
 
-    /**
-     * @var array
-     */
+	/**
+	 * @var array
+	 */
 	protected $_ignoredExportFields = array(
-	    'enable_api',
-        'api_methods',
-        'api_roles'
-    );
+		'enable_api',
+		'api_methods',
+		'api_roles'
+	);
 	
 	/**
 	 * Get the 'edit record' page title
@@ -415,15 +415,15 @@ class _Hook extends ExportableRecord
 		), 'hook_details' );
 
 		if ( $this->isCustom() ) {
-		    if ( $this->id() && $this->allowREST() ) {
-                $form->addField( 'enable_api', 'checkbox', array(
-                    'label' => __( 'Enable API', 'mwp-rules' ),
-                    'description' => __( 'Allow this action to be triggered via the WordPress API' ),
-                    'data' => (bool) $this->enable_api,
-                    'required' => false,
-                ), 'hook_details');
-            }
-        }
+			if ( $this->id() && $this->allowREST() ) {
+				$form->addField( 'enable_api', 'checkbox', array(
+					'label' => __( 'Enable API', 'mwp-rules' ),
+					'description' => __( 'Allow this action to be triggered via the WordPress API' ),
+					'data' => (bool) $this->enable_api,
+					'required' => false,
+				), 'hook_details');
+			}
+		}
 		
 		if ( $this->id() ) {
 			$form->addTab( 'arguments', array(
@@ -463,43 +463,43 @@ class _Hook extends ExportableRecord
 				)));
 
 				if ( $this->enable_api ) {
-				    $form->addTab( 'api_settings', array(
-				        'title' => __( 'API Settings', 'mwp-rules' ),
-                    ));
+					$form->addTab( 'api_settings', array(
+						'title' => __( 'API Settings', 'mwp-rules' ),
+					));
 
-                    $form->addField( 'api_methods', 'choice', array(
-                        'row_attr' => array( 'id' => 'hook_type' ),
-                        'label' => __( 'REST Methods', 'mwp-rules' ),
-                        'choices' => array(
-                            'GET' => 'get',
-                            'POST' => 'post',
-                            'DELETE' => 'delete'
-                        ),
-                        'data' => $this->api_methods ? explode(',', $this->api_methods) : array( 'get' ),
-                        'description' => __( 'Choose supported REST methods.', 'mwp-rules' ),
-                        'multiple' => true,
-                        'expanded' => true,
-                        'required' => false,
-                    ), 'api_settings' );
+					$form->addField( 'api_methods', 'choice', array(
+						'row_attr' => array( 'id' => 'hook_type' ),
+						'label' => __( 'REST Methods', 'mwp-rules' ),
+						'choices' => array(
+							'GET' => 'get',
+							'POST' => 'post',
+							'DELETE' => 'delete'
+						),
+						'data' => $this->api_methods ? explode(',', $this->api_methods) : array( 'get' ),
+						'description' => __( 'Choose supported REST methods.', 'mwp-rules' ),
+						'multiple' => true,
+						'expanded' => true,
+						'required' => false,
+					), 'api_settings' );
 
-                    global $wp_roles;
+					global $wp_roles;
 
-                    $apiRoles = array();
-                    foreach ( $wp_roles->roles as $slug => $details ) {
-                        $apiRoles[$details['name']] = $slug;
-                    }
+					$apiRoles = array();
+					foreach ( $wp_roles->roles as $slug => $details ) {
+						$apiRoles[$details['name']] = $slug;
+					}
 
-                    $form->addField( 'api_roles', 'choice', array(
-                        'row_attr' => array( 'id' => 'hook_type' ),
-                        'label' => __( 'User Roles', 'mwp-rules' ),
-                        'choices' => $apiRoles,
-                        'data' => $this->api_roles ? explode(',', $this->api_roles) : array(),
-                        'description' => __( 'Only the selected roles will have API access.', 'mwp-rules' ),
-                        'multiple' => true,
-                        'expanded' => true,
-                        'required' => false,
-                    ), 'api_settings' );
-                }
+					$form->addField( 'api_roles', 'choice', array(
+						'row_attr' => array( 'id' => 'hook_type' ),
+						'label' => __( 'User Roles', 'mwp-rules' ),
+						'choices' => $apiRoles,
+						'data' => $this->api_roles ? explode(',', $this->api_roles) : array(),
+						'description' => __( 'Only the selected roles will have API access.', 'mwp-rules' ),
+						'multiple' => true,
+						'expanded' => true,
+						'required' => false,
+					), 'api_settings' );
+				}
 			}
 			
 		} else {
@@ -529,16 +529,16 @@ class _Hook extends ExportableRecord
 		$_values = $values['hook_details'];
 
 		if ( isset($values['api_settings']) ) {
-            if ( isset($values['api_settings']['api_methods']) && is_array($values['api_settings']['api_methods']) ) {
-                $values['api_settings']['api_methods'] = implode(',', $values['api_settings']['api_methods']);
-            }
+			if ( isset($values['api_settings']['api_methods']) && is_array($values['api_settings']['api_methods']) ) {
+				$values['api_settings']['api_methods'] = implode(',', $values['api_settings']['api_methods']);
+			}
 
-            if ( isset($values['api_settings']['api_roles']) && is_array($values['api_settings']['api_roles']) ) {
-                $values['api_settings']['api_roles'] = implode(',', $values['api_settings']['api_roles']);
-            }
+			if ( isset($values['api_settings']['api_roles']) && is_array($values['api_settings']['api_roles']) ) {
+				$values['api_settings']['api_roles'] = implode(',', $values['api_settings']['api_roles']);
+			}
 
-		    $_values = array_merge($_values, $values['api_settings']);
-        }
+			$_values = array_merge($_values, $values['api_settings']);
+		}
 		
 		if ( ! $this->id() and $this->type == 'custom' ) {
 			$this->hook = uniqid( 'rules/action/' );
@@ -547,29 +547,29 @@ class _Hook extends ExportableRecord
 		parent::processEditForm( $_values );
 	}
 
-    /**
-     * Determine whether REST access should be allowed, based on the existence of
-     * configured argument object classes in the class map.
-     *
-     * @return bool
-     */
+	/**
+	 * Determine whether REST access should be allowed, based on the existence of
+	 * configured argument object classes in the class map.
+	 *
+	 * @return bool
+	 */
 	public function allowREST()
-    {
-        foreach( $this->getArguments() as $argument ) {
-            if ( $class = $argument->dataArray()['argument_class'] ) {
-                if ( !$this->getPlugin()->getClassMappings($class) ) {
-                    if ( $this->enable_api ) {
-                        $this->_setDirectly( 'enable_api', false );
-                        $this->save();
-                    }
+	{
+		foreach( $this->getArguments() as $argument ) {
+			if ( $class = $argument->dataArray()['argument_class'] ) {
+				if ( !$this->getPlugin()->getClassMappings($class) ) {
+					if ( $this->enable_api ) {
+						$this->_setDirectly( 'enable_api', false );
+						$this->save();
+					}
 
-                    return false;
-                }
-            }
-        }
+					return false;
+				}
+			}
+		}
 
-        return true;
-    }
+		return true;
+	}
 	
 	/**
 	 * Schedule an action

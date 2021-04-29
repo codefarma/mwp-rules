@@ -41,7 +41,7 @@ add_action( 'mwp_framework_init', function()
 		->attach( Plugin::instance() )
 		//->attach( Settings::instance() )
 		->attach( AjaxHandlers::instance() )
-        ->attach( RESTApi::instance() )
+		->attach( RESTApi::instance() )
 		
 		->attach( new Events\System )
 		->attach( new Events\Content )

@@ -47,9 +47,9 @@ abstract class _ExportableRecord extends ActiveRecord
 		unset( $data[ static::_getPrefix() . static::_getKey() ] );
 		unset( $data[ static::_getPrefix() . 'imported' ] );
 
-        foreach ( $this->getIgnoredExportFields() as $field ) {
-            unset( $data[ static::_getPrefix() . $field ] );
-        }
+		foreach ( $this->getIgnoredExportFields() as $field ) {
+			unset( $data[ static::_getPrefix() . $field ] );
+		}
 		
 		return array(
 			'data' => $data,
