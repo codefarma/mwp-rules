@@ -206,8 +206,9 @@ class _RESTApi extends Singleton
             }
 
             $rest_args = array();
-            if ( isset( $definition['arguments'] ) && is_array( $definition['arguments'] ) ) {
-                foreach ( $definition['arguments'] as $arg => $details ) {
+            $arguments = isset( $definition['arguments'] ) ? $definition['arguments'] : null;
+            if ( is_array( $arguments ) ) {
+                foreach ( $arguments as $arg => $details ) {
                     $rest_args[$arg] = $this->getArgConfig($details);
                 }
             }
@@ -217,13 +218,13 @@ class _RESTApi extends Singleton
 
             register_rest_route('mwp-rules/v1', $route, array(
                 'methods' => $this->getRESTMethods($hook_data['hook_api_methods']),
-                'callback' => function ( \WP_REST_Request $request ) use ( $hook ) {
+                'callback' => function ( \WP_REST_Request $request ) use ( $hook, $arguments ) {
                     call_user_func_array(
                         'do_action',
-                        array_merge(array($hook), array_values($request->get_params()))
+                        array_merge(array($hook), $this->getRESTArguments($request, $arguments))
                     );
 
-                    // @todo: determine return result programmatically
+                    // @todo: determine return result programmatically - in the future
                     $response = new \WP_REST_Response();
                     $response->set_data(array( 'result' => 'success' ));
                     $response->set_status(201);
@@ -259,6 +260,30 @@ class _RESTApi extends Singleton
 
             return $RESTMethods[$m];
         }, explode(",", $methods) ) ) );
+    }
+
+    /**
+     * Get an array of argument values for a given request
+     * and list of expected arguments.
+     *
+     * @param $request      \WP_REST_Request
+     * @param $arguments    array
+     * @return array
+     */
+    public function getRESTArguments ( $request, $arguments )
+    {
+        if ( !is_array($arguments) ) {
+            return array();
+        }
+
+        $argMap = array();
+        foreach( $arguments as $k => $v ) {
+            $argMap[$k] = null;
+        }
+
+        $args = array_values( array_merge( $argMap, $request->get_params() ) );
+
+        return apply_filters( 'mwp_rules_rest_arguments', $args, $request, $arguments, $argMap );
     }
 
     /**
