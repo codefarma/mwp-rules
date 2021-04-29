@@ -80,11 +80,24 @@ class _RESTApi extends Singleton
                 break;
 
             case 'object':
-                $validated = is_object(json_decode($value));
+                $validated = is_object($value);
+                if ( !$validated ) {
+                    if ( is_string($value) ) {
+                        $validated = is_object(json_decode($value));
+                    }
+
+                    if ( is_array($value) ) {
+                        $validated = is_object((object) $value);
+                    }
+                }
+
+                break;
+
+            case 'array':
+                $validated = is_array($value) || is_string($value);
                 break;
 
             case 'bool':
-            case 'array':
             case 'mixed':
             default:
                 $validated = is_scalar($value);
@@ -195,7 +208,7 @@ class _RESTApi extends Singleton
                     return $response;
                 },
                 'args' => $rest_args,
-                'permission_callback' => function ( \WP_REST_Request $request ) use ($api_roles) {
+                'permission_callback' => function ( \WP_REST_Request $request ) use ( $api_roles ) {
                     return $this->checkRESTPermissions($api_roles);
                 },
             ));
