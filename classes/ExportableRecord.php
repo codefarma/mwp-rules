@@ -31,7 +31,7 @@ abstract class _ExportableRecord extends ActiveRecord
      *
      * @return array
      */
-    private function getIgnoredExportFields()
+    public function getIgnoredExportFields()
     {
         return $this->_ignoredExportFields;
     }
