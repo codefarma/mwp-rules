@@ -5,3 +5,4 @@ tests/test-sample.php
 expansions/*
 data/install-meta.php
 data/instance-meta.php
+data/annotations/
