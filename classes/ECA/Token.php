@@ -280,10 +280,12 @@ class _Token
 			'errors' => [],
 		];
 		
+		$rule = isset( $resources['rule'] ) ? $resources['rule'] : NULL;
+
 		switch( $source ) {
 			case 'event': 
 				if ( isset( $resources['event'] ) and $resources['event'] instanceof Event ) {
-					if ( $data['argument'] = $resources['event']->getArgument( $source_key ) ) {
+					if ( $data['argument'] = $resources['event']->getArgument( $source_key, $rule ) ) {
 						if ( isset( $resources['event_args'] ) and is_array( $resources['event_args'] ) and array_key_exists( $source_key, $resources['event_args'] ) ) {
 							$data['value'] = $resources['event_args'][ $source_key ];
 							if ( isset( $source_key_index ) and is_array( $data['value'] ) ) {

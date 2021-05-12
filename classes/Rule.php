@@ -727,7 +727,7 @@ class _Rule extends ExportableRecord
 				'label' => __( 'Custom PHP Code', 'mwp-rules' ),
 				'attr' => array( 'data-bind' => 'codemirror: { lineNumbers: true, mode: \'application/x-httpd-php\' }' ),
 				'data' => isset( $rule_data[ 'sub_mode_context_phpcode' ] ) ? $rule_data[ 'sub_mode_context_phpcode' ] : "// <?php \n\nreturn;",
-				'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 'return_args' => $_arg_list, 'event' => $this->event() ) ),
+				'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 'return_args' => $_arg_list, 'event' => $this->event(), 'rule' => $this ) ),
 				'required' => false,
 			));
 		}
@@ -1153,10 +1153,10 @@ class _Rule extends ExportableRecord
 							{
 								// Check if rule has a loop context, get the loop array, and iterate
 								if ( $this->isLoopy() ) {
-									$loop_values = $this->getLoopValues();
-									if ( count($loop_values) > 0 ) {
+									$loop_values = $this->getLoopValues( $args );
+									if ( ! empty( $loop_values ) ) {
 										foreach( $loop_values as $value ) {
-											$loop_args = array_merge($args, array($value));
+											$loop_args = array_merge( $args, array($value) );
 											$result = call_user_func_array( array( $_rule, 'invoke' ), $loop_args );
 											
 											if ( $this->event_type == 'filter' ) {
@@ -1273,9 +1273,51 @@ class _Rule extends ExportableRecord
 	/**
 	 * Get the loop values to iterate for sub-rules
 	 *
+	 * @param	array 		$args			The args provided to the rule
 	 * @return	array
 	 */
-	public function getLoopValues() {
+	public function getLoopValues( $args ) {
+		
+		if ( $this->isLoopy() ) {
+			$i = 0;
+			$event_arguments = $this->getEvent()->getArguments( $this );
+			$arg_map = [];
+			
+			/* Name and index all the event arguments */
+			if ( ! empty( $event_arguments ) ) {
+				foreach ( $event_arguments as $event_arg_name => $event_arg ) {
+					$arg_map[ $event_arg_name ] = $args[ $i++ ];
+				}
+			}
+
+			$self = $this;
+			$token_value_getter = function( $tokenized_key ) use ( $arg_map, $self ) {
+				$token = Token::createFromResources( $tokenized_key, [
+					'event' => $self->getEvent(),
+					'bundle' => $self->getBundle(),
+					'event_args' => $arg_map,
+					'rule' => $self,
+				]);
+
+				try {
+					return $token->getTokenValue();
+				} catch( \ErrorException $e ) { }
+				
+				return NULL;
+			};
+
+			$data = $this->data;
+			switch( $data['sub_mode_context_source'] ) {
+				case 'event':
+					return $token_value_getter( $data['sub_mode_context_eventArg'] );
+
+				case 'phpcode':
+					$phpcode = $data['sub_mode_context_phpcode'];
+					$evaluate = rules_evaluation_closure( array_merge( array( 'token_value' => $token_value_getter ), $arg_map ) );
+					return $evaluate( $phpcode );
+			}
+		}
+
 		return array();
 	}
 
@@ -1289,11 +1331,19 @@ class _Rule extends ExportableRecord
 		if ( $this->isLoopy() ) {
 			$data = $this->data;
 
+			$argument = array(
+				'argtype' => 'mixed',
+			);
+
+			if ( $data['sub_mode_context_argument'] ) {
+				$argument = $data['sub_mode_context_argument'];
+				$argument['argtype'] = $argument['subtype'] ?? 'mixed';
+				unset( $argument['subtype'] );
+			}
+
 			return array(
 				'var_name' => $data['sub_mode_context_varname'],
-				'argument' => $data['sub_mode_context_argument'] ?? array(
-					'argtype' => 'mixed',
-				),
+				'argument' => $argument,
 			);
 		}
 

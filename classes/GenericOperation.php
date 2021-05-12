@@ -355,10 +355,12 @@ abstract class _GenericOperation extends ExportableRecord
 			$event           = $this->event();
 			$opkey           = $this->getFormKey();
 			$operation       = $this;
+
+			$event_arguments = $event->getArguments( $this->getRule() );
 			
 			/* Name and index all the event arguments */
-			if ( isset( $event->arguments ) and count( $event->arguments ) ) {
-				foreach ( $event->arguments as $event_arg_name => $event_arg ) {
+			if ( ! empty( $event_arguments ) ) {
+				foreach ( $event_arguments as $event_arg_name => $event_arg ) {
 					$arg_map[ $event_arg_name ] = $args[ $i++ ];
 				}
 			}
@@ -896,6 +898,7 @@ abstract class _GenericOperation extends ExportableRecord
 			'bundle' => $this->getBundle(),
 			'event' => $this->event(),
 			'event_args' => $event_args,
+			'rule' => $this->getRule(),
 		);
 	}
 	

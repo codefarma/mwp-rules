@@ -89,8 +89,8 @@ class _Event extends BaseDefinition
 		
 		if ( ! in_array( $rule, $this->rules ) ) {
 			switch( $rule->event_type ) {
-				case 'action': add_action( $rule->event_hook, array( $rule, 'invoke' ), $rule->priority, 2147483645 ); break;
-				case 'filter': add_filter( $rule->event_hook, array( $rule, 'invoke' ), $rule->priority, 2147483645 ); break;
+				case 'action': add_action( $rule->event_hook, array( $rule, 'invoke' ), $rule->priority, count( $this->getArguments() ) ); break;
+				case 'filter': add_filter( $rule->event_hook, array( $rule, 'invoke' ), $rule->priority, count( $this->getArguments() ) ); break;
 			}
 			$this->rules[] = $rule;
 		}
@@ -113,9 +113,9 @@ class _Event extends BaseDefinition
 	 *
 	 * @return	string
 	 */
-	public function getDisplayArgInfo()
+	public function getDisplayArgInfo( $rule=NULL )
 	{
-		return Rules\Plugin::instance()->getTemplateContent( 'rules/events/arg_info', array( 'event' => $this ) );
+		return Rules\Plugin::instance()->getTemplateContent( 'rules/events/arg_info', array( 'event' => $this, 'rule' => $rule ) );
 	}
 	
 	/**
@@ -209,22 +209,35 @@ class _Event extends BaseDefinition
 	/**
 	 * Get event arguments
 	 *
+	 * @param	Rule		$rule			The rule arguments are being retrieved for
 	 * @return	array
 	 */
-	public function getArguments()
+	public function getArguments( $rule=NULL )
 	{
-		return $this->arguments ?: array();
+		$arguments = $this->arguments ?: array();
+
+		if ( $rule ) {
+			if ( $contextArgs = $rule->getUpwardLoopContext() ) {
+				foreach( $contextArgs as $contextArg ) {
+					$contextArg['argument']['context'] = 'loop';
+					$arguments[ $contextArg['var_name'] ] = $contextArg['argument'];
+				}
+			}
+		}
+
+		return $arguments;
 	}
 	
 	/**
 	 * Get a specific argument definition for the event if it exists
 	 * 
 	 * @param	string				$arg_key 				The argument key
+	 * @param	Rule				$rule					The rule which the argument is being retrieved for
 	 * @return	array|NULL
 	 */
-	public function getArgument( $arg_key )
+	public function getArgument( $arg_key, $rule=NULL )
 	{
-		$arguments = $this->getArguments();
+		$arguments = $this->getArguments( $rule );
 		
 		if ( isset( $arguments[ $arg_key ] ) ) {
 			return $arguments[ $arg_key ];
@@ -255,9 +268,11 @@ class _Event extends BaseDefinition
 				$bundle_args[ $argument->varname ] = $argument->getProvidesDefinition();
 			}
 		}
+
+		$event_arguments = $this->getArguments( $rule );
 		
 		$arg_groups = array(
-			'event' => $this->arguments ? $rulesPlugin->getExpandedArguments( $this->arguments ) : array(),
+			'event' => $event_arguments ? $rulesPlugin->getExpandedArguments( $event_arguments ) : array(),
 			'bundle' => $bundle_args,
 			'global' => $global_args,
 		);
