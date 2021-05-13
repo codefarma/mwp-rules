@@ -208,6 +208,15 @@ class _Token
 		
 		while( $token_piece = array_shift( $token_pieces ) ) {
 			$derivatives = $plugin->getDerivativeTokens( $argument );
+
+			if ( ! isset( $derivatives[ $token_piece ] ) ) {
+				$replacements = 0;
+				$token_piece = preg_replace('/\[\d+\]/', '[0-9]', $token_piece, -1, $replacements);
+				if ( ! $replacements ) {
+					$token_piece = preg_replace('/\[\w+\]/', '[a-z]', $token_piece, -1, $replacements);
+				}
+			}
+
 			if ( ! isset( $derivatives[ $token_piece ] ) ) {
 				$reflectionData['final_argument'] = null;
 				$reflectionData['error'] = 'Missing derivative value for token piece: ' . $token_piece;
