@@ -655,6 +655,7 @@ abstract class _GenericOperation extends ExportableRecord
 										'event_args' 	=> $arg_map,
 										'thread' 	=> $event->thread,
 										'parent' 	=> $event->parentThread,
+										'iteration' => $this->getRule()->activeIteration[ $event->thread ],
 									);
 									break;
 									
@@ -720,6 +721,7 @@ abstract class _GenericOperation extends ExportableRecord
 												'event_args' 	=> $arg_map,
 												'thread' 	=> $event->thread,
 												'parent' 	=> $event->parentThread,
+												'iteration' => $this->getRule()->activeIteration[ $event->thread ],
 											),
 										);
 									}
@@ -732,15 +734,16 @@ abstract class _GenericOperation extends ExportableRecord
 							}
 							
 							if ( $future_time > time() ) {
-								$thread = $parentThread = NULL;
+								$thread = $parentThread = $iteration = NULL;
 								
 								if ( $rule = $this->rule() ) {
 									$thread        = $rule->event()->thread;
 									$parentThread  = $rule->event()->parentThread;
+									$iteration     = $rule->activeIteration[ $thread ];
 								}
 								
 								$unique_key = $this->schedule_key ? $this->replaceTokens( $this->schedule_key, $arg_map ) : NULL;
-								$scheduled_action = $rulesPlugin->scheduleAction( $this, $future_time, $operation_args, $arg_map, $thread, $parentThread, $unique_key );
+								$scheduled_action = $rulesPlugin->scheduleAction( $this, $future_time, $operation_args, $arg_map, $thread, $parentThread, $unique_key, $iteration );
 								$result = "Action Scheduled (ID#{$scheduled_action->id})";
 							}
 							
@@ -991,8 +994,8 @@ abstract class _GenericOperation extends ExportableRecord
 			$params['event_hook'] = $event->hook;
 		}
 		
-		if ( $bundle = $this->getBundle() ) {
-			$params['bundle_id'] = $bundle->id();
+		if ( $rule = $this->getRule() ) {
+			$params['rule_id'] = $rule->id();
 		}
 		
 		$params = array_merge( array( 'target' => array( 'argtypes' => [ 'string', 'float', 'int', 'bool' ] ) ), $params );

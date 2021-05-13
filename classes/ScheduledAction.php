@@ -52,6 +52,7 @@ class _ScheduledAction extends ActiveRecord
 		'parent_thread',
 		'created',
 		'custom_id',
+		'iteration',
     );
 
     /**
@@ -232,13 +233,18 @@ class _ScheduledAction extends ActiveRecord
 					$event->rootThread = $this->thread;
 					
 					$definition = $action->definition();
+					$rule = $action->rule();
+
+					if ( $rule ) {
+						$rule->activeIteration[ $this->thread ] = $this->iteration;
+					}
 					
 					if ( isset( $definition->callback ) and is_callable( $definition->callback ) )
 					{
 						try {
 							$result = call_user_func_array( $definition->callback, array_merge( $args, array( $action->data, $event_args, $action ) ) );
 
-							if ( $rule = $action->rule() and $rule->debug ) {
+							if ( $rule and $rule->debug ) {
 								$plugin->rulesLog( $event, $rule, $action, $result, 'Evaluated' );
 							}
 						}

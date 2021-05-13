@@ -331,7 +331,8 @@ class _Event extends BaseDefinition
 				$action->locked = TRUE;
 				$definition = $action->definition();
 				$rule = $action->rule();
-				
+				$rule->activeIteration[ $this->thread ] = $deferred['iteration'];
+
 				$result = call_user_func_array( $definition->callback, array_merge( $deferred[ 'args' ], array( $action->data, $deferred[ 'event_args' ], $action ) ) );					
 				
 				$action->locked = FALSE;

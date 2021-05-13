@@ -560,13 +560,13 @@ class _Rule extends ExportableRecord
 		));
 
 		$form->addField( 'sub_mode', 'choice', array(
-			'label' => 'Sub-Rule Context',
+			'label' => 'Sub-Rule Loop Context',
 			'choices' => array(
-				'Normal - Same context as parent rule.' => 'normal',
-				'Looped - Create a loop context for sub-rules.' => 'loop',
+				'None - Run sub-rules normally.' => 'normal',
+				'Loop - Run sub-rules multiple times for an array of values.' => 'loop',
 			),
 			'required' => true,
-			'expanded' => true,
+			'expanded' => false,
 			'description' => __('If you create a loop context, all sub-rules will be run for each element of an array you choose.', 'mwp-rules'),
 			'data' => isset( $rule_data['sub_mode'] ) ? $rule_data['sub_mode'] : 'normal',
 			'toggles' => array(
@@ -613,50 +613,6 @@ class _Rule extends ExportableRecord
 			}
 		}
 
-		$form->addField( 'sub_mode_context_varname', 'text', array(
-			'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
-			'label' => __( 'Machine Name', 'mwp-rules' ),
-			'description' => __( 'Enter an identifier to be used for the loop value. It may only contain alphanumeric characters or underscores. It must also start with a letter.', 'mwp-rules' ),
-			'attr' => array( 
-				'placeholder' => 'var_name', 
-				'data-fixed' => "false",
-				'data-bind' => "init: function() { 
-					var varname = jQuery(this);
-					varname.on('keypress', function (event) {
-						switch (event.keyCode) {
-							case 8:  // Backspace
-								break;
-							case 9:  // Tab
-							case 13: // Enter
-							case 37: // Left
-							case 38: // Up
-							case 39: // Right
-							case 40: // Down
-								return;
-							default:
-								var regex = new RegExp(\"[a-zA-Z0-9_]\");
-								var key = event.key;
-								if (!regex.test(key)) {
-									event.preventDefault();
-									return false;
-								}
-								break;
-						}
-					});
-				}
-			"),
-			'data' => isset( $rule_data[ 'sub_mode_context_varname' ] ) ? $rule_data[ 'sub_mode_context_varname' ] : '',
-			'constraints' => array( function( $data, $context ) {
-				$form_values = $context->getRoot()->getData();
-				if ( $form_values['rule_subrules']['sub_mode'] == 'loop' ) {
-					if ( ! preg_match( "/^([A-Za-z])+([A-Za-z0-9_]+)?$/", $data ) ) {
-						$context->addViolation( __('The machine name must be only alphanumerics or underscores, and must start with a letter.','mwp-rules') ); 
-					}
-				}
-			}),
-		),
-		'rule_subrules' );
-
 		$arg_sources[ 'Event / Global Data' ] = 'event';
 		$arg_sources[ 'Custom PHP Code' ] = 'phpcode';
 		
@@ -690,7 +646,7 @@ class _Rule extends ExportableRecord
 					create: true
 				}
 			}'),
-			'label' => __( 'Data To Use', 'mwp-rules' ),
+			'label' => __( 'Array To Use', 'mwp-rules' ),
 			'required' => ! empty( $usable_event_data ),
 			'data' => ( isset( $rule_data[ 'sub_mode_context_eventArg' ] ) and $rule_data[ 'sub_mode_context_eventArg' ] ) ? $rule_data[ 'sub_mode_context_eventArg' ] : reset( $usable_event_data ),
 		));
@@ -732,6 +688,50 @@ class _Rule extends ExportableRecord
 			));
 		}
 		
+		$form->addField( 'sub_mode_context_varname', 'text', array(
+			'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
+			'label' => __( 'Machine Name', 'mwp-rules' ),
+			'description' => __( 'Enter an identifier to be used to refer to an individual value from the array. It may only contain alphanumeric characters or underscores. It must also start with a letter.', 'mwp-rules' ),
+			'attr' => array( 
+				'placeholder' => 'var_name', 
+				'data-fixed' => "false",
+				'data-bind' => "init: function() { 
+					var varname = jQuery(this);
+					varname.on('keypress', function (event) {
+						switch (event.keyCode) {
+							case 8:  // Backspace
+								break;
+							case 9:  // Tab
+							case 13: // Enter
+							case 37: // Left
+							case 38: // Up
+							case 39: // Right
+							case 40: // Down
+								return;
+							default:
+								var regex = new RegExp(\"[a-zA-Z0-9_]\");
+								var key = event.key;
+								if (!regex.test(key)) {
+									event.preventDefault();
+									return false;
+								}
+								break;
+						}
+					});
+				}
+			"),
+			'data' => isset( $rule_data[ 'sub_mode_context_varname' ] ) ? $rule_data[ 'sub_mode_context_varname' ] : '',
+			'constraints' => array( function( $data, $context ) {
+				$form_values = $context->getRoot()->getData();
+				if ( $form_values['rule_subrules']['sub_mode'] == 'loop' ) {
+					if ( ! preg_match( "/^([A-Za-z])+([A-Za-z0-9_]+)?$/", $data ) ) {
+						$context->addViolation( __('The machine name must be only alphanumerics or underscores, and must start with a letter.','mwp-rules') ); 
+					}
+				}
+			}),
+		),
+		'rule_subrules' );
+
 		/**
 		 * End sub-rule context config
 		 */
@@ -1067,6 +1067,11 @@ class _Rule extends ExportableRecord
 	 * @var	array
 	 */
 	public $filtered_values = array();
+
+	/** 
+	 * @var array
+	 */
+	public $activeIteration = array();
 	
 	/**
 	 * Invoke Rule
@@ -1079,10 +1084,14 @@ class _Rule extends ExportableRecord
 		if ( $this->event_type == 'filter' ) {
 			$this->filtered_values[ $this->event()->thread ] = $args[0];
 		}
+
+		if ( ! isset( $this->activeIteration[ $this->event()->thread ] ) ) {
+			$this->activeIteration[ $this->event()->thread ] = uniqid();
+		}
 		
 		if ( $this->enabled )
 		{
-			if ( ( ! $this->locked or $this->enable_recursion ) and ! $this->event()->locked and $this->recursionCount < $this->recursion_limit )
+			if ( ( ! $this->locked or $this->enable_recursion ) && ! $this->event()->locked && $this->recursionCount < $this->recursion_limit )
 			{
 				try
 				{
@@ -1156,9 +1165,11 @@ class _Rule extends ExportableRecord
 									$loop_values = $this->getLoopValues( $args );
 									if ( ! empty( $loop_values ) ) {
 										foreach( $loop_values as $value ) {
+											$_rule->activeIteration[ $this->event()->thread ] = uniqid();
+
 											$loop_args = array_merge( $args, array($value) );
 											$result = call_user_func_array( array( $_rule, 'invoke' ), $loop_args );
-											
+
 											if ( $this->event_type == 'filter' ) {
 												$args[0] = $result;
 												$this->filtered_values[ $this->event()->thread ] = $args[0];
@@ -1241,7 +1252,18 @@ class _Rule extends ExportableRecord
 			else
 			{
 				if ( $this->debug ) {
-					$plugin->rulesLog( $this->event(), $this, NULL, '--', 'Rule recursion protection (not evaluated)' );
+					$message = "Stopped at recursion #" . ($this->recursionCount + 1);
+					
+					if ( $this->event()->locked ) {
+						$message = [ 
+							"Recursion blocked because the action", 
+							"that re-triggered this rule was deferred.", 
+							"To allow recursion, set your action to run",
+							"'immediately' in its advanced settings."
+						];
+					}
+					
+					$plugin->rulesLog( $this->event(), $this, NULL, $message, 'Rule recursion protection (not evaluated)' );
 				}
 			}
 		}
@@ -1338,6 +1360,7 @@ class _Rule extends ExportableRecord
 			if ( $data['sub_mode_context_argument'] ) {
 				$argument = $data['sub_mode_context_argument'];
 				$argument['argtype'] = $argument['subtype'] ?? 'mixed';
+				$argument['description'] = $argument['description'] ? 'One of: ' . $argument['description'] : '';
 				unset( $argument['subtype'] );
 			}
 
