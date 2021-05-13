@@ -151,7 +151,7 @@ class _Event extends BaseDefinition
 		if ( ! $this->locked )
 		{
 			$this->thread = $this->parentThread;
-			$this->parentThread = array_shift( $this->grandparentThreads );
+			$this->parentThread = array_pop( $this->grandparentThreads );
 			
 			/** 
 			 * Deferred Actions
