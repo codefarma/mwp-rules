@@ -748,11 +748,16 @@ class _Rule extends ExportableRecord
 				}
 			"),
 			'data' => isset( $rule_data[ 'sub_mode_context_varname' ] ) ? $rule_data[ 'sub_mode_context_varname' ] : '',
-			'constraints' => array( function( $data, $context ) {
+			'constraints' => array( function( $data, $context ) use ( $rule ) {
 				$form_values = $context->getRoot()->getData();
 				if ( $form_values['rule_subrules']['sub_mode'] == 'loop' ) {
 					if ( ! preg_match( "/^([A-Za-z])+([A-Za-z0-9_]+)?$/", $data ) ) {
 						$context->addViolation( __('The machine name must be only alphanumerics or underscores, and must start with a letter.','mwp-rules') ); 
+					}
+
+					$arguments = $rule->getEvent()->getArguments( $rule );
+					if ( array_key_exists( $data, $arguments ) ) {
+						$context->addViolation( __('The machine name you have chosen conflicts with an already existing event argument.', 'mwp-rules' ) );
 					}
 				}
 			}),
@@ -928,7 +933,7 @@ class _Rule extends ExportableRecord
 		$rule_data = $this->data ?: array();
 		if ( isset( $values['rule_subrules'] ) ) {
 			$rule_data['sub_mode'] = $values['rule_subrules']['sub_mode'];
-			$rule_data['sub_mode_context_varname'] = $values['rule_subrules']['sub_mode_context_varname'];
+			$rule_data['sub_mode_context_varname'] = strtolower($values['rule_subrules']['sub_mode_context_varname']);
 			$rule_data['sub_mode_context_source'] = $values['rule_subrules']['sub_mode_context_source'];
 			$rule_data['sub_mode_context_eventArg'] = $values['rule_subrules']['sub_mode_context_eventArg'];
 			$rule_data['sub_mode_context_phpcode'] = $values['rule_subrules']['sub_mode_context_phpcode'];
