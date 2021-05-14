@@ -997,6 +997,21 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
+                "argument_subtype": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "comment": "",
+                    "decimals": null,
+                    "default": null,
+                    "length": 56,
+                    "name": "argument_subtype",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
                 "argument_class": {
                     "allow_null": true,
                     "auto_increment": false,
