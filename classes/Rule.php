@@ -622,10 +622,10 @@ class _Rule extends ExportableRecord
 			'data' => isset( $rule_data[ 'sub_mode_context_source' ] ) ? $rule_data[ 'sub_mode_context_source' ] : 'event',
 			'required' => ! empty( $arg_sources ),
 			'toggles' => array(
-				'event' => array( 'show' => '#' . 'sub_mode_context_eventArg' ),
-				'phpcode' => array( 'show' => '#' . 'sub_mode_context_phpcode' ),
+				'event' => array( 'show' => '#sub_mode_context_eventArg' ),
+				'phpcode' => array( 'show' => [ '#sub_mode_context_phpcode', '#sub_mode_context_argtype', '#sub_mode_context_class' ] ),
 			),
-		));
+		), 'rule_subrules');
 		
 		/**
 		 * EVENT ARGUMENTS 
@@ -649,7 +649,7 @@ class _Rule extends ExportableRecord
 			'label' => __( 'Array To Use', 'mwp-rules' ),
 			'required' => ! empty( $usable_event_data ),
 			'data' => ( isset( $rule_data[ 'sub_mode_context_eventArg' ] ) and $rule_data[ 'sub_mode_context_eventArg' ] ) ? $rule_data[ 'sub_mode_context_eventArg' ] : reset( $usable_event_data ),
-		));
+		), 'rule_subrules');
 
 		/**
 		 * PHP CODE
@@ -685,9 +685,36 @@ class _Rule extends ExportableRecord
 				'data' => isset( $rule_data[ 'sub_mode_context_phpcode' ] ) ? $rule_data[ 'sub_mode_context_phpcode' ] : "// <?php \n\nreturn;",
 				'description' => $plugin->getTemplateContent( 'snippets/phpcode_description', array( 'return_args' => $_arg_list, 'event' => $this->event(), 'rule' => $this ) ),
 				'required' => false,
-			));
+			), 'rule_subrules');
 		}
 		
+		$form->addField( 'sub_mode_context_argtype', 'choice', array(
+			'label' => __( 'Values Data Type', 'mwp-rules' ),
+			'row_attr' => array( 'id' => 'sub_mode_context_argtype' ),
+			'description' => __( 'Choose the data type of the values that your array contains.', 'mwp-rules' ),
+			'choices' => array(
+				'Mixed Types' => 'mixed',
+				'String' => 'string',
+				'Integer' => 'int',
+				'Decimal' => 'float',
+				'Boolean (True/False)' => 'bool',
+				'Array' => 'array',
+				'Object' => 'object',
+			),
+			'data' => isset( $rule_data[ 'sub_mode_context_argtype' ] ) ? $rule_data[ 'sub_mode_context_argtype' ] : 'mixed',
+			'required' => true,
+		), 'rule_subrules');
+		
+		$form->addField( 'sub_mode_context_class', 'text', array(
+			'label' => __( 'Object Class', 'mwp-rules' ),
+			'row_attr' => array( 'id' => 'sub_mode_context_class' ),
+			'description' => __( 'If your array values are objects, or are scalar values that can be used to load an object, enter the class name of that object here.', 'mwp-rules' ),
+			'attr' => array( 'placeholder' => 'WP_Class' ),
+			'data' => isset( $rule_data[ 'sub_mode_context_class' ] ) ? $rule_data[ 'sub_mode_context_class' ] : '',
+			'required' => false,
+		),
+		'rule_subrules' );
+
 		$form->addField( 'sub_mode_context_varname', 'text', array(
 			'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
 			'label' => __( 'Machine Name', 'mwp-rules' ),
@@ -905,19 +932,40 @@ class _Rule extends ExportableRecord
 			$rule_data['sub_mode_context_source'] = $values['rule_subrules']['sub_mode_context_source'];
 			$rule_data['sub_mode_context_eventArg'] = $values['rule_subrules']['sub_mode_context_eventArg'];
 			$rule_data['sub_mode_context_phpcode'] = $values['rule_subrules']['sub_mode_context_phpcode'];
+			$rule_data['sub_mode_context_argtype'] = $values['rule_subrules']['sub_mode_context_argtype'];
+			$rule_data['sub_mode_context_class'] = $values['rule_subrules']['sub_mode_context_class'];
 
-			if ( $rule_data['sub_mode_context_source'] == 'event' ) {
-				$resources = [
-					'event' => $this->getEvent(),
-					'bundle' => $this->getBundle(),
-					'rule' => $this,
-				];
+			if ( $rule_data['sub_mode'] == 'loop' ) {
+				switch( $rule_data['sub_mode_context_source'] ) {
+					case 'event':
+						$resources = [
+							'event' => $this->getEvent(),
+							'bundle' => $this->getBundle(),
+							'rule' => $this,
+						];
 
-				$tokenPath = $rule_data['sub_mode_context_eventArg'];
-				$tokenData = Token::parseDataFromResources($tokenPath, $resources);
-				$reflectionData = Token::getReflection($tokenData['argument'], $tokenData['parsed']['token_path']);
+						$tokenPath = $rule_data['sub_mode_context_eventArg'];
+						$tokenData = Token::parseDataFromResources($tokenPath, $resources);
+						$reflectionData = Token::getReflection($tokenData['argument'], $tokenData['parsed']['token_path']);
 
-				$rule_data['sub_mode_context_argument'] = $reflectionData['final_argument'];
+						$final_argument = $reflectionData['final_argument'];
+						$final_argument['argtype'] = $final_argument['subtype'] ?? 'mixed';
+						$final_argument['description'] = $final_argument['description'] ? 'One of: ' . $final_argument['description'] . ' pulled from [' . $tokenPath . ']' : 'An item pulled from [' . $tokenPath . ']';
+						unset( $final_argument['subtype'] );
+
+						$rule_data['sub_mode_context_argument'] = $final_argument;
+						break;
+
+					default:
+						$rule_data['sub_mode_context_argument'] = array(
+							'argtype' => $rule_data['sub_mode_context_argtype'],
+							'class' => $rule_data['sub_mode_context_class'],
+						);
+						break;
+				}
+			}
+			else {
+				unset( $rule_data[ 'sub_mode_context_argument' ] );
 			}
 		}
 		$this->data = $rule_data;
@@ -1343,7 +1391,6 @@ class _Rule extends ExportableRecord
 		return array();
 	}
 
-
 	/**
 	 * Get the var_name to use for sub-rule loops
 	 *
@@ -1353,20 +1400,9 @@ class _Rule extends ExportableRecord
 		if ( $this->isLoopy() ) {
 			$data = $this->data;
 
-			$argument = array(
-				'argtype' => 'mixed',
-			);
-
-			if ( $data['sub_mode_context_argument'] ) {
-				$argument = $data['sub_mode_context_argument'];
-				$argument['argtype'] = $argument['subtype'] ?? 'mixed';
-				$argument['description'] = $argument['description'] ? 'One of: ' . $argument['description'] : '';
-				unset( $argument['subtype'] );
-			}
-
 			return array(
 				'var_name' => $data['sub_mode_context_varname'],
-				'argument' => $argument,
+				'argument' => $data['sub_mode_context_argument'],
 			);
 		}
 

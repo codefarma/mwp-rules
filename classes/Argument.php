@@ -40,6 +40,7 @@ class _Argument extends ExportableRecord
 		'uuid',
 		'title',
 		'type',
+		'subtype',
 		'class',
 		'required',
 		'weight',
@@ -344,9 +345,32 @@ class _Argument extends ExportableRecord
 			),
 			'data' => $this->type,
 			'required' => true,
+			'toggles' => array(
+				'array' => array(
+					'show' => [ '#array_subtype_choice' ]
+				),
+			),
 		),
 		'argument_details' );
 		
+		$form->addField( 'subtype', 'choice', array(
+			'label' => __( 'Array Values Type', 'mwp-rules' ),
+			'row_attr' => array( 'id' => 'array_subtype_choice' ),
+			'description' => __( 'Choose the data type of the values that your array contains.', 'mwp-rules' ),
+			'choices' => array(
+				'Mixed Type' => 'mixed',
+				'String' => 'string',
+				'Integer' => 'int',
+				'Decimal' => 'float',
+				'Boolean (True/False)' => 'bool',
+				'Array' => 'array',
+				'Object' => 'object',
+			),
+			'data' => $this->subtype ?: 'mixed',
+			'required' => true,
+		),
+		'argument_details' );
+
 		$form->addField( 'title', 'text', array(
 			'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
 			'attr' => array( 'data-role' => 'arg-title' ),
@@ -800,13 +824,19 @@ class _Argument extends ExportableRecord
 	 */
 	public function getProvidesDefinition()
 	{		
-		return array(
+		$argument = array(
 			'argtype' => $this->type,
 			'label' => $this->title,
 			'description' => $this->description,
 			'class' => $this->class,
 			'nullable' => ! $this->required,
 		);
+
+		if ( $this->type == 'array' ) {
+			$argument['subtype'] = $this->subtype;
+		}
+
+		return $argument;
 	}
 	
 	/**
