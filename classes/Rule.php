@@ -756,7 +756,7 @@ class _Rule extends ExportableRecord
 					}
 
 					$arguments = $rule->getEvent()->getArguments( $rule );
-					if ( array_key_exists( $data, $arguments ) ) {
+					if ( array_key_exists( strtolower($data), $arguments ) ) {
 						$context->addViolation( __('The machine name you have chosen conflicts with an already existing event argument.', 'mwp-rules' ) );
 					}
 				}
