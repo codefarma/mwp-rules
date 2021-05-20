@@ -287,7 +287,7 @@ class _Bundle extends ExportableRecord
 				),
 			),
 			'export' => array(
-				'title' => __( 'Download ' . $this->_getSingularName(), 'mwp-rules' ),
+				'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-cloud-download',
 				'params' => array(
 					'do' => 'export',
@@ -449,30 +449,28 @@ class _Bundle extends ExportableRecord
 			)),
 			'bundle_rules' );
 			
-			if ( ! $this->app_id ) {
-				$form->addTab( 'bundle_advanced', array(
-					'title' => __( 'Advanced', 'mwp-rules' ),
-				));
-				
-				$form->addField( 'add_menu', 'checkbox', array(
-					'label' => __( 'Add Settings Menu', 'mwp-rules' ),
-					'description' => __( 'Add the settings for this bundle to the core WordPress Settings menu.', 'mwp-rules' ),
-					'value' => 1,
-					'data' => $this->add_menu !== NULL ? (bool) $this->add_menu : false,
-					'toggles' => array(
-						1 => array( 'show' => array( '#menu_title' ) ),
-					),
-				));
-				
-				$form->addField( 'menu_title', 'text', array(
-					'row_attr' => array( 'id' => 'menu_title' ),
-					'label' => __( 'Custom Menu Title', 'mwp-rules' ),
-					'description' => __( 'Customize the name of the settings menu link', 'mwp-rules' ),
-					'attr' => array( 'placeholder' => $this->title ),
-					'required' => false,
-					'data' => $this->data['menu_title'],
-				));
-			}
+			$form->addTab( 'bundle_advanced', array(
+				'title' => __( 'Advanced', 'mwp-rules' ),
+			));
+
+			$form->addField( 'add_menu', 'checkbox', array(
+				'label' => __( 'Add Settings Menu', 'mwp-rules' ),
+				'description' => __( 'Add the settings for this bundle to the core WordPress Settings menu.', 'mwp-rules' ),
+				'value' => 1,
+				'data' => $this->add_menu !== NULL ? (bool) $this->add_menu : false,
+				'toggles' => array(
+					1 => array( 'show' => array( '#menu_title' ) ),
+				),
+			));
+			
+			$form->addField( 'menu_title', 'text', array(
+				'row_attr' => array( 'id' => 'menu_title' ),
+				'label' => __( 'Custom Menu Title', 'mwp-rules' ),
+				'description' => __( 'Customize the name of the settings menu link', 'mwp-rules' ),
+				'attr' => array( 'placeholder' => $this->title ),
+				'required' => false,
+				'data' => $this->data['menu_title'],
+			));
 			
 			/* Redirect to the bundles tab of the containing app after saving */
 			$bundle = $this;
@@ -541,15 +539,17 @@ class _Bundle extends ExportableRecord
 		$plugin = $this->getPlugin();
 		$form = static::createForm( 'settings', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		
-		/* Display details for the app/bundle */
-		$form->addHtml( 'bundle_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
-			'app' => $this->getApp(), 
-		]));
-		
+		if ( substr( $_REQUEST['page'], 0, 9 ) === 'mwp-rules' ) {
+			/* Display details for the app/bundle */
+			$form->addHtml( 'bundle_overview', $plugin->getTemplateContent( 'rules/overview/header', [ 
+				'app' => $this->getApp(), 
+			]));
+		}
+
 		if ( $this->title ) {
 			$form->addHtml( 'bundle_title', $plugin->getTemplateContent( 'rules/overview/title', [
-				'icon' => '<i class="glyphicon glyphicon-lamp"></i> ',
-				'label' => 'Bundle',
+				'icon' => '<i class="glyphicon glyphicon-cog"></i> ',
+				'label' => 'Settings',
 				'title' => $this->title,
 			]));
 		}

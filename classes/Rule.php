@@ -256,7 +256,7 @@ class _Rule extends ExportableRecord
 				)
 			),
 			'export' => array(
-				'title' => __( 'Download ' . $this->_getSingularName(), 'mwp-rules' ),
+				'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-cloud-download',
 				'params' => array(
 					'do' => 'export',

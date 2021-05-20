@@ -75,7 +75,7 @@ add_action( 'mwp_framework_init', function()
 	CustomLog       ::setControllerClass( Controllers\CustomLogsController::class );
 	
 	/* Create controllers and admin pages */
-	//App             ::createController( 'admin',  $config['controllers']['rules_apps']);
+	App             ::createController( 'admin',  $config['controllers']['rules_apps']);
 	Rule            ::createController( 'admin', $config['controllers']['rules_rules']);
 	Bundle          ::createController( 'admin', $config['controllers']['rules_bundles']);
 	Condition       ::createController( 'admin', $config['controllers']['rules_conditions']);

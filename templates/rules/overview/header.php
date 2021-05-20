@@ -41,7 +41,7 @@ if ( isset( $argument ) ) {
 
 	<?php if ( isset( $app ) ) { ?>
 		<div class="app-title">
-			<span class="subtle"><i class="glyphicon glyphicon-tent"></i> App:</span> <a href="<?php echo $app->url( isset( $bundle ) ? [ '_tab' => 'app_bundles' ] : [] ) ?>"><?php echo esc_html( $app->title ) ?></a>
+			<span class="subtle"><i class="glyphicon glyphicon-phone"></i> App:</span> <a href="<?php echo $app->url( isset( $bundle ) ? [ '_tab' => 'app_bundles' ] : [] ) ?>"><?php echo esc_html( $app->title ) ?></a>
 		</div>
 	<?php } ?>
 

@@ -279,7 +279,7 @@ class _CustomLog extends ExportableRecord
 				),
 			),
 			'export' => array(
-				'title' => __( 'Download ' . $this->_getSingularName(), 'mwp-rules' ),
+				'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-export',
 				'params' => array(
 					'do' => 'export',

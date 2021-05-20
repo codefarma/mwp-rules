@@ -34,7 +34,7 @@ class _HooksController extends ExportableController
 			'tableConfig' => [
 				'bulkActions' => array(
 					'delete' => __( 'Delete Events', 'mwp-rules' ),
-					'export' => __( 'Download Events', 'mwp-rules' ),
+					'export' => __( 'Export Events', 'mwp-rules' ),
 				),
 				'handlers' => [
 					'hook_hook' => function( $row ) {

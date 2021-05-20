@@ -187,6 +187,9 @@ class _Plugin extends \MWP\Framework\Plugin
 			$plugin->useStyle( $plugin->selectizeCSS );	
 			$plugin->useScript( $plugin->jsTreeJS );
 			$plugin->useStyle( $plugin->jsTreeCSS );
+
+			// Make the WYSIWYG editor available
+			wp_enqueue_editor();			
 		});
 	}
 	
@@ -376,6 +379,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		$output = '';
 		$callback = function() use ( &$output ) { echo $output; };
 		
+		// Add bundle settings menus
 		foreach( Bundle::loadWhere( array( 'bundle_add_menu=1 AND bundle_enabled=1 AND bundle_app_id=0' ) ) as $bundle ) {
 			if ( $bundle->hasSettings() ) {
 				$menu_name = $bundle->data['menu_title'] ?: $bundle->title;
@@ -397,6 +401,66 @@ class _Plugin extends \MWP\Framework\Plugin
 					
 					$output .= '<div style="max-width: 1100px; margin: 50px auto;">' . $form->render() . '</div>';
 				});
+			}
+		}
+
+		// Add app settings menus
+		foreach( App::loadWhere( array( 'app_add_menu=1 AND app_enabled=1' ) ) as $app ) {
+			if ( $app->hasSettings() ) {
+				$menu_name = $app->data['menu_title'] ?: $app->title;
+				$menu_icon = $app->data['menu_icon'] ?: 'dashicons-admin-generic';
+				
+				if ( $app->data['menu_parent'] ) {
+					$page_hook = add_submenu_page( $app->data['menu_parent'], $app->title, $menu_name, 'manage_options', 'rules-app-settings-' . $app->id(), $callback );
+					
+					add_action( 'load-' . $page_hook, function() use ( $app, &$output ) {
+						$form = $app->getForm( 'settings' );
+						if ( $form->isValidSubmission() ) {
+							$values = $form->getValues();
+							$app->processForm( $values, 'settings' );
+							add_action( 'admin_notices', function() {
+								echo '<div class="notice notice-success">
+									 <p>' . __( 'Settings have been saved.', 'mwp-rules' ) . '</p>
+								</div>';
+							});
+							
+							$form = $app->getForm( 'settings' );
+						}
+						
+						$output .= '<div style="max-width: 1100px; margin: 50px auto;">' . $form->render() . '</div>';
+					});
+				}
+				else {
+
+					$page_hook = add_menu_page( $app->title, $menu_name, 'manage_options', 'rules-app-settings-' . $app->id(), $callback, $menu_icon, 15 );
+					
+					foreach( $app->getBundles() as $bundle ) {
+						if ( $bundle->add_menu ) {
+							$sub_menu_name = $bundle->data['menu_title'] ?: $bundle->title;
+							$slug = has_action( 'load-' . $page_hook ) ? 'rules-bundle-settings-' . $bundle->id() : 'rules-app-settings-' . $app->id();
+							$sub_page_hook = add_submenu_page( 'rules-app-settings-' . $app->id(), $bundle->title, $sub_menu_name, 'manage_options', $slug, $callback );
+							$page_callback = function() use ( $bundle, &$output ) {
+								$form = $bundle->getForm( 'settings' );
+								if ( $form->isValidSubmission() ) {
+									$values = $form->getValues();
+									$bundle->processForm( $values, 'settings' );
+									add_action( 'admin_notices', function() {
+										echo '<div class="notice notice-success">
+											 <p>' . __( 'Settings have been saved.', 'mwp-rules' ) . '</p>
+										</div>';
+									});
+									
+									/* Fetch new form with updated values */
+									$form = $bundle->getForm( 'settings' );
+								}
+								
+								$output .= '<div style="max-width: 1100px; margin: 50px auto;">' . $form->render() . '</div>';
+							};
+
+							add_action( 'load-' . $sub_page_hook, $page_callback );
+						}
+					}
+				}
 			}
 		}
 		

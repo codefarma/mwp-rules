@@ -39,13 +39,17 @@ class _App extends ExportableRecord
 		'uuid' => [ 'type' => 'varchar', 'length' => 25 ],
 		'title' => [ 'type' => 'varchar', 'length' => 255, 'allow_null' => false ],
 		'weight' => [ 'type' => 'int', 'length' => 11, 'default' => '0', 'allow_null' => false ],
-		'description' => [ 'type' => 'text', 'default' => '' ],
+		'description' => [ 'type' => 'varchar', 'length' => 1024, 'default' => '' ],
+		'detailed_description' => [ 'type' => 'text', 'default' => '' ],
 		'creator' => [ 'type' => 'varchar', 'length' => 255 ],
+		'support_url' => [ 'type' => 'varchar', 'length' => 1024 ],
 		'documentation' => [ 'type' => 'text', 'default' => '' ],
+		'version' => [ 'type' => 'varchar', 'length' => 20 ],
 		'enabled' => [ 'type' => 'tinyint', 'length' => 1, 'default' => '1', 'allow_null' => false ],
 		'imported' => [ 'type' => 'int', 'length' => 11, 'default' => '0', 'allow_null' => false ],
 		'version' => [ 'type' => 'varchar', 'length' => 56 ],
 		'data' => [ 'type' => 'text', 'format' => 'JSON' ],
+		'add_menu' => [ 'type' => 'tinyint', 'length' => 1, 'default' => '0', 'allow_null' => false ],
 		'sites' => [ 'type' => 'varchar', 'length' => 2048, 'default' => '', 'allow_null' => false ],
     );
 
@@ -211,7 +215,7 @@ class _App extends ExportableRecord
 		
 		$app_actions = array(
 			'settings' => array(
-				'title' => __( 'Update Settings', 'mwp-rules' ),
+				'title' => __( 'Configure Settings', 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-cog',
 				'params' => array(
 					'do' => 'settings',
@@ -220,7 +224,7 @@ class _App extends ExportableRecord
 			),
 			'edit' => '',
 			'export' => array(
-				'title' => __( 'Download ' . $this->_getSingularName(), 'mwp-rules' ),
+				'title' => __( 'Export ' . $this->_getSingularName(), 'mwp-rules' ),
 				'icon' => 'glyphicon glyphicon-cloud-download',
 				'params' => array(
 					'do' => 'export',
@@ -249,7 +253,7 @@ class _App extends ExportableRecord
 		
 		if ( $this->title ) {
 			$form->addHtml( 'app_title', $plugin->getTemplateContent( 'rules/overview/title', [
-				'icon' => '<i class="glyphicon glyphicon-tent"></i> ',
+				'icon' => '<i class="glyphicon glyphicon-phone"></i> ',
 				'label' => 'App',
 				'title' => $this->title,
 			]));
@@ -266,17 +270,56 @@ class _App extends ExportableRecord
 		), 'app_details' );
 		
 		$form->addField( 'description', 'text', array(
-			'label' => __( 'Description', 'mwp-rules' ),
+			'label' => __( 'Short App Description', 'mwp-rules' ),
 			'data' => $this->description,
 			'required' => false,
 		), 'app_details' );
-		
+
 		$form->addField( 'enabled', 'checkbox', array(
 			'label' => __( 'Enabled', 'mwp-rules' ),
 			'description' => __( 'Choose whether this app is enabled or not.', 'mwp-rules' ),
 			'value' => 1,
 			'data' => $this->enabled !== NULL ? (bool) $this->enabled : true,
 		), 'app_details' );
+		
+		$form->addField( 'creator', 'text', array(
+			'label' => __( 'App Creator', 'mwp-rules' ),
+			'data' => $this->creator,
+			'required' => false,
+		), 'app_details' );
+		
+		$form->addField( 'support_url', 'text', array(
+			'label' => __( 'Support Url', 'mwp-rules' ),
+			'data' => $this->support_url,
+			'required' => false,
+		), 'app_details' );
+		
+		$form->addField( 'version', 'text', array(
+			'label' => __( 'App Version', 'mwp-rules' ),
+			'data' => $this->version,
+			'attr' => [ 'placeholder' => '1.0.0' ],
+			'required' => false,
+		), 'app_details' );
+
+		ob_start();
+		wp_editor( $this->detailed_description, 'detailed_description', [ 'media_buttons' => false ] );
+		$wp_editor = ob_get_clean();
+
+		$form->addField( 'detailed_description', 'textarea', array(
+			'row_prefix' => '<span data-view-model="mwp-forms-controller">',
+			'row_attr' => array( 'data-bind' => 'init: function() { 
+				var container = jQuery(this); 
+				var wp_editor_input = container.find("textarea.wp-editor-area"); 
+				var original_input = container.find("[data-role=original-input]");
+				wp_editor_input.attr("name", original_input.attr("name"));
+				original_input.remove();
+			}' ),
+			'attr' => array( 'style' => 'display:none', 'data-role' => 'original-input' ),
+			'field_suffix' => $wp_editor,
+			'label' => 'Detailed App Description',
+			'data' => $this->detailed_description,
+			'row_suffix' => '</span>',
+		));
 		
 		if ( is_multisite() ) {
 			$form->addField( 'sites_select', 'choice', array(
@@ -315,7 +358,7 @@ class _App extends ExportableRecord
 		
 		if ( $this->id() ) {
 			$form->addTab( 'app_bundles', array(
-				'title' => __( 'App Bundles', 'mwp-rules' ),
+				'title' => __( 'Bundles', 'mwp-rules' ),
 			));
 			
 			$bundlesController = $plugin->getBundlesController( $this );
@@ -329,7 +372,48 @@ class _App extends ExportableRecord
 				'controller' => $bundlesController,
 			)),
 			'app_bundles' );
+
+			$form->addTab( 'app_advanced', array(
+				'title' => __( 'Advanced', 'mwp-rules' ),
+			));
+
+			$form->addField( 'add_menu', 'checkbox', array(
+				'label' => __( 'Add Settings Menu', 'mwp-rules' ),
+				'description' => __( 'Add the settings for this app to the WP Admin.', 'mwp-rules' ),
+				'value' => 1,
+				'data' => $this->add_menu !== NULL ? (bool) $this->add_menu : false,
+				'toggles' => array(
+					1 => array( 'show' => array( '#menu_title', '#menu_icon', '#menu_parent' ) ),
+				),
+			));
 			
+			$form->addField( 'menu_title', 'text', array(
+				'row_attr' => array( 'id' => 'menu_title' ),
+				'label' => __( 'Custom Menu Title', 'mwp-rules' ),
+				'description' => __( 'Customize the name of the settings menu', 'mwp-rules' ),
+				'attr' => array( 'placeholder' => $this->title ),
+				'required' => false,
+				'data' => $this->data['menu_title'],
+			));
+
+			$form->addField( 'menu_parent', 'text', array(
+				'row_attr' => array( 'id' => 'menu_parent' ),
+				'label' => __( 'Parent Menu', 'mwp-rules' ),
+				'description' => __( 'Enter the slug of the parent menu, or leave blank to create a top level WP Admin menu for this app.', 'mwp-rules' ),
+				'attr' => array( 'placeholder' => '' ),
+				'required' => false,
+				'data' => $this->data['menu_parent'],
+			));
+
+			$form->addField( 'menu_icon', 'text', array(
+				'row_attr' => array( 'id' => 'menu_icon' ),
+				'label' => __( 'Custom Menu Icon', 'mwp-rules' ),
+				'description' => __( 'Customize the icon of the settings menu. (See: https://developer.wordpress.org/resource/dashicons)', 'mwp-rules' ),
+				'attr' => array( 'placeholder' => 'dashicons-admin-generic' ),
+				'required' => false,
+				'data' => $this->data['menu_icon'],
+			));
+
 		} else {
 			$app = $this;
 			$form->onComplete( function() use ( $app, $plugin ) {
@@ -363,6 +447,18 @@ class _App extends ExportableRecord
 			$_values['sites'] = '';
 		}
 		
+		if ( isset( $values['app_advanced'] ) ) {
+			if ( isset( $values['app_advanced']['add_menu'] ) ) {
+				$_values['add_menu'] = $values['app_advanced']['add_menu'];
+			}
+			
+			$data = $this->data;
+			$data['menu_title'] = $values['app_advanced']['menu_title'];
+			$data['menu_icon'] = $values['app_advanced']['menu_icon'];
+			$data['menu_parent'] = $values['app_advanced']['menu_parent'];
+			$this->data = $data;
+		}
+
 		parent::processEditForm( $_values );
 	}
 	
@@ -376,29 +472,30 @@ class _App extends ExportableRecord
 		$plugin = $this->getPlugin();
 		$form = static::createForm( 'settings', array( 'attr' => array( 'class' => 'form-horizontal mwp-rules-form' ) ) );
 		
-		if ( $this->title ) {
-			$form->addHtml( 'app_title', $plugin->getTemplateContent( 'rules/overview/title', [
-				'icon' => '<i class="glyphicon glyphicon-tent"></i> ',
-				'label' => 'App',
-				'title' => $this->title,
-			]));
-		}
+		//if ( substr( $_REQUEST['page'], 0, 9 ) === 'mwp-rules' ) {
+			if ( $this->title ) {
+				$form->addHtml( 'app_title', $plugin->getTemplateContent( 'rules/overview/title', [
+					'icon' => '<i class="glyphicon glyphicon-cog"></i> ',
+					'label' => 'App Settings',
+					'title' => $this->title,
+				]));
+			}
+		//}
 		
 		foreach( $this->getBundles() as $bundle ) {
 			if ( $arguments = $bundle->getSettableArguments() ) {
-				$form->addField( 'bundle_' . $bundle->id() . '_settings', 'fieldgroup' );
-				$form->setCurrentContainer( 'bundle_' . $bundle->id() . '_settings' );
-				$form->addHeading( 'bundle_' . $bundle->id() . '_heading', $bundle->title );
+				$form->addTab( 'bundle_' . $bundle->id() . '_settings', [
+					'title' => $bundle->add_menu ? ( $bundle->data['menu_title'] ?: $bundle->title ) : $bundle->title,
+				]);
 				foreach( $arguments as $argument ) {
 					$argument->addFormWidget( $form, $argument->getSavedValues() );
 				}
-				$form->endLastContainer();
 			}
 		}
 		
 		$form->addField( 'submit', 'submit', array(
 			'label' => __( 'Save Settings', 'mwp-rules' ),
-		));
+		), '');
 		
 		return $form;
 	}
