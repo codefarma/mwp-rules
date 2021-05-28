@@ -58,6 +58,9 @@ class _Rule extends ExportableRecord
 		'imported'         => [ 'type' => 'int', 'length' => 11 ],
  		'custom_internal'  => [ 'type' => 'tinyint', 'length' => 1, 'default' => 0, 'allow_null' => false ],
 		'sites'            => [ 'type' => 'varchar', 'length' => 2048, 'default' => '', 'allow_null' => false ],
+		'special_type'     => [ 'type' => 'varchar', 'length' => 128, 'default' => NULL, 'allow_null' => true ],
+		'special_ref'      => [ 'type' => 'varchar', 'length' => 32 ],
+		'special_config'   => [ 'type' => 'text', 'format' => 'JSON' ],
     );
 
     /**
