@@ -868,8 +868,8 @@ class _Rule extends ExportableRecord
 			$params['event_hook'] = $event->hook;
 		}
 		
-		if ( $bundle = $this->getBundle() ) {
-			$params['bundle_id'] = $bundle->id();
+		if ( $this->id() ) {
+			$params['rule_id'] = $this->id();
 		}
 		
 		$params = array_merge( array( 'target' => array( 'argtypes' => [ 'string', 'float', 'int', 'bool' ] ) ), $params );
