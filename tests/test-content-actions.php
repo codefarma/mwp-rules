@@ -24,6 +24,8 @@ class MWPRulesActionsTest extends WP_UnitTestCase
 	
 	public function __construct()
 	{
+		parent::__construct();
+
 		error_reporting( E_ALL & ~E_NOTICE );
 		
 		$this->plugin = \MWP\Rules\Plugin::instance();
