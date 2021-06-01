@@ -8,14 +8,18 @@
  * @author   Kevin Carwile
  * @since    0.0.0
  *
+ * @param	MWP\Rules\GenericOperation			$operation				The operation that the description is being generated for  (May not be provided if outside of an operation context)
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-$bundle = isset( $operation ) && $operation instanceof MWP\Rules\GenericOperation ? $operation->getBundle() : null;
-$bundle_id = $bundle ? $bundle->id() : null;
+if ( ! isset( $rule ) ) {
+	$rule = isset( $operation ) && $operation instanceof MWP\Rules\GenericOperation ? $operation->getRule() : null;
+}
+
+$rule_id = $rule ? $rule->id() : null;
 
 ?>
 
@@ -45,12 +49,12 @@ $bundle_id = $bundle ? $bundle->id() : null;
 	</ul>
 	<?php } ?>
 	<?php if ( isset( $event ) and ! empty( $event ) ) : ?>
-		<?php echo $event->getDisplayArgInfo() ?>
+		<?php echo $event->getDisplayArgInfo( $rule ) ?>
 	<?php endif ?>
-	<?php if ( isset( $operation ) and ! empty( $operation ) ) : ?>
+	<?php if ( ( isset( $operation ) && ! empty( $operation ) ) || $rule_id ) : ?>
 		<hr>
 		<ul>
-			<li><code>$operation</code> (object) - This <?php echo $operation instanceof MWP\Rules\Condition ? 'condition' : ( $operation instanceof MWP\Rules\Action ? 'action' : 'operation' ) ?></li>
+			<?php if ( isset( $operation ) && ! empty( $operation ) ) : ?><li><code>$operation</code> (object) - This <?php echo $operation instanceof MWP\Rules\Condition ? 'condition' : ( $operation instanceof MWP\Rules\Action ? 'action' : 'operation' ) ?></li><?php endif ?>
 			<li><code>$token_value</code> (function) - Retrieve token values through code
 				<div style="margin-top: 5px">
 					<blockquote style="font-size: 1.1em;">
@@ -70,7 +74,7 @@ $bundle_id = $bundle ? $bundle->id() : null;
 								event_type: '<?php echo $event->type ?>', 
 								event_hook: '<?php echo esc_attr( $event->hook ) ?>',
 								<?php endif ?>
-								bundle_id: <?php echo $bundle_id ?: 'undefined' ?>
+								rule_id: <?php echo $rule_id ?: 'undefined' ?>
 							}); 
 						}">
 							Browse all data tokens

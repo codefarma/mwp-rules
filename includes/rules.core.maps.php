@@ -228,6 +228,7 @@ add_filter( 'rules_class_map', function( $map )
 				),
 				'query' => array(
 					'argtype' => 'array',
+					'subtype' => 'string',
 					'label' => 'Query Args',
 					'nullable' => true,
 					'getter' => function( $url ) {
@@ -494,6 +495,7 @@ add_filter( 'rules_class_map', function( $map )
 				),
 				'capabilities' => array(
 					'argtype' => 'array',
+					'subtype' => 'bool',
 					'label' => 'Capabilities',
 					'getter' => function( $user ) {
 						return $user->allcaps;
@@ -505,6 +507,7 @@ add_filter( 'rules_class_map', function( $map )
 				),
 				'roles' => array(
 					'argtype' => 'array',
+					'subtype' => 'string',
 					'label' => 'Roles',
 					'getter' => function( $user ) {
 						return $user->roles;
@@ -707,6 +710,7 @@ add_filter( 'rules_class_map', function( $map )
 				),
 				'comments' => array(
 					'argtype' => 'array',
+					'subtype' => 'object',
 					'class' => 'WP_Comment',
 					'label' => 'Comments',
 					'getter' => function( $post ) {
@@ -715,6 +719,7 @@ add_filter( 'rules_class_map', function( $map )
 				),
 				'taxonomies' => array(
 					'argtype' => 'array',
+					'subtype' => 'object',
 					'label' => 'Taxonomies',
 					'class' => 'WP_Taxonomy',
 					'getter' => function( $post ) {
@@ -733,6 +738,7 @@ add_filter( 'rules_class_map', function( $map )
 				),
 				'terms' => array(
 					'argtype' => 'array',
+					'subtype' => 'object',
 					'class' => 'WP_Term',
 					'label' => 'Taxonomy Terms',
 					'getter' => function( $post ) {
@@ -787,6 +793,7 @@ add_filter( 'rules_class_map', function( $map )
 				),
 				'labels' => array(
 					'argtype' => 'array',
+					'subtype' => 'string',
 					'label' => 'Labels',
 					'getter' => function( $post_type ) {
 						return (array) $post_type->labels;
@@ -827,9 +834,14 @@ add_filter( 'rules_class_map', function( $map )
 				'capabilities' => array(
 					'label' => 'Mapped Capabilities',
 					'argtype' => 'array',
+					'subtype' => 'string',
 					'getter' => function( $post_type ) {
 						return (array) $post_type->cap;
-					}
+					},
+					'keys' => array(
+						'associative' => true,
+						'default' => array( 'label' => 'Capability', 'argtype' => 'string' ),
+					),
 				),
 			),
 		),
@@ -913,6 +925,7 @@ add_filter( 'rules_class_map', function( $map )
 				),
 				'children' => array(
 					'argtype' => 'array',
+					'subtype' => 'object',
 					'class' => 'WP_Comment',
 					'label' => 'Children Comments',
 					'getter' => function( $comment ) {
@@ -963,6 +976,7 @@ add_filter( 'rules_class_map', function( $map )
 				),
 				'labels' => array(
 					'argtype' => 'array',
+					'subtype' => 'string',
 					'label' => 'Labels',
 					'getter' => function( $taxonomy ) {
 						return (array) $taxonomy->labels;
@@ -988,16 +1002,19 @@ add_filter( 'rules_class_map', function( $map )
 				),
 				'capabilities' => array(
 					'argtype' => 'array',
+					'subtype' => 'string',
 					'label' => 'Capabilities',
 					'getter' => function( $taxonomy ) {
 						return (array) $taxonomy->cap;
 					},
 					'keys' => array(
 						'associative' => true,
+						'default' => array( 'label' => 'Capability', 'argtype' => 'string' ),
 					),
 				),
 				'terms' => array(
 					'argtype' => 'array',
+					'subtype' => 'object',
 					'class' => 'WP_Term',
 					'label' => 'Terms',
 					'getter' => function( $taxonomy ) {
