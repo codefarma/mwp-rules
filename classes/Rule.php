@@ -58,6 +58,10 @@ class _Rule extends ExportableRecord
 		'imported'         => [ 'type' => 'int', 'length' => 11 ],
  		'custom_internal'  => [ 'type' => 'tinyint', 'length' => 1, 'default' => 0, 'allow_null' => false ],
 		'sites'            => [ 'type' => 'varchar', 'length' => 2048, 'default' => '', 'allow_null' => false ],
+		'create_date' => [ 'type' => 'int', 'length' => 11],
+		'modified_date' => [ 'type' => 'int', 'length' => 11],
+		'system_user' => [ 'type' => 'int','length' => 25],
+		'description'   => [ 'type' => 'text']
     );
 
     /**
@@ -295,6 +299,7 @@ class _Rule extends ExportableRecord
 			'bundle' => $this->getBundle(), 
 			'app' => $this->getApp(), 
 		]));
+
 		
 		if ( $rule->title ) {
 			$form->addHtml( 'rule_title', $plugin->getTemplateContent( 'rules/overview/title', [
@@ -346,6 +351,27 @@ class _Rule extends ExportableRecord
 			'required' => true,
 		), 
 		'rule_settings' );
+
+		ob_start();
+		$settings = array('textarea_name' => 'description');
+		wp_editor( $this->description, 'description',$settings );
+		$wp_editor = ob_get_clean();
+
+		$form->addField( 'description', 'textarea', array(
+				'row_prefix' => '<span data-view-model="mwp-forms-controller">',
+				'row_attr' => array( 'data-bind' => 'init: function() { 
+					var container = jQuery(this); 
+					var wp_editor_input = container.find("textarea.wp-editor-area");
+					var description_input = container.find("[data-role=description-input]");
+					wp_editor_input.attr("name", description_input.attr("name"));
+					description_input.remove();
+				}' ),
+				'attr' => array( 'style' => 'display:none', 'data-role' => 'description-input' ),
+				'field_suffix' => $wp_editor,
+				'label' => 'Description',
+				'data' => $this->description,
+			'row_suffix' => '</span>',
+		));
 		
 		/* Rule priority */
 		if ( $this->id() and ! $rule->parent() ) {
@@ -385,7 +411,8 @@ class _Rule extends ExportableRecord
 					}],
 				),
 				'rule_settings', 'title', 'before' );
-			}			
+
+				}			
 		}
 		else
 		{
@@ -398,7 +425,7 @@ class _Rule extends ExportableRecord
 				'required' => false,
 			),
 			'rule_settings' );
-			
+
 			$form->addField( 'debug', 'checkbox', array( 
 				'label' => __( 'Rule Debug', 'mwp-rules' ),
 				'value' => 1,
@@ -1134,6 +1161,7 @@ class _Rule extends ExportableRecord
 	 */
 	public function getExportData()
 	{
+
 		$export = parent::getExportData();
 		
 		$export['children'] = array_map( function( $subrule ) { return $subrule->getExportData(); }, $this->getChildren() );
@@ -1150,6 +1178,10 @@ class _Rule extends ExportableRecord
 		unset( $export['data']['rule_parent_id'] );
 		unset( $export['data']['rule_bundle_id'] );
 		unset( $export['data']['rule_sites'] );
+		unset( $export['data']['rule_create_date'] );
+		unset( $export['data']['rule_modified_date'] );
+		unset( $export['data']['rule_system_user'] );
+
 		
 		return $export;
 	}
@@ -1249,6 +1281,14 @@ class _Rule extends ExportableRecord
 	public function save()
 	{
 		$changed = $this->_getChanged();
+
+		if ( ! $this->id() ) {
+			$this->create_date = time();
+			$this->system_user = $this->getSystemUser();
+
+		}
+
+		$this->modified_date = time();
 		
 		/* Update all subrules when this rule is moved to a new bundle */
 		if ( array_key_exists( 'rule_bundle_id', $changed ) ) {
@@ -1286,5 +1326,46 @@ class _Rule extends ExportableRecord
 		
 		return parent::delete();
 	}
+
+	/**
+	 * Get the DateTime for when the rule is created
+	 *
+	 * @return	DateTime
+	 */
+	public function getCreatedDate()
+	{
+		$timezone_string = get_option('timezone_string') ?: 'America/Los_Angeles';
+		$date_created = new \DateTime();
+		$date_created->setTimestamp( $this->create_date );
+		$date_created->setTimezone( new \DateTimeZone( $timezone_string ) );
+		
+		return $date_created;
+	}
+
+	/**
+	 * Get the DateTime for when the rule is modified
+	 *
+	 * @return	DateTime
+	 */
+	public function getModifiedDate()
+	{
+		$timezone_string = get_option('timezone_string') ?: 'America/Los_Angeles';
+		$date_modified = new \DateTime();
+		$date_modified->setTimestamp( $this->modified_date );
+		$date_modified->setTimezone( new \DateTimeZone( $timezone_string ) );
+		
+		return $date_modified;
+	}
+
+	/**
+	 * Get the current system user id
+	 *
+	 * @return	int
+	 */
+	public function getSystemUser()
+	{
+		return get_current_user_id();
+	}
+	
 
 }
