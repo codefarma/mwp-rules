@@ -1419,6 +1419,21 @@ return <<<'JSON'
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
+                },
+                "hook_api_roles": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "comment": "",
+                    "decimals": null,
+                    "default": null,
+                    "length": 255,
+                    "name": "hook_api_roles",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
                 }
             },
             "indexes": {
