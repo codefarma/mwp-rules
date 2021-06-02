@@ -18,7 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
-$bundle_id = ( isset( $rule ) and $rule->getBundle() ) ? $rule->getBundle()->id() : 'undefined';
+$rule_id = isset( $rule ) ? ( $rule->id() ?: 'undefined' ) : 'undefined';
+
 ?>
 
 <div class="event-overview alert alert-info" data-view-model="mwp-rules">
@@ -29,7 +30,7 @@ $bundle_id = ( isset( $rule ) and $rule->getBundle() ) ? $rule->getBundle()->id(
 	</div>
 	<div class="event-arguments">
 		<p class="subtle">The following data is provided by this event:</p>
-		<?php echo $event->getDisplayArgInfo() ?>
+		<?php echo $event->getDisplayArgInfo( isset( $rule ) ? $rule : NULL ) ?>
 	</div>
 	
 	<div class="tokens-toggle" data-bind="
@@ -45,7 +46,7 @@ $bundle_id = ( isset( $rule ) and $rule->getBundle() ) ? $rule->getBundle()->id(
 			{ 
 				event_type: '<?php echo $event->type ?>', 
 				event_hook: '<?php echo esc_attr( $event->hook ) ?>', 
-				bundle_id: <?php echo $bundle_id ?>
+				rule_id: <?php echo $rule_id ?>
 			}); 
 		}">
 		<strong><i class="glyphicon glyphicon-modal-window"></i> Browse All Data</strong>

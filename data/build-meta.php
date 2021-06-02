@@ -1054,6 +1054,21 @@ return <<<'JSON'
                     "values": [],
                     "zerofill": false
                 },
+                "argument_subtype": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "comment": "",
+                    "decimals": null,
+                    "default": null,
+                    "length": 56,
+                    "name": "argument_subtype",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
                 "argument_class": {
                     "allow_null": true,
                     "auto_increment": false,
@@ -1631,6 +1646,35 @@ return <<<'JSON'
                     "unsigned": false,
                     "values": [],
                     "zerofill": false
+                },
+                "iteration": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "comment": "",
+                    "decimals": null,
+                    "default": null,
+                    "length": 23,
+                    "name": "iteration",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "parent_log": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "comment": "",
+                    "decimals": null,
+                    "default": null,
+                    "length": 11,
+                    "name": "parent_log",
+                    "type": "INT",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
                 }
             },
             "indexes": {
@@ -1672,6 +1716,36 @@ return <<<'JSON'
                     ],
                     "columns": [
                         "time"
+                    ]
+                },
+                "iteration": {
+                    "type": "key",
+                    "name": "iteration",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "iteration"
+                    ]
+                },
+                "parent_log": {
+                    "type": "key",
+                    "name": "parent_log",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "parent_log"
+                    ]
+                },
+                "rule_parent": {
+                    "type": "key",
+                    "name": "rule_parent",
+                    "length": [
+                        null
+                    ],
+                    "columns": [
+                        "rule_parent"
                     ]
                 }
             }
@@ -2567,6 +2641,21 @@ return <<<'JSON'
                     "default": "0",
                     "length": 11,
                     "name": "schedule_custom_id",
+                    "type": "VARCHAR",
+                    "unsigned": false,
+                    "values": [],
+                    "zerofill": false
+                },
+                "schedule_iteration": {
+                    "allow_null": true,
+                    "auto_increment": false,
+                    "binary": false,
+                    "collation": "utf8mb4_unicode_ci",
+                    "comment": "",
+                    "decimals": null,
+                    "default": null,
+                    "length": 20,
+                    "name": "schedule_iteration",
                     "type": "VARCHAR",
                     "unsigned": false,
                     "values": [],

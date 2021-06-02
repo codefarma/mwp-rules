@@ -1239,7 +1239,12 @@ class _Plugin extends \MWP\Framework\Plugin
 					
 					/* Source arrays are always going to produce another array */
 					if ( $source_argument['argtype'] == 'array' ) {
-						$converted_argument['subtype'] = $converted_argument['argtype'] != 'array' ? $converted_argument['argtype'] : ( isset( $converted_argument['class'] ) ? 'object' : 'mixed' );
+						$converted_argument['subtype'] = $converted_argument['argtype'] != 'array' ? 
+							$converted_argument['argtype'] : ( 
+								isset( $converted_argument['class'] ) ? 
+								'object' : ( $converted_argument['subtype'] ?? 'mixed' ) 
+							);
+
 						$converted_argument['argtype'] = 'array';
 					}
 					
@@ -1250,7 +1255,15 @@ class _Plugin extends \MWP\Framework\Plugin
 					/* For arrays that have key mappings, let's look at those too to see what we have */
 					if ( $converted_argument['argtype'] == 'array' ) {
 						
-						$default_array_argument = array( 'argtype' => $original_converted_argtype != 'array' ? $original_converted_argtype : ( isset( $converted_argument['class'] ) ? 'object' : 'mixed' ), 'label' => isset( $converted_argument['label'] ) ? $converted_argument['label'] : '' );
+						$default_array_argument = array( 
+							'label' => isset( $converted_argument['label'] ) ? $converted_argument['label'] : '',
+							'argtype' => $original_converted_argtype != 'array' ? 
+								$original_converted_argtype : ( 
+									isset( $converted_argument['class'] ) ? 'object' : ( 
+										$converted_argument['subtype'] ?? 'mixed' 
+									) 
+								), 
+						);
 						$arbitrary_key_indicator = ( isset( $converted_argument['keys']['associative'] ) and $converted_argument['keys']['associative'] ) ? 'a-z' : '0-9';
 						
 						// Default for arrays with a class specification
@@ -2239,9 +2252,10 @@ class _Plugin extends \MWP\Framework\Plugin
 	 * @param	string				$thread			The event thread to tie the action back to (for debugging)
 	 * @param	string				$parentThread	The events parent thread to tie the action back to (for debugging)
 	 * @param	string|NULL			$unique_key		A unique key to identify the action for later updating/removal
+	 * @param	string|NULL			$iteration		Identifier for which rule loop execution an action is executed in
 	 * @return	mixed								A message to log to the database if debugging is on
 	 */
-	public function scheduleAction( $action, $time, $args=[], $event_args=[], $thread=NULL, $parentThread=NULL, $unique_key=NULL )
+	public function scheduleAction( $action, $time, $args=[], $event_args=[], $thread=NULL, $parentThread=NULL, $unique_key=NULL, $iteration=NULL )
 	{
 		/**
 		 * Delete any existing action with the same unique key
@@ -2261,6 +2275,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		$scheduled_action->parent_thread = $parentThread;
 		$scheduled_action->created       = time();
 		$scheduled_action->unique_key    = trim( $unique_key );
+		$scheduled_action->iteration     = $iteration;
 		
 		$db_args = array();
 		foreach ( $args as $key => $arg ) {
@@ -2625,7 +2640,7 @@ class _Plugin extends \MWP\Framework\Plugin
 		{
 			$this->logLocked = TRUE;
 			
-			$log 				= new \MWP\Rules\Log;
+			$log 				= new RuleLog;
 			$log->thread 		= is_object( $event ) 		? $event->thread			: NULL;
 			$log->parent		= is_object( $event )		? $event->parentThread		: NULL;
 			$log->event_type    = is_object( $event )       ? $event->type              : NULL;
@@ -2637,11 +2652,20 @@ class _Plugin extends \MWP\Framework\Plugin
 			$log->result 		= json_encode( $result );
 			$log->message 		= $message;
 			$log->error			= $error;
+			$log->iteration     = is_object( $rule )        ? $rule->activeIteration[ $event->thread ] : NULL;
 			$log->time 			= time();
 			
 			$log->save();
 			
 			$this->logLocked = FALSE;
+
+			// Link sub rule logs to this parent to be able to better track logs created in a sub-rule loop context
+			if ( $rule ) {
+				foreach( RuleLog::loadWhere([ 'thread=%s AND op_id=0 AND rule_parent=%d AND parent_log is NULL', $event->thread, $rule->id() ]) as $sublog ) {
+					$sublog->parent_log = $log->id();
+					$sublog->save();
+				}
+			}
 		}
 	}
 	
