@@ -21,6 +21,21 @@ use MWP\Framework\Pattern\ActiveRecord;
  */
 abstract class _ExportableRecord extends ActiveRecord
 {
+    /**
+     * @var array
+     */
+    protected $_ignoredExportFields = array();
+
+    /**
+     * Get a list of fields to be ignored during export.
+     *
+     * @return array
+     */
+    public function getIgnoredExportFields()
+    {
+        return $this->_ignoredExportFields;
+    }
+
 	/**
 	 * Get export data
 	 *
@@ -31,6 +46,10 @@ abstract class _ExportableRecord extends ActiveRecord
 		$data = $this->_data;
 		unset( $data[ static::_getPrefix() . static::_getKey() ] );
 		unset( $data[ static::_getPrefix() . 'imported' ] );
+
+		foreach ( $this->getIgnoredExportFields() as $field ) {
+			unset( $data[ static::_getPrefix() . $field ] );
+		}
 		
 		return array(
 			'data' => $data,
