@@ -167,6 +167,15 @@ class _RulesController extends ExportableController
 				'handlers' => array(
 					'drag_handle' => function( $row ) {
 						return '<div class="draggable-handle mwp-bootstrap"><i class="glyphicon glyphicon-menu-hamburger"></i></div>';
+
+					},
+					'rule_created' => function( $row ) {
+						$rule = Rules\Rule::load( $row['rule_id'] );
+						return $rule->getCreatedDate()->format( 'Y-m-d H:i:s' );
+					},
+					'rule_modified' => function( $row ) {
+						$rule = Rules\Rule::load( $row['rule_id'] );
+						return $rule->getModifiedDate()->format( 'Y-m-d H:i:s' );
 					},
 					'rule_title' => function( $record )
 					{

@@ -47,6 +47,8 @@ class _Log extends ActiveRecord
 		'type',
 		'parent',
 		'rule_parent',
+		'iteration',
+		'parent_log',
 		'error',
     );
 
@@ -122,7 +124,7 @@ class _Log extends ActiveRecord
 		));
 		
 		$logConditionsTable->displayBottomNavigation = false;
-		$logConditionsTable->prepare_items( array( 'thread=%s AND type=%s AND rule_id=%d', $this->thread, 'MWP\Rules\Condition', $this->rule_id ) );
+		$logConditionsTable->prepare_items( array( 'thread=%s AND type=%s AND rule_id=%d AND iteration=%s', $this->thread, 'MWP\Rules\Condition', $this->rule_id, $this->iteration ) );
 		
 		$logActionsTable = $logsController->createDisplayTable( array( 
 			'constructor' => array(
@@ -141,7 +143,7 @@ class _Log extends ActiveRecord
 		));
 		
 		$logActionsTable->displayBottomNavigation = false;
-		$logActionsTable->prepare_items( array( 'thread=%s AND type=%s AND rule_id=%d', $this->thread, 'MWP\Rules\Action', $this->rule_id ) );
+		$logActionsTable->prepare_items( array( 'thread=%s AND type=%s AND rule_id=%d AND iteration=%s', $this->thread, 'MWP\Rules\Action', $this->rule_id, $this->iteration ) );
 		
 		$logSubrulesTable = $logsController->createDisplayTable( array( 
 			'constructor' => array(
@@ -156,7 +158,7 @@ class _Log extends ActiveRecord
 		));
 		
 		$logSubrulesTable->displayBottomNavigation = false;
-		$logSubrulesTable->prepare_items( array( 'thread=%s AND op_id=0 AND rule_parent=%d', $this->thread, $this->rule_id ) );
+		$logSubrulesTable->prepare_items( array( 'thread=%s AND op_id=0 AND rule_parent=%d AND parent_log=%d', $this->thread, $this->rule_id, $this->id() ) );
 		
 		return $this->getPlugin()->getTemplateContent( 'rules/logs/view', array( 
 			'log' => $this,

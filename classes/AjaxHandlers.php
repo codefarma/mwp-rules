@@ -183,13 +183,19 @@ class _AjaxHandlers extends \MWP\Framework\Pattern\Singleton
 		{
 			$bundle = NULL;
 			$event = NULL;
+			$rule = NULL;
 			$nodes = [];
+
+			if ( $rule_id = $request->get('rule_id') ) {
+				try { $rule = Rule::load( $rule_id ); }
+				catch( \OutOfRangeException $e ) { }
+			}
 			
 			/* Event Tokens */
 			if ( $event_type = $request->get('event_type') and $event_hook = $request->get('event_hook') ) {
 				if ( $event = $plugin->getEvent( $event_type, $event_hook ) ) {
 					if ( $event->arguments ) {
-						$arguments = $plugin->getExpandedArguments( $event->arguments );
+						$arguments = $plugin->getExpandedArguments( $event->getArguments( $rule ) );
 						$nodes[] = [
 							'text' => 'Event Data',
 							'selectable' => false,
@@ -202,18 +208,14 @@ class _AjaxHandlers extends \MWP\Framework\Pattern\Singleton
 			}
 			
 			/* Bundle Tokens */
-			if ( $bundle_id = $request->get('bundle_id') ) {
-				try { 
-					$bundle = Bundle::load( $bundle_id );
-					$nodes[] = [
-						'text' => 'Bundle Data',
-						'selectable' => false,
-						'token' => 'bundle',
-						'state' => [ 'opened' => true ],
-						'children' => array_map( array( $this, 'getNode' ), array_column( $bundle->getArguments(), 'varname' ), array_map( function($a) { return $a->getProvidesDefinition(); }, $bundle->getArguments() ) ),
-					];
-				}
-				catch( \OutOfRangeException $e ) { }
+			if ( $rule && $bundle = $rule->getBundle() ) {
+				$nodes[] = [
+					'text' => 'Bundle Data',
+					'selectable' => false,
+					'token' => 'bundle',
+					'state' => [ 'opened' => true ],
+					'children' => array_map( array( $this, 'getNode' ), array_column( $bundle->getArguments(), 'varname' ), array_map( function($a) { return $a->getProvidesDefinition(); }, $bundle->getArguments() ) ),
+				];
 			}
 			
 			/* Global Tokens */
