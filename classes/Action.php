@@ -167,15 +167,6 @@ class _Action extends GenericOperation
 		
 		static::buildConfigForm( $form, $action );
 		
-		$form->addField( 'enabled', 'checkbox', array(
-			'label' => __( 'Action Enabled?', 'mwp-rules' ),
-			'value' => 1,
-			'data' => isset( $action->enabled ) ? (bool) $action->enabled : true,
-			'row_suffix' => '<hr>',
-			'required' => false,
-		),
-		'operation_details', 'key', 'before' );
-		
 		/* Else action config */
 		$form->addField( 'else', 'choice', array(
 			'label' => __( 'Action Mode', 'mwp-rules' ),
@@ -278,14 +269,6 @@ class _Action extends GenericOperation
 				)),
 			));
 			
-		}
-		
-		if ( ! $action->id ) {
-			$form->onComplete( function() use ( $action, $plugin ) {
-				$controller = $plugin->getActionsController( $action->getRule() );
-				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $action->id(), '_tab' => 'operation_config' ) ) );
-				exit;
-			});
 		}
 		
 		return $form;

@@ -37,16 +37,28 @@ abstract class _GenericOperation extends ExportableRecord
 	 */
 	public static function buildConfigForm( $form, $operation )
 	{
+		$request = Framework::instance()->getRequest();
+		
+		// Allow manual override of the selected operation key via url param
+		if ( $request->get('opkey') ) {
+			$operation->key = $request->get('opkey');
+		}
+
+		if ( isset( $_REQUEST[ $form->name ]['operation_details']['key'] ) ) {
+			$operation->key = $_REQUEST[ $form->name ]['operation_details']['key'];
+		}
+
 		$rulesPlugin = \MWP\Rules\Plugin::instance();
 		$definition = $operation->definition();
 		$optype = $operation::$optype;
 		$opkey = $operation->getFormKey();
-		$request = Framework::instance()->getRequest();
 		$operation_label = __( $optype == 'condition' ? 'Condition to apply' : 'Action to take', 'mwp-rules' );
 		
-		$form->addTab( 'operation_details', array( 
+		$_field = $form->addField( 'operation_details', 'fieldgroup', array( 
 			'title' => __( ucwords( $optype ) . ' Details', 'mwp-rules' ),
+			'type' => 'fieldset',
 		));
+		$form->setCurrentContainer( $_field->getName() );
 		
 		/**
 		 * Operation title
@@ -59,54 +71,31 @@ abstract class _GenericOperation extends ExportableRecord
 			'required' => true,
 		));
 		
-		/* Step 1: Configure the operation type for new operations */
-		if ( ! $operation->id ) 
-		{
-			$operation_choices = array();
-			$operation_definitions = $optype == 'condition' ? $rulesPlugin->getConditions() : $rulesPlugin->getActions();
-			
-			foreach( $operation_definitions as $definition ) {
-				$group = ( isset( $definition->group ) ? $definition->group : ( isset( $definition->provider['title'] ) ? __( $definition->provider['title'] ) : __( 'Unclassified', 'mwp-rules' ) ) ) . ' ' . ucwords( $optype ) . 's';
-				$operation_choices[ $group ][ $definition->title ] = $definition->key;
-			}
-			
-			$form->addField( 'key', 'choice', array(
-				'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
-				'attr' => array( 'placeholder' => __( 'Pick ' . ( $optype == 'action' ? 'an action' : 'a condition' ), 'mwp-rules' ), 'data-bind' => 'jquery: { selectize: {} }' ),
-				'label' => $operation_label,
-				'choices' => $operation_choices,
-				'data' => $operation->key,
-				'required' => false,
-				'constraints' => [ function( $data, $context ) use ( $optype ) {
-					if ( ! $data ) {
-						$context->addViolation( __( 'You must select a ' . $optype . ' for the rule.', 'mwp-rules' ) );
-					}
-				} ],
-			),
-			NULL, 'title', 'before' );
+		$operation_choices = array();
+		$operation_definitions = $optype == 'condition' ? $rulesPlugin->getConditions() : $rulesPlugin->getActions();
 		
-			$form->addField( 'submit', 'submit', array( 
-				'label' => __( 'Continue', 'mwp-rules' ), 
-				'attr' => array( 'class' => 'btn btn-primary' ),
-				'row_attr' => array( 'class' => 'text-center', 'style' => 'margin:75px 0' ),
-			));
-			
-			return $form;			
+		foreach( $operation_definitions as $_definition ) {
+			$group = ( isset( $_definition->group ) ? $_definition->group : ( isset( $_definition->provider['title'] ) ? __( $_definition->provider['title'] ) : __( 'Unclassified', 'mwp-rules' ) ) ) . ' ' . ucwords( $optype ) . 's';
+			$operation_choices[ $group ][ $_definition->title ] = $_definition->key;
 		}
-		else
-		{
-			$operation_name = $definition ? $definition->title : 'Missing (' . $opkey . ')';
-			
-			/* Add the operation description */
-			$form->addField( 'key', 'choice', array(
-				'label' => $operation_label,
-				'choices' => array( $operation_name => $operation->key ),
-				'data' => $operation->key,
-				'required' => true,
-			),
-			NULL, 'title', 'before' );
 		
-		}
+		$form->addField( 'key', 'choice', array(
+			'row_attr' => array( 'data-view-model' => 'mwp-rules' ),
+			'attr' => array( 
+				'placeholder' => __( 'Pick ' . ( $optype == 'action' ? 'an action' : 'a condition' ), 'mwp-rules' ), 
+				'data-bind' => 'jquery: { selectize: {} }, event: { change: onOperationChange }' 
+			),
+			'label' => $operation_label,
+			'choices' => $operation_choices,
+			'data' => $operation->key,
+			'required' => false,
+			'constraints' => [ function( $data, $context ) use ( $optype ) {
+				if ( ! $data ) {
+					$context->addViolation( __( 'You must select a ' . $optype . ' for the rule.', 'mwp-rules' ) );
+				}
+			} ],
+		),
+		NULL, 'title', 'before' );
 		
 		/* Make sure we have a definition to work with */
 		if ( $definition ) 
@@ -115,9 +104,11 @@ abstract class _GenericOperation extends ExportableRecord
 			$has_arg_config = ( isset( $definition->arguments ) and is_array( $definition->arguments ) );
 			
 			if ( $has_op_config or $has_arg_config ) {
-				$form->addTab( 'operation_config', array( 
+				$_field = $form->addField( 'operation_config', 'fieldgroup', array( 
 					'title' => __( ucwords( $optype ) . ' Config', 'mwp-rules' ),
+					'type' => 'fieldset',
 				));
+				$form->setCurrentContainer( $_field->getName() );
 			}
 				
 			/* Add operation level form fields */

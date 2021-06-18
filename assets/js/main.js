@@ -51,10 +51,34 @@
 		 */
 		init: function()
 		{
+			var self = this;
 			this.setupEnabledToggles();
 			
 			// set the properties on your view model which can be observed by your html templates
-			this.viewModel = {};
+			this.viewModel = {
+
+				/**
+				 * Update the form via ajax when an operation is changed
+				 *
+				 * @param	mwp.controller		controller			This controller
+				 * @param	object				event				The dom event
+				 * @return	void
+				 */
+				onOperationChange: function( controller, event ) {
+					var input = $(event.target);
+					var form = input.closest('form');
+					var form_name = form.attr('name');
+
+					$.get(window.location + '&opkey=' + input.val()).then(function(html) {
+						var updated = $(html).find('form[name=' + form_name + ']');
+						var mwp_forms = mwp.controller.get('mwp-forms-controller');
+						form.replaceWith(updated);
+						mwp.applyViews(updated);
+						mwp_forms.applyToggles(updated.closest('.mwp-form').parent());
+					});
+				}
+
+			};
 		},
 		
 		/**

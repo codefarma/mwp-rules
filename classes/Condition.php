@@ -175,16 +175,7 @@ class _Condition extends GenericOperation
 		
 		static::buildConfigForm( $form, $condition );
 		
-		$form->addField( 'enabled', 'checkbox', array(
-			'label' => __( 'Condition Enabled?', 'mwp-rules' ),
-			'value' => 1,
-			'data' => isset( $condition->enabled ) ? (bool) $condition->enabled : true,
-			'row_suffix' => '<hr>',
-		),
-		'operation_details', 'key', 'before' );
-		
-		/** Condition specific form fields **/
-		
+		/** Condition specific form fields **/		
 		$form->addField( 'not', 'checkbox', array(
 			'label' => __( 'NOT', 'mwp-rules' ),
 			'value' => 1,
@@ -211,17 +202,9 @@ class _Condition extends GenericOperation
 					</ul>",
 				'row_suffix' => '<hr>',
 			),
-			'operation_details', 'enabled' );
+			'operation_details', 'title' );
 		}
-		
-		if ( ! $condition->id ) {
-			$form->onComplete( function() use ( $condition, $plugin ) {
-				$controller = $plugin->getConditionsController( $condition->getRule() );
-				wp_redirect( $controller->getUrl( array( 'do' => 'edit', 'id' => $condition->id(), '_tab' => 'operation_config' ) ) );
-				exit;
-			});
-		}
-		
+
 		return $form;
 	}
 	
